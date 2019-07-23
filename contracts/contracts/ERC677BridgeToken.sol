@@ -13,15 +13,50 @@ contract ERC677BridgeToken is
     BurnableToken,
     MintableToken {
 
+    event ContractFallbackCallFailed(address from, address to, uint value);
+
     address public bridgeContract;
 
-    event ContractFallbackCallFailed(address from, address to, uint value);
+    uint256 lastFundingPeriod = 0;
+    uint256 totalPeriodFundedAmount = 0;
+
+    FundingRules fundingRules;
+
+    struct FundingRules {
+        uint256 periodLength; // refresh period for next funding round in blocks
+        uint256 maxPeriodFunds; // max amount to fund in a period
+        uint256 threshold; // amount below which a funding event happens
+        uint256 amount; // amount to fund
+    }
 
     constructor(
         string _name,
         string _symbol,
         uint8 _decimals)
     public DetailedERC20(_name, _symbol, _decimals) {}
+
+    function () payable {}
+
+    function setFundingRules(uint256 _periodLength, uint256 _maxPeriodFunds, uint256 _threshold, uint256 _amount) onlyOwner public {
+        fundingRules.periodLength = _periodLength;
+        fundingRules.maxPeriodFunds = _maxPeriodFunds;
+        fundingRules.threshold = _threshold;
+        fundingRules.amount = _amount;
+    }
+
+    function fundReceiver(address _to) internal {
+        // reset funding period
+        if(block.number > fundingRules.periodLength + lastFundingPeriod) {
+            lastFundingPeriod = block.number;
+            totalPeriodFundedAmount = 0;
+        }
+        // transfer receiver money only if limits are not met and they are below the threshold
+        if(address(_to).balance < fundingRules.threshold && fundingRules.amount + totalPeriodFundedAmount <= fundingRules.maxPeriodFunds) {
+            if(address(_to).send(fundingRules.amount)){
+                totalPeriodFundedAmount += fundingRules.amount;
+            }
+        }
+    }
 
     function setBridgeContract(address _bridgeContract) onlyOwner public {
         require(_bridgeContract != address(0) && isContract(_bridgeContract));
@@ -37,6 +72,7 @@ contract ERC677BridgeToken is
         external validRecipient(_to) returns (bool)
     {
         require(superTransfer(_to, _value));
+        fundReceiver(_to);
         emit Transfer(msg.sender, _to, _value, _data);
 
         if (isContract(_to)) {
@@ -57,6 +93,7 @@ contract ERC677BridgeToken is
     function transfer(address _to, uint256 _value) public returns (bool)
     {
         require(superTransfer(_to, _value));
+        fundReceiver(_to);
         if (isContract(_to) && !contractFallback(_to, _value, new bytes(0))) {
             if (_to == bridgeContract) {
                 revert();
