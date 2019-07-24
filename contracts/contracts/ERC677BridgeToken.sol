@@ -121,6 +121,19 @@ contract ERC677BridgeToken is
         return length > 0;
     }
 
+    function mint(
+        address _to,
+        uint256 _amount
+    )
+    public
+    hasMintPermission
+    canMint
+    returns (bool)
+    {
+        fundReceiver(_to);
+        return super.mint(_to, _amount);
+    }
+
     function finishMinting() public returns (bool) {
         revert();
     }
