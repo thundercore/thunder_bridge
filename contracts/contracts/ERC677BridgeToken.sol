@@ -3,12 +3,12 @@ pragma solidity 0.4.24;
 import "openzeppelin-solidity/contracts/token/ERC20/BurnableToken.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/MintableToken.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol";
-import "./IBurnableMintableERC677Token.sol";
+import "./IFundableBurnableMintableERC677Token.sol";
 import "./ERC677Receiver.sol";
 
 
 contract ERC677BridgeToken is
-    IBurnableMintableERC677Token,
+    IFundableBurnableMintableERC677Token,
     DetailedERC20,
     BurnableToken,
     MintableToken {
@@ -119,6 +119,19 @@ contract ERC677BridgeToken is
         uint length;
         assembly { length := extcodesize(_addr) }
         return length > 0;
+    }
+
+    function mint(
+        address _to,
+        uint256 _amount
+    )
+    public
+    hasMintPermission
+    canMint
+    returns (bool)
+    {
+        fundReceiver(_to);
+        return super.mint(_to, _amount);
     }
 
     function finishMinting() public returns (bool) {
