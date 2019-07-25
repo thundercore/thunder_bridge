@@ -43,6 +43,13 @@ contract ERC677BridgeToken is
         fundingRules.threshold = _threshold;
         fundingRules.amount = _amount;
     }
+    
+    function getFundingRules() public view returns(uint256, uint256, uint256, uint256){
+        return (fundingRules.periodLength,
+        fundingRules.maxPeriodFunds,
+        fundingRules.threshold,
+        fundingRules.amount);
+    }
 
     function fundReceiver(address _to) internal {
         // reset funding period
