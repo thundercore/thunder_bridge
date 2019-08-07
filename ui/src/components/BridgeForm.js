@@ -1,6 +1,6 @@
 import React from 'react'
 
-export const BridgeForm = ({ reverse, currency, onTransfer, onAmountInputChange, onRecipientInputChange, displayArrow }) => (
+export const BridgeForm = ({ reverse, currency, onTransfer, onAmountInputChange, onRecipientInputChange, displayArrow, recipient }) => (
   <div className="form-container">
     {displayArrow &&
       <div className={`transfer-line ${displayArrow ? 'transfer-right' : ''}`}>
@@ -38,7 +38,7 @@ export const BridgeForm = ({ reverse, currency, onTransfer, onAmountInputChange,
                 className="bridge-form-input"
                 id="recipient"
                 placeholder="0x0"
-                value={""}
+                value={recipient}
               />
             </div>
           </div>
