@@ -46,9 +46,6 @@ export class Bridge extends React.Component {
             reverse
           })
         }
-        this.setState({
-          recipient: web3Store.defaultAccount.address
-        })
       }
     })
   }

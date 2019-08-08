@@ -37,7 +37,7 @@ export const BridgeForm = ({ reverse, currency, onTransfer, onAmountInputChange,
                 pattern="0x[0-9a-fA-F]{40}"
                 className="bridge-form-input"
                 id="recipient"
-                placeholder="0x00"
+                placeholder="0x0"
                 value={recipient}
               />
             </div>
