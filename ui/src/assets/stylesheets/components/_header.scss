@@ -41,16 +41,15 @@
   }
 
   .container {
-    width: 100%;
-    max-width: 960px;
     align-items: center;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
   }
 
-  @media (max-width: 950px) {
+  @media (max-width: 980px) {
     .container {
+      width: 100%;
       flex-direction: column;
       align-items: stretch;
     }
