@@ -5,6 +5,11 @@
   color: $footer-text-color;
   padding: 18px 0;
 
+  .footer-logo-container {
+    display: flex;
+    align-items: center;
+  }
+
   .container {
     align-items: center;
     display: flex;
