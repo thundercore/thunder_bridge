@@ -430,7 +430,11 @@ class HomeStore {
       })
     } catch (e) {
       console.error(e)
-      this.getStatistics()
+      // This causes an infinite loop and breaks people's browsers
+      // adding a time out to reduce the calls
+      setTimeout(() => {
+        this.getStatistics()
+      }, 500)
     }
   }
 
