@@ -1,4 +1,5 @@
 # Truffle Console Instructions
+
 In `local.jsonc`:
 ```
 {
@@ -10,6 +11,14 @@ In `local.jsonc`:
 In `.private-keys`:
 ```
 1b9a85a7584d44b8948ca9e3ad27e6f2cb31279905a94a7a9363889964b22e46
+```
+
+## Override `solc` Version Installed by Truffle
+```
+$ cd thunder_bridge
+$ npm install
+$ cd node_modules/trufle
+$ npm install solc@0.4.24
 ```
 
 # Bridge Smart Contracts
