@@ -1,3 +1,17 @@
+# Truffle Console Instructions
+In `local.jsonc`:
+```
+{
+  "infura_project_id": "...",
+  "infura_project_secret": "...",
+}
+```
+
+In `.private-keys`:
+```
+1b9a85a7584d44b8948ca9e3ad27e6f2cb31279905a94a7a9363889964b22e46
+```
+
 # Bridge Smart Contracts
 These contracts provide the core functionality for the Bridge. They implement the logic to relay assests between two EVM-based blockchain networks. The contracts collect bridge validator's signatures to approve and facilitate relay operations.
 
