@@ -1,5 +1,35 @@
 [![Coverage Status](https://coveralls.io/repos/github/poanetwork/tokenbridge/badge.svg?branch=master)](https://coveralls.io/github/poanetwork/tokenbridge?branch=master)
 
+# Thunder bridge UI local run
+## Environment
+### OS X
+
+- Install [Homebrew](https://brew.sh/)
+```
+brew install yarn
+```
+## Install
+In the folder which clone from the repo.
+```
+cd ./ui
+yarn install
+```
+## Set up environment variables
+In the [Ansible playbook](https://github.com/thundercore/devops/blob/develop/ansible/playbooks/CCA/cca-bridgeui.yml), 
+follow section of "Transfer BridgeUI Env File" to do the following change.\
+In the folder of thunder_bridge/ui
+```
+cp .env.example .env
+cd ../deployment/ui
+cp .env.example .env
+```
+Modify required env values based on Ansible config for [Mainnet](https://github.com/thundercore/devops/blob/develop/ansible/configs/CCA/mainnet/global.env.yml) / [Testnet](https://github.com/thundercore/devops/blob/develop/ansible/configs/CCA/testnet/global.env.yml)
+and [jinja2 config](https://github.com/thundercore/devops/blob/develop/ansible/configs/CCA/bridgeui-env.j2) accordingly.
+## Run
+```
+yarn start
+```
+
 # POA Token Bridge / UI
 DApp interface to transfer tokens and coins between chains.
 
