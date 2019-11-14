@@ -2,3 +2,9 @@ node_modules
 build
 flats
 .node*
+.private-keys
+local.jsonc
+
+# VIM
+*.swp
+*.swo
