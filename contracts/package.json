@@ -14,8 +14,11 @@
   "license": "GPLv3",
   "dependencies": {
     "ganache-cli": "^6.1.0",
+    "json5": "^2.1.1",
     "openzeppelin-solidity": "^1.10.0",
+    "solc": "0.4.24",
     "truffle": "^4.1.11",
+    "truffle-contract": "^4.0.31",
     "web3-utils": "^1.0.0-beta.34"
   },
   "devDependencies": {
@@ -24,7 +27,9 @@
     "chai-bignumber": "^2.0.2",
     "eth-gas-reporter": "^0.1.12",
     "nodemon": "^1.17.3",
+    "scrypt": "6.0.3",
     "solidity-coverage": "^0.4.15",
-    "truffle-flattener": "^1.2.3"
+    "truffle-flattener": "^1.2.3",
+    "truffle-hdwallet-provider": "1.0.8"
   }
 }
