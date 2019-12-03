@@ -10,15 +10,25 @@ In `local.jsonc`:
 
 In `.private-keys`:
 ```
-1b9a85a7584d44b8948ca9e3ad27e6f2cb31279905a94a7a9363889964b22e46
+Add private key of contract owner.
 ```
 
-## Override `solc` Version Installed by Truffle
+## Install the dependencies in node_modules folder.
 ```
-$ cd thunder_bridge
+Prepared an environment with NodeJS 10 installed.
+$ cd thunder_bridge/contracts
 $ npm install
-$ cd node_modules/trufle
-$ npm install solc@0.4.24
+```
+
+## Run script to modify USDT/DAI limits on Home/Foreign chain.
+```
+In thunder_bridge/contracts
+$ truffle exec home-limits.js --network [network name]
+Or
+$ truffle exec foreign-limits.js --network [network name]
+
+Debug
+$ truffle console --network [network name] --verbose-rpc
 ```
 
 # Bridge Smart Contracts
