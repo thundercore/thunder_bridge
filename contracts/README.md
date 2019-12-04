@@ -1,3 +1,36 @@
+# Truffle Console Instructions
+
+In `local.jsonc`:
+```
+{
+  "infura_project_id": "...",
+  "infura_project_secret": "...",
+}
+```
+
+In `.private-keys`:
+```
+Add private key of contract owner.
+```
+
+## Install the dependencies in node_modules folder.
+```
+Prepared an environment with NodeJS 10 installed.
+$ cd thunder_bridge/contracts
+$ npm install
+```
+
+## Run script to modify USDT/DAI limits on Home/Foreign chain.
+```
+In thunder_bridge/contracts
+$ truffle exec home-limits.js --network [network name]
+Or
+$ truffle exec foreign-limits.js --network [network name]
+
+Debug
+$ truffle console --network [network name] --verbose-rpc
+```
+
 # Bridge Smart Contracts
 These contracts provide the core functionality for the Bridge. They implement the logic to relay assests between two EVM-based blockchain networks. The contracts collect bridge validator's signatures to approve and facilitate relay operations.
 
