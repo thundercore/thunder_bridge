@@ -53,6 +53,24 @@ module.exports = {
       gas: 4700000,
       gasPrice: 1000000000
     },*/
+    eth: {
+      provider: () => {
+        if (privateKeys === null) {
+          throw (new Error('Create a .private-keys file'));
+        }
+        if (infuraProjectId === null) {
+          throw (new Error('Set "infura_project_id" in local.jsonc'));
+        }
+        if (infuraProjectSecret === null) {
+          throw (new Error('Set "infura_project_secret" in local.jsonc'));
+        }
+        // FIXME: infuraProjectSecret not used yet
+        return new HDWalletProvider(privateKeys, `https://mainnet.infura.io/v3/${infuraProjectId}`, 0 /*address_index*/,
+          privateKeys.length/*num_address*/);
+      },
+      network_id: 1,
+      gasPrice: 1000000000
+    },
     kovan: {
       provider: () => {
         if (privateKeys === null) {
@@ -68,7 +86,8 @@ module.exports = {
         return new HDWalletProvider(privateKeys, `https://kovan.infura.io/v3/${infuraProjectId}`, 0 /*address_index*/,
           privateKeys.length/*num_address*/);
       },
-      network_id: 42
+      network_id: 42,
+      gasPrice: 1000000000
     },
 
     core: {
