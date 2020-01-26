@@ -141,14 +141,15 @@ async function main({ msg, ackMsg, nackMsg, sendToQueue, channel }) {
       } catch (e) {
         logger.error(
           { eventTransactionHash: job.transactionReference, error: e.message },
-          `Tx Failed for event Tx ${job.transactionReference}.
-           from: ${privateKeyToAddress(privateKey.getValidatorKey())}
+          `Tx Failed for event Tx ${job.transactionReference}:
+           from: ${privateKeyToAddress(await privateKey.getValidatorKey())}
            to: ${job.to}
            gasPrice: ${gasPrice.toString(10)}
            gasLimit: ${gasLimit}
            data: ${job.data}
            chain: ${config.id}
            nonce: ${nonce}
+           chainId: ${chainId}
            amount: "0"`,
           e.message
         )
