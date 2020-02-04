@@ -104,6 +104,10 @@ function nonceError(e) {
   )
 }
 
+function blockGasLimitExceededError(e) {
+  return e.message.includes('exceeds block gas limit') // geth
+}
+
 module.exports = {
   syncForEach,
   checkHTTPS,
@@ -112,5 +116,6 @@ module.exports = {
   setIntervalAndRun,
   watchdog,
   privateKeyToAddress,
-  nonceError
+  nonceError,
+  blockGasLimitExceededError
 }

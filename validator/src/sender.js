@@ -15,7 +15,8 @@ const {
   syncForEach,
   waitForFunds,
   watchdog,
-  nonceError
+  nonceError,
+  blockGasLimitExceededError
 } = require('./utils/utils')
 const { EXIT_CODES, EXTRA_GAS_PERCENTAGE } = require('./utils/constants')
 
@@ -153,7 +154,10 @@ async function main({ msg, ackMsg, nackMsg, sendToQueue, channel }) {
            amount: "0"`,
           e.message
         )
-        if (!e.message.includes('Transaction with the same hash was already imported')) {
+        if (
+          !e.message.includes('Transaction with the same hash was already imported') &&
+          !blockGasLimitExceededError(e)
+        ) {
           failedTx.push(job)
         }
 
