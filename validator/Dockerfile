@@ -10,6 +10,5 @@ COPY package-lock.json .
 RUN npm install
 
 COPY . .
-ENTRYPOINT ["npm", "run"]
 CMD ["docker-message"]
 

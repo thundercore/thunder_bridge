@@ -24,7 +24,8 @@ const erc20Token = new foreignWeb3.eth.Contract(
   '0x3C665A31199694Bf723fD08844AD290207B5797f'
 )
 
-describe('erc to native', () => {
+// Skip test because thunder only deploy `erc-to-erc` bridge.
+describe.skip('erc to native', () => {
   it('should convert tokens in foreign to coins in home', async () => {
     const balance = await erc20Token.methods.balanceOf(user.address).call()
     const originalBalanceOnHome = await homeWeb3.eth.getBalance(user.address)

@@ -27,7 +27,8 @@ const token = new foreignWeb3.eth.Contract(tokenAbi, '0xdbeE25CbE97e4A5CC6c49987
 
 const sleep = timeout => new Promise(res => setTimeout(res, timeout))
 
-describe('native to erc', () => {
+// Skip test because thunder only deploy `erc-to-erc` bridge.
+describe.skip('native to erc', () => {
   it('should convert eth in home to tokens in foreign', async () => {
     // check that account has zero tokens in the foreign chain
     const balance = await token.methods.balanceOf(user.address).call()
