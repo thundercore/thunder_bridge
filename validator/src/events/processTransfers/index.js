@@ -102,7 +102,7 @@ function processTransfersBuilder(config) {
           .executeAffirmation(from, value, transfer.transactionHash)
           .encodeABI({ from: config.validatorAddress })
 
-        txToSend.push({
+        const t = {
           data,
           gasEstimate,
           transactionReference: transfer.transactionHash,

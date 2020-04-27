@@ -26,6 +26,78 @@ const eventContract = new web3Instance.eth.Contract(config.eventAbi, config.even
 const lastBlockRedisKey = `${config.id}:lastProcessedBlock`
 let lastProcessedBlock = BN.max(config.startBlock.sub(ONE), ZERO)
 
+class Watcher {
+  constructor(web3, redis) {
+    this.web3 = web3
+    this.redis = redis
+  }
+
+  async getLastProcessedBlock() {
+    const result = await this.redis.get(lastBlockRedisKey)
+    logger.debug(
+      { fromRedis: result, fromConfig: lastProcessedBlock.toString() },
+      'Last Processed block obtained'
+    )
+    lastProcessedBlock = result ? toBN(result) : lastProcessedBlock
+  }
+
+  async updateLastProcessedBlock(lastBlockNumber) {
+    lastProcessedBlock = lastBlockNumber
+    return this.redis.set(lastBlockRedisKey, lastProcessedBlock.toString())
+  }
+
+  async getLastBlockToProcess() {
+    const lastBlockNumberPromise = getBlockNumber(web3Instance).then(toBN)
+    const requiredBlockConfirmationsPromise = getRequiredBlockConfirmations(bridgeContract).then(toBN)
+    const [lastBlockNumber, requiredBlockConfirmations] = await Promise.all([
+      lastBlockNumberPromise,
+      requiredBlockConfirmationsPromise
+    ])
+
+    return lastBlockNumber.sub(requiredBlockConfirmations)
+  }
+
+  async run({ sendToQueue }) {
+    try {
+      const lastBlockToProcess = await getLastBlockToProcess()
+
+      if (lastBlockToProcess.lte(lastProcessedBlock)) {
+        logger.debug('All blocks already processed')
+        return
+      }
+
+      const fromBlock = lastProcessedBlock.add(ONE)
+      const toBlock = lastBlockToProcess
+
+      const events = await getEvents({
+        contract: eventContract,
+        event: config.event,
+        fromBlock,
+        toBlock,
+        filter: config.eventFilter
+      })
+      logger.info(`Found ${events.length} ${config.event} events: ${JSON.stringify(events)}`)
+
+      if (events.length) {
+        await sendToQueue({
+          eventType: config.id,
+          events: events,
+        })
+      }
+
+      logger.debug(
+        { lastProcessedBlock: lastBlockToProcess.toString() },
+        'Updating last processed block'
+      )
+      await updateLastProcessedBlock(lastBlockToProcess)
+    } catch (e) {
+      logger.error(e)
+    }
+
+    logger.debug('Finished')
+  }
+}
+
 async function initialize() {
   try {
     await config.initialize()
@@ -64,71 +136,6 @@ async function runMain({ sendToQueue }) {
   setTimeout(() => {
     runMain({ sendToQueue })
   }, config.pollingInterval)
-}
-
-async function getLastProcessedBlock() {
-  const result = await redis.get(lastBlockRedisKey)
-  logger.debug(
-    { fromRedis: result, fromConfig: lastProcessedBlock.toString() },
-    'Last Processed block obtained'
-  )
-  lastProcessedBlock = result ? toBN(result) : lastProcessedBlock
-}
-
-function updateLastProcessedBlock(lastBlockNumber) {
-  lastProcessedBlock = lastBlockNumber
-  return redis.set(lastBlockRedisKey, lastProcessedBlock.toString())
-}
-
-async function getLastBlockToProcess() {
-  const lastBlockNumberPromise = getBlockNumber(web3Instance).then(toBN)
-  const requiredBlockConfirmationsPromise = getRequiredBlockConfirmations(bridgeContract).then(toBN)
-  const [lastBlockNumber, requiredBlockConfirmations] = await Promise.all([
-    lastBlockNumberPromise,
-    requiredBlockConfirmationsPromise
-  ])
-
-  return lastBlockNumber.sub(requiredBlockConfirmations)
-}
-
-async function main({ sendToQueue }) {
-  try {
-    const lastBlockToProcess = await getLastBlockToProcess()
-
-    if (lastBlockToProcess.lte(lastProcessedBlock)) {
-      logger.debug('All blocks already processed')
-      return
-    }
-
-    const fromBlock = lastProcessedBlock.add(ONE)
-    const toBlock = lastBlockToProcess
-
-    const events = await getEvents({
-      contract: eventContract,
-      event: config.event,
-      fromBlock,
-      toBlock,
-      filter: config.eventFilter
-    })
-    logger.info(`Found ${events.length} ${config.event} events`)
-
-    if (events.length) {
-      await sendToQueue({
-        eventType: config.id,
-        events: events
-      })
-    }
-
-    logger.debug(
-      { lastProcessedBlock: lastBlockToProcess.toString() },
-      'Updating last processed block'
-    )
-    await updateLastProcessedBlock(lastBlockToProcess)
-  } catch (e) {
-    logger.error(e)
-  }
-
-  logger.debug('Finished')
 }
 
 initialize()
