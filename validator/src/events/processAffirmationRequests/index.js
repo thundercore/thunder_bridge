@@ -89,7 +89,8 @@ function processAffirmationRequestsBuilder(config) {
           data,
           gasEstimate,
           transactionReference: affirmationRequest.transactionHash,
-          to: config.homeBridgeAddress
+          to: config.homeBridgeAddress,
+          event: affirmationRequest
         })
       })
     )

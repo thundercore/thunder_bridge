@@ -19,6 +19,7 @@ const {
   blockGasLimitExceededError
 } = require('./utils/utils')
 const { EXIT_CODES, EXTRA_GAS_PERCENTAGE } = require('./utils/constants')
+const { processEvents } = require('./events')
 
 const { REDIS_LOCK_TTL } = process.env
 
@@ -52,7 +53,7 @@ async function initialize() {
       cb: options => {
         if (config.maxProcessingTime) {
           return watchdog(() => main(options), config.maxProcessingTime, () => {
-            logger.fatal('Max processing time reached')
+            logger.fatal(`Max processing time ${config.maxProcessingTime} reached`)
             process.exit(EXIT_CODES.MAX_TIME_REACHED)
           })
         }
@@ -101,22 +102,24 @@ async function main({ msg, ackMsg, nackMsg, sendToQueue, channel }) {
       return
     }
 
-    const txArray = JSON.parse(msg.content)
-    logger.info(`Msg received with ${txArray.length} Tx to send`)
+    const task = JSON.parse(msg.content)
+    logger.info(`Task ${task.eventType} received with ${task.events.length} events to process`)
+    let jobs = await processEvents(task.eventType, task.events)
+
     const gasPrice = GasPrice.getPrice()
+    const ttl = Number(REDIS_LOCK_TTL) * jobs.length
 
-    const ttl = REDIS_LOCK_TTL * txArray.length
-
-    logger.debug('Acquiring lock')
+    logger.debug(`Acquiring lock: ${nonceLock}, TTL: ${ttl}ms`)
     const lock = await redlock.lock(nonceLock, ttl)
 
     let nonce = await readNonce()
     let insufficientFunds = false
     let minimumBalance = null
-    const failedTx = []
+    const failedEvents = []
 
-    logger.debug(`Sending ${txArray.length} transactions`)
-    await syncForEach(txArray, async job => {
+
+    logger.debug(`Sending ${jobs.length} transactions`)
+    await syncForEach(jobs, async job => {
       const gasLimit = addExtraGas(job.gasEstimate, EXTRA_GAS_PERCENTAGE)
 
       try {
@@ -158,7 +161,7 @@ async function main({ msg, ackMsg, nackMsg, sendToQueue, channel }) {
           !e.message.includes('Transaction with the same hash was already imported') &&
           !blockGasLimitExceededError(e)
         ) {
-          failedTx.push(job)
+          failedEvents.push(job)
         }
 
         if (e.message.includes('Insufficient funds')) {
@@ -180,9 +183,12 @@ async function main({ msg, ackMsg, nackMsg, sendToQueue, channel }) {
     logger.debug('Releasing lock')
     await lock.unlock()
 
-    if (failedTx.length) {
-      logger.info(`Sending ${failedTx.length} Failed Tx to Queue`)
-      await sendToQueue(failedTx)
+    if (failedEvents.length) {
+      logger.info(`Sending ${failedEvents.length} failed "${task.eventType}" event to Queue`)
+      await sendToQueue({
+        eventType: task.eventType,
+        events: failedEvents
+      })
     }
     ackMsg(msg)
     logger.debug(`Finished processing msg`)

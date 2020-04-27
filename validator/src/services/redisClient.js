@@ -11,7 +11,7 @@ const redlock = new Redlock([redis], {
 })
 
 redis.on('connect', () => {
-  logger.info('Connected to redis')
+  logger.info(`Connected to redis ${process.env.REDIS_URL}`)
 })
 
 redis.on('error', () => {

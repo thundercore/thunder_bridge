@@ -3,7 +3,7 @@ const promiseLimit = require('promise-limit')
 const { HttpListProviderError } = require('http-list-provider')
 const bridgeValidatorsABI = require('../../../abis/BridgeValidators.abi')
 const rootLogger = require('../../services/logger')
-const { web3Home } = require('../../services/web3')
+const { web3Home, web3Foreign } = require('../../services/web3')
 const {
   AlreadyProcessedError,
   AlreadySignedError,
@@ -42,7 +42,7 @@ function processTransfersBuilder(config) {
         let { from, value } = transfer.returnValues
 
         // override from field for hacked transfers (with additional 32 bytes data)
-        const tx = await config.web3.eth.getTransaction(transfer.transactionHash)
+        const tx = await web3Foreign.eth.getTransaction(transfer.transactionHash)
 
         if (
           OBSERVABLE_METHODS.transfer.signature === tx.input.substring(0, 10) &&
@@ -106,7 +106,8 @@ function processTransfersBuilder(config) {
           data,
           gasEstimate,
           transactionReference: transfer.transactionHash,
-          to: config.homeBridgeAddress
+          to: config.homeBridgeAddress,
+          event: transfer
         })
       })
     )

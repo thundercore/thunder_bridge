@@ -17,11 +17,6 @@ if (process.argv.length < 3) {
 
 const config = require(path.join('../config/', process.argv[2]))
 
-const processSignatureRequests = require('./events/processSignatureRequests')(config)
-const processCollectedSignatures = require('./events/processCollectedSignatures')(config)
-const processAffirmationRequests = require('./events/processAffirmationRequests')(config)
-const processTransfers = require('./events/processTransfers')(config)
-
 const ZERO = toBN(0)
 const ONE = toBN(1)
 
@@ -85,26 +80,6 @@ function updateLastProcessedBlock(lastBlockNumber) {
   return redis.set(lastBlockRedisKey, lastProcessedBlock.toString())
 }
 
-function processEvents(events) {
-  switch (config.id) {
-    case 'native-erc-signature-request':
-    case 'erc-erc-signature-request':
-    case 'erc-native-signature-request':
-      return processSignatureRequests(events)
-    case 'native-erc-collected-signatures':
-    case 'erc-erc-collected-signatures':
-    case 'erc-native-collected-signatures':
-      return processCollectedSignatures(events)
-    case 'native-erc-affirmation-request':
-      return processAffirmationRequests(events)
-    case 'erc-erc-affirmation-request':
-    case 'erc-native-affirmation-request':
-      return processTransfers(events)
-    default:
-      return []
-  }
-}
-
 async function getLastBlockToProcess() {
   const lastBlockNumberPromise = getBlockNumber(web3Instance).then(toBN)
   const requiredBlockConfirmationsPromise = getRequiredBlockConfirmations(bridgeContract).then(toBN)
@@ -138,12 +113,10 @@ async function main({ sendToQueue }) {
     logger.info(`Found ${events.length} ${config.event} events`)
 
     if (events.length) {
-      const job = await processEvents(events)
-      logger.info('Transactions to send:', job.length)
-
-      if (job.length) {
-        await sendToQueue(job)
-      }
+      await sendToQueue({
+        eventType: config.id,
+        events: events
+      })
     }
 
     logger.debug(

@@ -112,7 +112,8 @@ function processCollectedSignaturesBuilder(config) {
             data,
             gasEstimate,
             transactionReference: colSignature.transactionHash,
-            to: config.foreignBridgeAddress
+            to: config.foreignBridgeAddress,
+            event: colSignature
           })
         } else {
           logger.info(

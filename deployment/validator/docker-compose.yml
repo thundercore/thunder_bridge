@@ -8,16 +8,16 @@ services:
   rabbit:
     image: rabbitmq:3
     restart: always
-    environment: 
+    environment:
       RABBITMQ_NODENAME: node@rabbit
-    volumes: 
+    volumes:
       - rabbitmq:/var/lib/rabbitmq/mnesia
 
   redis:
     image: redis:4
     restart: always
     command: [redis-server, --appendonly, 'yes']
-    volumes: 
+    volumes:
       - redis:/data
 
   bridge:
@@ -33,7 +33,7 @@ services:
     build: ../../validator
     command: watcher:signature-request
     restart: always
-    environment: 
+    environment:
       - NODE_ENV=production
     env_file: ./.env
     depends_on:

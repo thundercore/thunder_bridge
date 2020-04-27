@@ -3,7 +3,7 @@ const promiseLimit = require('promise-limit')
 const { HttpListProviderError } = require('http-list-provider')
 const bridgeValidatorsABI = require('../../../abis/BridgeValidators.abi')
 const rootLogger = require('../../services/logger')
-const { web3Home } = require('../../services/web3')
+const { web3Home, web3Foreign } = require('../../services/web3')
 const { createMessage } = require('../../utils/message')
 const estimateGas = require('./estimateGas')
 const privateKey = require('../../../config/private-keys.config')
@@ -49,7 +49,7 @@ function processSignatureRequestsBuilder(config) {
         let { recipient, value } = signatureRequest.returnValues
 
         // override from field for hacked transfers (with additional 32 bytes data)
-        const tx = await config.web3.eth.getTransaction(signatureRequest.transactionHash)
+        const tx = await web3Home.eth.getTransaction(signatureRequest.transactionHash)
 
         if (
           OBSERVABLE_METHODS.transferAndCall.signature === tx.input.substring(0, 10) &&
@@ -127,7 +127,8 @@ function processSignatureRequestsBuilder(config) {
           data,
           gasEstimate,
           transactionReference: signatureRequest.transactionHash,
-          to: config.homeBridgeAddress
+          to: config.homeBridgeAddress,
+          event: signatureRequest
         })
       })
     )

@@ -1,4 +1,4 @@
-version: '3'
+version: '2'
 services:
   parity1:
     build: parity
@@ -14,10 +14,10 @@ services:
     image: "rabbitmq:3-management"
     ports:
       - "15672:15672"
-  bridge-erc:
+  bridge:
     build: ..
     environment:
-      - NODE_ENV=production
+      # - NODE_ENV=production
       - BRIDGE_MODE=ERC_TO_ERC
       - QUEUE_URL=amqp://rabbit
       - REDIS_URL=redis://redis
@@ -38,10 +38,44 @@ services:
       - FOREIGN_GAS_PRICE_SPEED_TYPE=standard
       - FOREIGN_GAS_PRICE_FALLBACK=10000000000
       - FOREIGN_GAS_PRICE_UPDATE_INTERVAL=600000
-      - HOME_POLLING_INTERVAL=500
-      - FOREIGN_POLLING_INTERVAL=500
+      - HOME_POLLING_INTERVAL=2000
+      - FOREIGN_POLLING_INTERVAL=2000
       - ALLOW_HTTP=yes
-    command: "true"
+    volumes:
+      - ../src:/app/src
+  watcher-signature-request:
+    extends: bridge
+    command: npm run watcher:signature-request
+  watcher-collected-signatures:
+    extends: bridge
+    command: npm run watcher:collected-signatures
+  watcher-affirmation-request:
+    extends: bridge
+    command: npm run watcher:affirmation-request
+  sender-home:
+    extends: bridge
+    command: npm run sender:home
+  test:
+    extends: bridge
+    command: bash
+    stdin_open: true
+    tty: true
+  sender-foreign:
+    extends: bridge
+    command: npm run sender:foreign
   e2e:
     build: .
-    command: "true"
+    command:
+      - "true"
+    volumes:
+      - ./test:/stuff/test
+  deploy-contract:
+    extends: e2e
+    command: npm run deploy
+    volumes:
+      - ./test:/stuff/test
+    depends_on:
+      - parity1
+      - parity2
+      - rabbit
+      - redis
