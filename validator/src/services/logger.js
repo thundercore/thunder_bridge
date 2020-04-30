@@ -1,8 +1,8 @@
 const pino = require('pino')
 const path = require('path')
 
-const config =
-  process.env.NODE_ENV !== 'test' ? require(path.join('../../config/', process.argv[2])) : {}
+const config = {}
+  // process.env.NODE_ENV !== 'test' ? require(path.join('../../config/', process.argv[2])) : {}
 
 const logger = pino({
   enabled: process.env.NODE_ENV !== 'test',
@@ -15,5 +15,11 @@ const logger = pino({
         }
       : {}
 })
+
+console.log('logger.js: pino["writeSym"]:', pino['writeSym'])
+console.log('logger.js: logger["writeSym"]:', logger['writeSym'])
+logger.error('logger.error TEST')
+logger.info.bind(logger)
+logger.error.bind(logger)
 
 module.exports = logger

@@ -108,7 +108,7 @@ function processTransfersBuilder(config) {
           transactionReference: transfer.transactionHash,
           to: config.homeBridgeAddress,
           event: transfer
-        })
+        }
       })
     )
 

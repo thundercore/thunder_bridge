@@ -2,8 +2,11 @@
     "compilerOptions": {
         "outDir": "./built",
         "allowJs": true,
-        "target": "es6",
-        "moduleResolution": "node"
+        "target": "es5",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true
     },
     "include": [
         "./src/**/*"

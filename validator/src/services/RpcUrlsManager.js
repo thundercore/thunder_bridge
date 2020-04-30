@@ -5,10 +5,12 @@ const { RETRY_CONFIG } = require('../utils/constants')
 
 function RpcUrlsManager(homeUrls, foreignUrls) {
   if (!homeUrls) {
-    throw new Error(`Invalid homeUrls: '${homeUrls}'`)
+    homeUrls = ''
+    // throw new Error(`Invalid homeUrls: '${homeUrls}'`)
   }
   if (!foreignUrls) {
-    throw new Error(`Invalid foreignUrls: '${foreignUrls}'`)
+    foreignUrls = ''
+    // throw new Error(`Invalid foreignUrls: '${foreignUrls}'`)
   }
 
   this.homeUrls = homeUrls.split(',')
