@@ -12,7 +12,7 @@ import { EventData, Filter} from 'web3-eth-contract';
 import { toBN } from 'web3-utils';
 
 import { expect } from 'chai';
-import { equal } from 'assert';
+import { strictEqual } from 'assert';
 import Web3 from 'web3'
 import BN from 'bn.js'
 import sinon from 'sinon';
@@ -86,9 +86,9 @@ class MemKVStore implements KVStore {
 }
 
 describe('Test EventWatcher', () => {
-  var web3 = new FakeWatcherWeb3()
-  var state = new FakeProcessState()
-  var watcher = new EventWatcher('mytestcase', 'testevent', {}, web3, state)
+  let web3 = new FakeWatcherWeb3()
+  let state = new FakeProcessState()
+  let watcher = new EventWatcher('mytestcase', 'testevent', {}, web3, state)
 
   it("test get last block to process", async () => {
     web3.lastBlockNumber = 100
@@ -103,7 +103,7 @@ describe('Test EventWatcher', () => {
     state.lastProcessedBlock = toBN(50)
     let queue = new FakeQueueSend()
     await watcher.run(queue)
-    equal(queue.queue.length, 0)
+    strictEqual(queue.queue.length, 0)
   })
 
   it("test process new block", async () => {
@@ -114,13 +114,13 @@ describe('Test EventWatcher', () => {
     let queue = new FakeQueueSend()
     await watcher.run(queue)
 
-    equal(queue.queue.length, 1)
+    strictEqual(queue.queue.length, 1)
     let task = queue.queue.pop()
-    let expection = {
+    let expectation = {
       fromBlock: 46,
       toBlock: 49
     }
-    expect(task.events.pop().returnValues).to.deep.equal(expection)
+    expect(task.events.pop().returnValues).to.deep.equal(expectation)
 
     let lastBlockToProcess = await watcher.getLastBlockToProcess()
     expect(lastBlockToProcess.toString(), toBN(49).toString())
@@ -131,7 +131,7 @@ describe('Test EventWatcher', () => {
 describe("Test WatcherWeb3Impl", () => {
   let sandbox: sinon.SinonSandbox
 
-  before(() => { sandbox = sinon.sandbox.create(); })
+  before(() => { sandbox = sinon.createSandbox(); })
   afterEach(() => { sandbox.restore(); })
 
   it("Test getLastBlockNumber", async () => {
@@ -143,8 +143,8 @@ describe("Test WatcherWeb3Impl", () => {
     getBlockNumber.resolves(10)
 
     let watcherWeb3 = new WatcherWeb3Impl(web3, contract, contract)
-    let blockNumer = await watcherWeb3.getLastBlockNumber()
-    expect(blockNumer.toNumber()).to.equal(10)
+    let blockNumber = await watcherWeb3.getLastBlockNumber()
+    expect(blockNumber.toNumber()).to.equal(10)
   })
 
   it("Test getRequiredBlockConfirmations", async () => {
@@ -160,8 +160,8 @@ describe("Test WatcherWeb3Impl", () => {
       requiredBlockConfirmations: () => ({ call: sinon.stub().resolves(50) }),
     }
     let watcherWeb3 = new WatcherWeb3Impl(web3, bridgeContract, eventContract)
-    let blockNumer = await watcherWeb3.getRequiredBlockConfirmations()
-    expect(blockNumer.toNumber()).to.equal(10)
+    let blockNumber = await watcherWeb3.getRequiredBlockConfirmations()
+    expect(blockNumber.toNumber()).to.equal(10)
   })
 })
 
