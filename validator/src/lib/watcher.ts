@@ -1,6 +1,7 @@
 import { toBN } from 'web3-utils'
 import { Contract, EventData, Filter } from 'web3-eth-contract'
 import Web3 from 'web3'
+import { PastLogsOptions } from 'web3-core'
 import { BatchRequest } from '../tx/batch'
 import logger from '../services/logger'
 import BN from 'bn.js'
@@ -149,7 +150,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
     return events
   }
 
-  encodeEventAbi(event, fromBlock, toBlock, filter) {
+  encodeEventAbi(event, fromBlock, toBlock, filter): PastLogsOptions {
     const params = {
       address: this.eventContract.options.address.toLowerCase(),
       fromBlock: this.web3.utils.toHex(fromBlock),
@@ -173,7 +174,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
     return params
   }
 
-  decodeEventAbi(event, result) {
+  decodeEventAbi(event, result): EventData {
     let argTopics = result.topics.slice(1)
     result.returnValues = this.web3.eth.abi.decodeLog(event.inputs, result.data, argTopics)
     delete result.returnValues.__length__
@@ -191,7 +192,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
 
 export interface WatcherTask {
   eventType: string
-  events: any
+  events: EventData[]
 }
 
 export interface SendToQueue {
