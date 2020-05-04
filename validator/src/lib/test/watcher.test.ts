@@ -1,4 +1,12 @@
-import { EventWatcher, ProcessState, WatcherWeb3, WatcherTask, SendToQueue, WatcherWeb3Impl } from '../watcher'
+import {
+  EventWatcher,
+  ProcessState,
+  WatcherWeb3,
+  WatcherTask,
+  SendToQueue,
+  WatcherWeb3Impl,
+  ProcessStateImpl, KVStore
+} from '../watcher'
 import { describe, before } from 'mocha'
 import { EventData, Filter} from 'web3-eth-contract';
 import { toBN } from 'web3-utils';
@@ -61,6 +69,19 @@ class FakeQueueSend implements SendToQueue {
   async push(item: WatcherTask): Promise<void> {
     this.queue.push(item)
     return Promise.resolve()
+  }
+}
+
+class MemKVStore implements KVStore {
+  store: object = {}
+
+  get(key: string): Promise<string> {
+    return Promise.resolve(this.store[key])
+  }
+
+  set(key: string, value: string) {
+    this.store[key] = value
+    return Promise.resolve("OK")
   }
 }
 
@@ -141,5 +162,36 @@ describe("Test WatcherWeb3Impl", () => {
     let watcherWeb3 = new WatcherWeb3Impl(web3, bridgeContract, eventContract)
     let blockNumer = await watcherWeb3.getRequiredBlockConfirmations()
     expect(blockNumer.toNumber()).to.equal(10)
+  })
+})
+
+describe("Test ProcessStateImpl", () => {
+  let sandbox: sinon.SinonSandbox
+
+  before(() => { sandbox = sinon.createSandbox() })
+  afterEach(() => { sandbox.restore() })
+
+  it("init with empty store, use start block number", async () => {
+    const memRedis = new MemKVStore()
+    const ps = new ProcessStateImpl("test", memRedis, toBN(11));
+    await ps.getLastProcessedBlock()
+    expect(ps.lastProcessedBlock.toNumber()).to.equal(11)
+  })
+
+  it("init with store, use value in store", async () => {
+    const memRedis = new MemKVStore()
+    memRedis.set("test:lastProcessedBlock", toBN(123).toString())
+    const ps = new ProcessStateImpl("test", memRedis, toBN(11));
+    await ps.getLastProcessedBlock()
+    expect(ps.lastProcessedBlock.toNumber()).to.equal(123)
+  })
+
+  it("update last processed block", async () => {
+    const memRedis = new MemKVStore()
+    const ps = new ProcessStateImpl("test", memRedis, toBN(11));
+    await ps.getLastProcessedBlock()
+    expect(ps.lastProcessedBlock.toNumber()).to.equal(11)
+    await ps.updateLastProcessedBlock(toBN(1234))
+    expect(ps.lastProcessedBlock.toNumber()).to.equal(1234)
   })
 })

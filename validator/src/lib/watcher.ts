@@ -20,24 +20,27 @@ export interface WatcherWeb3 {
 }
 
 
+export interface KVStore {
+    get: (key: string) => Promise<string>
+    set: (key: string, value: string) => Promise<string>
+}
+
 export class ProcessStateImpl implements ProcessState {
   redis: any
   startBlock: BN
   lastProcessedBlock: BN
   lastBlockRedisKey: string
 
-  constructor(id: string, redis: any, startBlock: BN) {
+  constructor(id: string, redis: KVStore, startBlock: BN) {
     this.redis = redis
     this.lastBlockRedisKey = `${id}:lastProcessedBlock`
     this.startBlock = startBlock
-
-    this.getLastProcessedBlock()
   }
 
   async getLastProcessedBlock() {
     const result = await this.redis.get(this.lastBlockRedisKey)
     logger.debug(
-      { fromRedis: result, fromConfig: this.lastProcessedBlock.toString() },
+      { fromRedis: result, fromConfig: this.lastProcessedBlock?.toString() },
       'Last Processed block obtained'
     )
     let startBlock = this.startBlock
