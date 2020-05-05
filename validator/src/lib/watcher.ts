@@ -138,8 +138,10 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
     }
 
     const [latestBlock, logs] = results
-    if (latestBlock < toBlock.toNumber) {
-      throw new Error(`${eventName} event cannot be obtained: getEvents(from block`)
+    if (latestBlock < toBlock.toNumber()) {
+      throw new Error(
+        `${eventName} event cannot be obtained: getEvents(fromBlock: ${fromBlock.toNumber()}, toBlock: ${toBlock.toNumber()}) called when latest block reported by RPC node is ${latestBlock}`,
+      )
     }
     let events
     try {
@@ -162,7 +164,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
       .filter(function(i) {
         return i.indexed === true
       })
-      .map(function(i) {
+      .map(i => {
         let value = filter[i.name]
         if (!value) {
           return null
