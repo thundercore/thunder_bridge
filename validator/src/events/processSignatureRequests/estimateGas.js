@@ -4,9 +4,7 @@ const {
   AlreadySignedError,
   InvalidValidatorError
 } = require('../../utils/errors')
-const logger = require('../../services/logger').child({
-  module: 'processSignatureRequests:estimateGas'
-})
+const logger = require('../../services/logger').child({ module: 'processSignatureRequests:estimateGas'})
 
 async function estimateGas({ web3, homeBridge, validatorContract, signature, message, address }) {
   try {

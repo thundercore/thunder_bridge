@@ -2,7 +2,7 @@ require('dotenv').config()
 const promiseLimit = require('promise-limit')
 const { HttpListProviderError } = require('http-list-provider')
 const bridgeValidatorsABI = require('../../../abis/BridgeValidators.abi')
-const rootLogger = require('../../services/logger')
+const rootLogger = require('../../services/logger').default
 const { web3Home, web3Foreign } = require('../../services/web3')
 const { createMessage } = require('../../utils/message')
 const estimateGas = require('./estimateGas')
@@ -128,7 +128,6 @@ function processSignatureRequestsBuilder(config) {
           gasEstimate,
           transactionReference: signatureRequest.transactionHash,
           to: config.homeBridgeAddress,
-          event: signatureRequest
         })
       })
     )

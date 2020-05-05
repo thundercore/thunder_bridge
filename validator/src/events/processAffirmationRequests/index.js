@@ -1,5 +1,5 @@
 require('dotenv').config()
-const rootLogger = require('../../services/logger')
+const rootLogger = require('../../services/logger').default
 const { web3Home } = require('../../services/web3')
 const promiseLimit = require('promise-limit')
 const bridgeValidatorsABI = require('../../../abis/BridgeValidators.abi')

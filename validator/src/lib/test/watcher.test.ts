@@ -2,8 +2,6 @@ import {
   EventWatcher,
   ProcessState,
   WatcherWeb3,
-  WatcherTask,
-  SendToQueue,
   WatcherWeb3Impl,
   ProcessStateImpl,
   KVStore,
@@ -11,6 +9,7 @@ import {
 import { describe, before } from 'mocha'
 import { EventData, Filter } from 'web3-eth-contract'
 import { toBN } from 'web3-utils'
+import { FakeQueue } from '../queue'
 
 import { expect } from 'chai'
 import { strictEqual } from 'assert'
@@ -40,8 +39,7 @@ class FakeWatcherWeb3 implements WatcherWeb3 {
     return Promise.resolve(toBN(this.blockConfirmations))
   }
   async getEvents(event: string, fromBlock: BN, toBlock: BN, filter: Filter): Promise<EventData[]> {
-    let ret: EventData[] = []
-    ret.push({
+    let ret: EventData[] = [{
       returnValues: {
         fromBlock: fromBlock.toNumber(),
         toBlock: toBlock.toNumber(),
@@ -58,17 +56,8 @@ class FakeWatcherWeb3 implements WatcherWeb3 {
       blockHash: '',
       blockNumber: toBlock.toNumber(),
       address: '',
-    })
+    }]
     return Promise.resolve(ret)
-  }
-}
-
-class FakeQueueSend implements SendToQueue {
-  queue: WatcherTask[] = []
-
-  async push(item: WatcherTask): Promise<void> {
-    this.queue.push(item)
-    return Promise.resolve()
   }
 }
 
@@ -101,7 +90,7 @@ describe('Test EventWatcher', () => {
     web3.lastBlockNumber = 100
     web3.blockConfirmations = 51
     state.lastProcessedBlock = toBN(50)
-    let queue = new FakeQueueSend()
+    let queue = new FakeQueue()
     await watcher.run(queue)
     strictEqual(queue.queue.length, 0)
   })
@@ -111,7 +100,7 @@ describe('Test EventWatcher', () => {
     web3.lastBlockNumber = 100
     web3.blockConfirmations = 51
     state.lastProcessedBlock = toBN(45)
-    let queue = new FakeQueueSend()
+    let queue = new FakeQueue()
     await watcher.run(queue)
 
     strictEqual(queue.queue.length, 1)
@@ -120,7 +109,7 @@ describe('Test EventWatcher', () => {
       fromBlock: 46,
       toBlock: 49,
     }
-    expect(task.events.pop().returnValues).to.deep.equal(expectation)
+    expect(task.event.returnValues).to.deep.equal(expectation)
 
     let lastBlockToProcess = await watcher.getLastBlockToProcess()
     expect(lastBlockToProcess.toString(), toBN(49).toString())

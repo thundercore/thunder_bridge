@@ -1,5 +1,4 @@
-const path = require('path')
-const config = require(path.join('../../config/', process.argv[2]))
+const config = require('../../config')
 
 const processSignatureRequests = require('./processSignatureRequests')(config)
 const processCollectedSignatures = require('./processCollectedSignatures')(config)
@@ -7,7 +6,9 @@ const processAffirmationRequests = require('./processAffirmationRequests')(confi
 const processTransfers = require('./processTransfers')(config)
 
 
-function processEvents(eventType, events) {
+function processEvents(eventType, event) {
+  const events = [event]
+
   switch (eventType) {
     case 'native-erc-signature-request':
     case 'erc-erc-signature-request':

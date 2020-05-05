@@ -24,7 +24,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/ioredis": "^4.16.0",
     "@types/node": "^13.13.4",
+    "@types/redlock": "^4.0.1",
     "amqp-connection-manager": "^2.0.0",
     "amqplib": "^0.5.2",
     "aws-sdk": "^2.480.0",

@@ -1,6 +1,6 @@
 const Redis = require('ioredis')
 const Redlock = require('redlock')
-const logger = require('./logger')
+const logger = require('./logger').default
 
 const redis = new Redis(process.env.REDIS_URL)
 const redlock = new Redlock([redis], {

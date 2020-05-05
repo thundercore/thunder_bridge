@@ -1,12 +1,14 @@
-import { toBN } from 'web3-utils'
-import { Contract, EventData, Filter } from 'web3-eth-contract'
-import Web3 from 'web3'
-import { PastLogsOptions } from 'web3-core'
-import { BatchRequest } from '../tx/batch'
-import logger from '../services/logger'
 import BN from 'bn.js'
+import Web3 from 'web3'
+import { BatchRequest } from '../tx/batch'
+import { Contract, EventData, Filter } from 'web3-eth-contract'
+import { PastLogsOptions } from 'web3-core'
+import { toBN } from 'web3-utils'
 
-const ZERO = toBN(0)
+import logger from "../services/logger"
+import { EventTask } from './types'
+import { Queue } from './queue'
+
 const ONE = toBN(1)
 
 export interface ProcessState {
@@ -192,15 +194,6 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
   }
 }
 
-export interface WatcherTask {
-  eventType: string
-  events: EventData[]
-}
-
-export interface SendToQueue {
-  push: (item: WatcherTask) => Promise<void>
-}
-
 export class EventWatcher {
   id: string
   event: string
@@ -233,7 +226,7 @@ export class EventWatcher {
     return lastBlockNumber.sub(requiredBlockConfirmations)
   }
 
-  async run(sendToQueue: SendToQueue) {
+  async run(queue: Queue<EventTask>) {
     try {
       const lastBlockToProcess = await this.getLastBlockToProcess()
       const lastProcessedBlock = this.status.lastProcessedBlock
@@ -250,9 +243,12 @@ export class EventWatcher {
       logger.info(`Found ${events.length} ${this.event} events: ${JSON.stringify(events)}`)
 
       if (events.length) {
-        await sendToQueue.push({
-          eventType: this.id,
-          events: events,
+        events.map(async (event) => {
+          let task: EventTask = {
+            eventType: this.id,
+            event: event,
+          }
+          await queue.push(task)
         })
       }
 

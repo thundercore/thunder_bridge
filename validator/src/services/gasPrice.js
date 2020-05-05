@@ -3,7 +3,7 @@ const fetch = require('node-fetch')
 const Web3Utils = require('web3-utils')
 const { web3Home, web3Foreign } = require('../services/web3')
 const { bridgeConfig } = require('../../config/base.config')
-const logger = require('../services/logger').child({
+const logger = require('../services/logger').default.child({
   module: 'gasPrice'
 })
 const { setIntervalAndRun } = require('../utils/utils')
