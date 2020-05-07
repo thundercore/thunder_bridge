@@ -18,7 +18,7 @@ const {
   FOREIGN_VALIDATORS_OWNER,
   FOREIGN_UPGRADEABLE_ADMIN,
   FOREIGN_REQUIRED_BLOCK_CONFIRMATIONS,
-  ERC20_TOKEN_ADDRESS,
+  // ERC20_TOKEN_ADDRESS,
   FOREIGN_GAS_PRICE,
   FOREIGN_MAX_AMOUNT_PER_TX,
   HOME_DAILY_LIMIT,
@@ -28,8 +28,8 @@ const {
 
 const DEPLOYMENT_ACCOUNT_ADDRESS = privateKeyToAddress(DEPLOYMENT_ACCOUNT_PRIVATE_KEY)
 
-async function deployForeign() {
-  if (!Web3Utils.isAddress(ERC20_TOKEN_ADDRESS)) {
+async function deployForeign(erc20TokenAddress) {
+  if (!Web3Utils.isAddress(erc20TokenAddress)) {
     throw new Error('ERC20_TOKEN_ADDRESS env var is not defined')
   }
   let foreignNonce = await web3Foreign.eth.getTransactionCount(DEPLOYMENT_ACCOUNT_ADDRESS)
@@ -158,7 +158,7 @@ async function deployForeign() {
   const initializeFBridgeData = await foreignBridgeImplementation.methods
     .initialize(
       storageValidatorsForeign.options.address,
-      ERC20_TOKEN_ADDRESS,
+      erc20TokenAddress,
       FOREIGN_REQUIRED_BLOCK_CONFIRMATIONS,
       FOREIGN_GAS_PRICE,
       FOREIGN_MAX_AMOUNT_PER_TX,

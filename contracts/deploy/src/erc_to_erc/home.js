@@ -1,3 +1,4 @@
+const path = require('path')
 const assert = require('assert')
 const Web3Utils = require('web3-utils')
 const env = require('../loadEnv')
@@ -5,10 +6,11 @@ const env = require('../loadEnv')
 const { deployContract, privateKeyToAddress, sendRawTxHome } = require('../deploymentUtils')
 const { web3Home, deploymentPrivateKey, HOME_RPC_URL } = require('../web3')
 
-const EternalStorageProxy = require('../../../build/contracts/EternalStorageProxy.json')
-const BridgeValidators = require('../../../build/contracts/BridgeValidators.json')
-const HomeBridge = require('../../../build/contracts/HomeBridgeErcToErc.json')
-const ERC677BridgeToken = require('../../../build/contracts/ERC677BridgeToken.json')
+const EternalStorageProxy = require(path.join(__dirname, '../../../build/contracts/EternalStorageProxy.json'))
+const BridgeValidators = require(path.join(__dirname, '../../../build/contracts/BridgeValidators.json'))
+const HomeBridge = require(path.join(__dirname, '../../../build/contracts/HomeBridgeErcToErc.json'))
+const ERC677BridgeToken = require(path.join(__dirname, '../../../build/contracts/ERC677BridgeToken.json'))
+
 
 const VALIDATORS = env.VALIDATORS.split(' ')
 
