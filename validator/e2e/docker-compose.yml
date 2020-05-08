@@ -64,11 +64,13 @@ services:
     extends: bridge
     command: npm run sender:foreign
   e2e:
-    build: .
+    build:
+        context: ../../
+        dockerfile: ./validator/e2e/Dockerfile
     command:
       - "true"
     volumes:
-      - ./test:/stuff/test
+      - ./validator/e2e/test:/stuff/test
   deploy-contract:
     extends: e2e
     command: npm run deploy

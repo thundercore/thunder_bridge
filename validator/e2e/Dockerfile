@@ -3,26 +3,19 @@ FROM node:8
 RUN mkdir /stuff
 WORKDIR /stuff
 
-COPY package.json .
-COPY package-lock.json .
+COPY ./validator/e2e/package.json .
+COPY ./validator/e2e/package-lock.json .
 
-RUN git clone https://github.com/poanetwork/poa-bridge-contracts.git
-
-RUN mkdir submodules && \
-  mv poa-bridge-contracts submodules && \
-  cd submodules/poa-bridge-contracts && \
-  git fetch && \
-  git checkout 2.1.0
+COPY ./contracts ./contracts
 
 RUN npm install --unsafe-perm
 
-RUN cd submodules/poa-bridge-contracts && \
+RUN cd contracts && \
   npm install && \
   ./node_modules/.bin/truffle compile && \
   cd deploy && \
   npm install
 
-ADD . .
-
+COPY ./validator/e2e .
 
 CMD ["npm", "start"]

@@ -1,14 +1,14 @@
 const env = require('./src/loadEnv')
 const deployErcToErc = require('./deployErc')
 
-const { BRIDGE_MODE } = env
+const { BRIDGE_MODE, ERC20_TOKEN_ADDRESS } = env
 
 
 async function main() {
   console.log(`Bridge mode: ${BRIDGE_MODE}`)
   switch (BRIDGE_MODE) {
     case 'ERC_TO_ERC':
-      await deployErcToErc()
+      await deployErcToErc(ERC20_TOKEN_ADDRESS)
       break
     default:
       console.log(BRIDGE_MODE)

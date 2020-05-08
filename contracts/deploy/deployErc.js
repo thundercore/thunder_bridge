@@ -2,8 +2,6 @@ const fs = require('fs')
 const path = require('path')
 const env = require('./src/loadEnv')
 
-const { ERC20_TOKEN_ADDRESS } = env
-
 async function deployErcToErc(erc20TokenAddress) {
   const deployHome = require('./src/erc_to_erc/home')
   const deployForeign = require('./src/erc_to_erc/foreign')
@@ -20,7 +18,7 @@ async function deployErcToErc(erc20TokenAddress) {
       foreignBridge.deployedBlockNumber
     }`
   )
-  console.log(`[ Foreign ] ERC20 Token: ${ERC20_TOKEN_ADDRESS}`)
+  console.log(`[ Foreign ] ERC20 Token: ${erc20TokenAddress}`)
   if (!fs.existsSync('data'))
     fs.mkdirSync('data', {recursive: true})
   fs.writeFileSync(

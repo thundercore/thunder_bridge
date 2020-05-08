@@ -139,11 +139,14 @@ module.exports = {
   compilers: {
     solc: {
       version: "0.4.24",
-      optimizer: {
-        enabled: true,
-        runs: 200
-      }
-    }
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200
+        },
+      },
+      evmVersion: "byzantium",
+    },
   },
   mocha: {
     reporter: 'eth-gas-reporter',
