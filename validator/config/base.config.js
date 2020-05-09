@@ -18,6 +18,8 @@ let homeAbi
 let foreignAbi
 let id
 
+console.log(process.env)
+
 switch (process.env.BRIDGE_MODE) {
   case 'NATIVE_TO_ERC':
     homeAbi = homeNativeErcAbi
@@ -87,6 +89,7 @@ const foreignConfig = {
 async function initialize() {
   const key = await privateKey.getValidatorKey()
   this.validatorAddress = privateKeyToAddress(key)
+  console.log("DEBUG!!!", key, this.validatorAddress)
 }
 
 module.exports = {

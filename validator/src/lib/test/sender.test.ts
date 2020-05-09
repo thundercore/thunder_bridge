@@ -1,7 +1,7 @@
 import Web3 from 'web3'
 import { expect } from 'chai'
-import { createSandbox } from 'sinon'
-import { TransactionReceipt } from 'web3-core'
+import { createSandbox, stub } from 'sinon'
+import { TransactionConfig, TransactionReceipt } from 'web3-core'
 import { EXTRA_GAS_PERCENTAGE } from '../../utils/constants'
 
 import { FakeCache } from "../storage"
@@ -9,19 +9,89 @@ import { FakeQueue } from '../queue'
 import { FakeLocker } from '../locker'
 import { Sender, SenderWeb3Impl } from '../sender'
 import { TxInfo } from '../types'
-import { toBN } from 'web3-utils'
-import { BigNumber } from 'bignumber.js'
+import { toBN, toWei } from 'web3-utils'
 import { addExtraGas } from '../../utils/utils'
+import privateKeyConfig from '../../../config/private-keys.config'
 
 var sandbox = createSandbox()
 
+describe("Test SenderWeb3Impl", () => {
+  it("send tx", async () => {
+    let nonce = 10
+    let gasLimit = 100
+    let amount = toBN('10')
+    let txinfo: TxInfo = {
+      gasEstimate: toBN(50),
+      transactionReference: 'test_send_tx_success',
+      data: 'send_tx_data',
+      to: 'thundercore',
+    }
+
+    let gasService = {
+      getPrice: () => Promise.resolve(10)
+    }
+
+    let web3 = new Web3(null)
+    let chainId = 100
+    let sw = new SenderWeb3Impl("myid", chainId, "0x000", web3, gasService)
+    let privateKey = '0x348ce564d427a3311b6536bbcff9390d69395b06ed6c486954e971d960fe8709'
+
+    sandbox.stub(privateKeyConfig, 'getValidatorKey').resolves(privateKey)
+
+    let signTransaction = sandbox.stub().resolves({
+      messageHash: '0x88cfbd7e51c7a40540b233cf68b62ad1df3e92462f1c6018d6d67eae0f3b08f5',
+      v: '0x25',
+      r: '0xc9cf86333bcb065d140032ecaab5d9281bde80f21b9687b3e94161de42d51895',
+      s: '0x727a108a0b8d101465414033c3f705a9c7b826e596766046ee1183dbc8aeaa68',
+      rawTransaction: ('0xf869808504e3b29200831e848094f0109fc8df283027b6285cc889f' +
+        '5aa624eac1f55843b9aca008025a0c9cf86333bcb065d140032ecaab5d9281bde80f21b9687' +
+        'b3e94161de42d51895a0727a108a0b8d101465414033c3f705a9c7b826e596766046ee1183dbc8aeaa68')
+    })
+    web3.eth.accounts.signTransaction = signTransaction
+
+    let recepit = {
+      blockHash: "0xdbb365914fd57cfc08657eed1a843a619d51651b233d3b45648ca5658e54f14f",
+      blockNumber: 6527760,
+      contractAddress: null,
+      cumulativeGasUsed: 7643463,
+      from: "0xacb3e9205229d212db914a92c77856b228b0a4e4",
+      gasUsed: 21000,
+      logs: [],
+      logsBloom: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      status: true,
+      to: "0x458b8adf2248709cf739149fe4bab0b20101c4a1",
+      transactionHash: "0xb909b8f4074f45f067125348eb1cf71a197149dc03a37446dacd4a925963ff47",
+      transactionIndex: 70
+    }
+    let sendSignedTransaction = sandbox.stub().resolves(recepit)
+    web3.eth.sendSignedTransaction = sendSignedTransaction
+
+    let ret = await sw.sendTx(nonce, gasLimit, amount, txinfo)
+
+    // Test signTransaction arguments
+    let expectTxConfig: TransactionConfig = {
+      nonce: nonce,
+      chainId: chainId,
+      to: txinfo.to,
+      data: txinfo.data,
+      value: toWei(amount),
+      gas: gasLimit,
+      gasPrice: gasService.getPrice().toString(),
+    }
+    expect(signTransaction.lastCall.args[0]).to.be.deep.equal(expectTxConfig)
+    expect(signTransaction.lastCall.args[1]).to.be.deep.equal(privateKey)
+    expect(ret).to.be.equal(recepit)
+  })
+})
+
+
 describe("Test Sender", () => {
-  let web3 = new Web3(null)
-  let sw = new SenderWeb3Impl("myid", 100, "0x000", web3, null)
-  let cache = new FakeCache()
-  let queue = new FakeQueue()
-  let lock = new FakeLocker()
-  let sender = new Sender("myid", queue, sw, lock, 3, cache)
+  let web3: Web3
+  let sw: SenderWeb3Impl
+  let cache: FakeCache
+  let queue: FakeQueue
+  let lock: FakeLocker
+  let sender: Sender
 
   beforeEach(() => {
     web3 = new Web3(null)

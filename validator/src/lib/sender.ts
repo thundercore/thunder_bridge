@@ -14,7 +14,7 @@ import { addExtraGas } from '../utils/utils'
 import { toWei, toBN } from 'web3-utils'
 
 export interface SenderWeb3 {
-  getPrice: () => number
+  getPrice: () => Promise<number>
   getNonce: () => Promise<number>
   getBalance: () => Promise<string>
   sendTx: (nonce: number, gasLimit: number, amount: BN, txinfo: TxInfo) => Promise<TransactionReceipt>
@@ -26,6 +26,7 @@ export class SenderWeb3Impl implements SenderWeb3 {
   validatorAddress: string
   web3: Web3
   gasPriceService: any
+  privateKey: string
 
   constructor(id: string, chainId: number, validatorAddress: string, web3: Web3, gasPriceService: any){
     this.id = id
@@ -35,7 +36,7 @@ export class SenderWeb3Impl implements SenderWeb3 {
     this.gasPriceService = gasPriceService
   }
 
-  getPrice(): number {
+  async getPrice(): Promise<number> {
     return this.gasPriceService.getPrice()
   }
 
@@ -58,7 +59,7 @@ export class SenderWeb3Impl implements SenderWeb3 {
       data: txinfo.data,
       value: toWei(amount),
       gas: gasLimit,
-      gasPrice: this.getPrice().toString(10),
+      gasPrice: (await this.getPrice()).toString(10),
     }
 
     let privateKey = await getValidatorKey()
@@ -76,7 +77,8 @@ class SendTxError {
     return (
       e.message.includes('Transaction nonce is too low') ||
       e.message.includes('nonce too low') ||
-      e.message.includes('transaction with same nonce in the queue')
+      e.message.includes('transaction with same nonce in the queue') ||
+      e.message.includes('the tx doesn\'t have the correct nonce') // truffle
     )
   }
 
@@ -96,7 +98,8 @@ class SendTxError {
 enum SendResult {
   success = "success",
   failed = "failed",
-  insufficientFunds = "insufficientFunds"
+  insufficientFunds = "insufficientFunds",
+  skipped = "skipped"
 }
 
 
@@ -110,7 +113,14 @@ export class Sender {
   noncelock: string
   nonceKey: string
 
-  constructor(id: string, queue: Queue<EventTask>, web3: SenderWeb3, locker: Locker, ttl: number, cache?: Cache){
+  constructor(
+    id: string,
+    queue: Queue<EventTask>,
+    web3: SenderWeb3,
+    locker: Locker,
+    ttl: number,
+    cache?: Cache
+    ){
     this.id = id
     this.queue = queue
     this.web3 = web3
@@ -172,20 +182,33 @@ export class Sender {
     )
   }
 
-  async EventToTxInfo(task: EventTask): Promise<TxInfo> {
-    return await processEvents(task.eventType, task.event)[0]
+  async EventToTxInfo(task: EventTask): Promise<TxInfo|null> {
+    let txInfos = await processEvents(task.eventType, task.event)
+    if (txInfos.length === 0 ) {
+      return Promise.resolve(null)
+    } else {
+      return Promise.resolve(txInfos[0])
+    }
   }
 
-  async run(task: EventTask) {
+  async run(task: EventTask): Promise<SendResult> {
     logger.info(`Process ${task.eventType} event '${task.event.transactionHash}'`)
     let txInfo = await this.EventToTxInfo(task)
+    if (txInfo === null) {
+      this.queue.ackMsg(task)
+      return Promise.resolve(SendResult.skipped)
+    }
+    logger.debug({task, txInfo}, "EventTask to TxInfo")
 
     let result = await this.sendTx(txInfo)
+    logger.info({result}, "SendResult")
     switch (result) {
       case SendResult.success:
         this.queue.ackMsg(task)
+        break
       case SendResult.failed:
         this.queue.nackMsg(task)
+        break
       case SendResult.insufficientFunds:
         const currentBalance = await this.web3.getBalance()
         const gasLimit = addExtraGas(txInfo.gasEstimate, EXTRA_GAS_PERCENTAGE)
@@ -196,7 +219,12 @@ export class Sender {
         )
         this.queue.channel.close()
         this.waitForFunds(minimumBalance)
+        break
+      default:
+        throw Error("No such result type")
     }
+
+    return Promise.resolve(result)
   }
 
   async sendTx(job: TxInfo): Promise<SendResult> {
@@ -209,6 +237,7 @@ export class Sender {
     let nonce: number
     try {
       nonce = await this.readNonce(false)
+      logger.debug(`read nonce: ${nonce}`)
     } catch(e) {
       logger.error(`Failed to read nonce.`)
       return Promise.resolve(SendResult.failed)
@@ -221,7 +250,7 @@ export class Sender {
       const receipt = await this.web3.sendTx(nonce, gasLimit, toBN('0'), job)
 
       nonce++
-      logger.info(receipt, `Tx generated ${receipt.transactionHash} for event Tx ${job.transactionReference}`)
+      logger.info({receipt}, `Tx generated ${receipt.transactionHash} for event Tx ${job.transactionReference}`)
       result = SendResult.success
 
     } catch (e) {

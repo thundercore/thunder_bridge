@@ -38,6 +38,7 @@ class FakeWatcherWeb3 implements WatcherWeb3 {
   async getRequiredBlockConfirmations(): Promise<BN> {
     return Promise.resolve(toBN(this.blockConfirmations))
   }
+
   async getEvents(event: string, fromBlock: BN, toBlock: BN, filter: Filter): Promise<EventData[]> {
     let ret: EventData[] = [{
       returnValues: {

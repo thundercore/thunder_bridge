@@ -1,6 +1,6 @@
 require('dotenv').config()
 const connection = require('amqp-connection-manager').connect(process.env.QUEUE_URL)
-const logger = require('./logger').default
+const logger = require('./logger')
 
 connection.on('connect', () => {
   logger.info('Connected to amqp Broker')
