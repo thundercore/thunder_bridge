@@ -11,6 +11,7 @@ import { Sender, SenderWeb3Impl, Validator } from '../sender'
 import { TxInfo } from '../types'
 import { toBN, toWei } from 'web3-utils'
 import { addExtraGas } from '../../utils/utils'
+import { BigNumber } from 'bignumber.js'
 
 var sandbox = createSandbox()
 
@@ -22,7 +23,7 @@ describe("Test SenderWeb3Impl", () => {
 
   it("send tx", async () => {
     let nonce = 10
-    let gasLimit = 100
+    let gasLimit = new BigNumber(100)
     let amount = toBN('10')
     let txinfo: TxInfo = {
       gasEstimate: toBN(50),
@@ -77,7 +78,7 @@ describe("Test SenderWeb3Impl", () => {
       to: txinfo.to,
       data: txinfo.data,
       value: toWei(amount),
-      gas: gasLimit,
+      gas: gasLimit.toString(),
       gasPrice: gasService.getPrice().toString(),
     }
     expect(signTransaction.lastCall.args[0]).to.be.deep.equal(expectTxConfig)

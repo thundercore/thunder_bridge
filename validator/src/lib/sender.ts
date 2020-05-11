@@ -11,12 +11,13 @@ import { TransactionConfig, TransactionReceipt } from 'web3-core'
 import { processEvents } from '../events'
 import { addExtraGas } from '../utils/utils'
 import { toWei, toBN } from 'web3-utils'
+import { BigNumber } from 'bignumber.js'
 
 export interface SenderWeb3 {
   getPrice: () => Promise<number>
   getNonce: () => Promise<number>
   getBalance: () => Promise<string>
-  sendTx: (nonce: number, gasLimit: number, amount: BN, txinfo: TxInfo) => Promise<TransactionReceipt>
+  sendTx: (nonce: number, gasLimit: BigNumber, amount: BN, txinfo: TxInfo) => Promise<TransactionReceipt>
   processEvents: (task: EventTask) => Promise<TxInfo[]>
 }
 
@@ -55,14 +56,14 @@ export class SenderWeb3Impl implements SenderWeb3 {
     }
   }
 
-  async sendTx(nonce: number, gasLimit: number, amount: BN, txinfo: TxInfo): Promise<TransactionReceipt> {
+  async sendTx(nonce: number, gasLimit: BigNumber, amount: BN, txinfo: TxInfo): Promise<TransactionReceipt> {
     let txConfig: TransactionConfig = {
       nonce: nonce,
       chainId: this.chainId,
       to: txinfo.to,
       data: txinfo.data,
       value: toWei(amount),
-      gas: gasLimit,
+      gas: gasLimit.toString(),
       gasPrice: (await this.getPrice()).toString(10),
     }
 

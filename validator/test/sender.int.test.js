@@ -19,16 +19,17 @@ gasPriceService = {
     }
 };
 
-contract("ThunderBridge", async (accounts) => {
+contract("Test single sender", async (accounts) => {
   foreign = new web3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address);
   home = new web3.eth.Contract(HomeBridge.abi, deployed.homeBridge.address);
   erc20 = new web3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address);
 
+  v1 = {
+    address: accounts[1],
+    privateKey: '4bf3b1bb36eb3f53d1ae5e6309510e17fe41df9a26a236de3385872211e0eab4'
+  }
+
   beforeEach(() => {
-    v1 = {
-      address: accounts[0],
-      privateKey: 'c9a740d37dcd6f274a21ec47d556cdab370c16bc99566d7a3479c014719c0cad'
-    }
     senderWeb3 = new sender.SenderWeb3Impl("v1", '5777', v1, web3, gasPriceService);
     q = new queue.FakeQueue();
     c = new storage.FakeCache();
@@ -64,9 +65,10 @@ contract("ThunderBridge", async (accounts) => {
     task = await makeTransfer()
 
     s = new sender.Sender("v1", q, senderWeb3, l, 1000, c);
-    // Get and fix nonce to nonce - 10
+    // Get and fix nonce to nonce-1
+    // FIXME: account nonce may equal to 0.
     const nonce = await s.readNonce(true)
-    await c.set(s.nonceKey, nonce-10)
+    await c.set(s.nonceKey, nonce-1)
 
     ret = await s.run(task)
     // Expect ret == failed and nonce will be updated to nonce
@@ -93,9 +95,139 @@ contract("ThunderBridge", async (accounts) => {
     await c.set(s.nonceKey, nonce)
     ret = await s.run(newtask)
     expect(ret).to.eq("failed")
-    // TODO: due to validator == contract owner, nonce will increase while makeTransfer
-    expect(await c.get(s.nonceKey)).to.eq((nonce+2).toString())
+    expect(await c.get(s.nonceKey)).to.eq((nonce+1).toString())
     // Task is not `acked` in queue
     expect(q.nacks.pop()).to.be.deep.equal(newtask)
+  })
+
+})
+
+
+contract("Test multiple senders", async (accounts) => {
+  foreign = new web3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address);
+  home = new web3.eth.Contract(HomeBridge.abi, deployed.homeBridge.address);
+  erc20 = new web3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address);
+
+  v1 = {
+    address: accounts[1],
+    privateKey: '4bf3b1bb36eb3f53d1ae5e6309510e17fe41df9a26a236de3385872211e0eab4'
+  }
+  v2 = {
+    address: accounts[2],
+    privateKey: '62911097680a3251a49e89d7b6f200b909acb13f8aba98ec4a0a77a71ab4f4e6'
+  }
+  v3 = {
+    address: accounts[3],
+    privateKey: '7469990333fa18a8fed66b945970b3af09de3d6a5863535cf102b3938a7ff41a'
+  }
+
+  beforeEach(() => {
+    q = new queue.FakeQueue();
+    l = new locker.FakeLocker();
+  })
+
+  async function makeOneBlock() {
+    begin = await web3.eth.getBlockNumber()
+    await web3.eth.sendTransaction({ from: accounts[5], to: accounts[6], gasPrice: '1', gas: '21000', value: '1' })
+    end = await web3.eth.getBlockNumber()
+    console.log(`make block ${begin} -> ${end}`)
+  }
+
+  async function makeTransfer() {
+    receipt = await erc20.methods.transfer(foreign.options.address, web3.utils.toWei('0.01')).send({ from: accounts[0] })
+    return {
+      eventType: 'erc-erc-affirmation-request',
+      event: receipt.events.Transfer
+    };
+  }
+
+  it("test third sender estimateGas will failed", async () => {
+    var task = await makeTransfer()
+
+    var v1web3 = new sender.SenderWeb3Impl("v1", '5777', v1, web3, gasPriceService);
+    var v2web3 = new sender.SenderWeb3Impl("v2", '5777', v2, web3, gasPriceService);
+    var v3web3 = new sender.SenderWeb3Impl("v3", '5777', v3, web3, gasPriceService);
+
+    var s1 = new sender.Sender("v1", q, v1web3, l, 1000);
+    var s2 = new sender.Sender("v2", q, v2web3, l, 1000);
+    var s3 = new sender.Sender("v3", q, v3web3, l, 1000);
+
+    // v1 and v2 vote first
+    // EventToTxInfo will run estimateGas.
+    var info1 = await s1.EventToTxInfo(task)
+    var r1 = await s1.sendTx(info1)
+    await makeOneBlock()
+
+    var info2 = await s2.EventToTxInfo(task)
+    var r2 = await s2.sendTx(info2)
+    await makeOneBlock()
+
+    expect(r1).to.eq("success")
+    expect(r2).to.eq("success")
+    // We expect gasR2 > gasR1 due to enough affirmations.
+    expect(info2.gasEstimate).to.gt(info1.gasEstimate)
+
+    // v3 estimateGas will failed because contract has enough affirmations.
+    var info3 = await s3.EventToTxInfo(task)
+    expect(info3).to.be.null
+  })
+
+  it("test three sender estimateGas race condition", async () => {
+    var task = await makeTransfer()
+
+    var v1web3 = new sender.SenderWeb3Impl("v1", '5777', v1, web3, gasPriceService);
+    var v2web3 = new sender.SenderWeb3Impl("v2", '5777', v2, web3, gasPriceService);
+    var v3web3 = new sender.SenderWeb3Impl("v3", '5777', v3, web3, gasPriceService);
+
+    var s1 = new sender.Sender("v1", q, v1web3, l, 1000);
+    var s2 = new sender.Sender("v2", q, v2web3, l, 1000);
+    var s3 = new sender.Sender("v3", q, v3web3, l, 1000);
+
+    // v1 and v2 vote first
+    var info1 = await s1.EventToTxInfo(task)
+    var info2 = await s2.EventToTxInfo(task)
+    var r1 = await s1.sendTx(info1)
+    await makeOneBlock()
+    expect(r1).to.eq("success")
+
+    // v2 will be fail because gas limit too low.
+    var r2 = await s2.sendTx(info2)
+    await makeOneBlock()
+    expect(r2).to.eq("failed")
+
+    // v3 estimateGas with a higher gas limit will be success
+    var info3 = await s3.EventToTxInfo(task)
+    var r3 = await s3.sendTx(info3)
+    await makeOneBlock()
+    expect(r3).to.eq("success")
+
+    // v2 will be skipped because enough affirmation
+    info2 = await s2.EventToTxInfo(task)
+    expect(info2).to.be.null
+  })
+
+  it("test three sender send in same block", async () => {
+    var task = await makeTransfer()
+
+    var v1web3 = new sender.SenderWeb3Impl("v1", '5777', v1, web3, gasPriceService);
+    var v2web3 = new sender.SenderWeb3Impl("v2", '5777', v2, web3, gasPriceService);
+    var v3web3 = new sender.SenderWeb3Impl("v3", '5777', v3, web3, gasPriceService);
+
+    var s1 = new sender.Sender("v1", q, v1web3, l, 1000);
+    var s2 = new sender.Sender("v2", q, v2web3, l, 1000);
+    var s3 = new sender.Sender("v3", q, v3web3, l, 1000);
+
+    var info1 = await s1.EventToTxInfo(task)
+    var info2 = await s2.EventToTxInfo(task)
+    var info3 = await s3.EventToTxInfo(task)
+    var r1 = await s1.sendTx(info1)
+    var r2 = await s2.sendTx(info2)
+    var r3 = await s3.sendTx(info3)
+
+    await makeOneBlock()
+
+    expect(r1).to.eq("success")
+    expect(r2).to.eq("failed")
+    expect(r3).to.eq("failed")
   })
 })
