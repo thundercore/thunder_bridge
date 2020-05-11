@@ -7,7 +7,6 @@ const id = `${baseConfig.id}-affirmation-request`
 module.exports = {
   ...baseConfig.bridgeConfig,
   ...baseConfig.foreignConfig,
-  initialize: baseConfig.initialize,
   event: 'Transfer',
   eventContractAddress: process.env.ERC20_TOKEN_ADDRESS,
   eventAbi: erc20Abi,

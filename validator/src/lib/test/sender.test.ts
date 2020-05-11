@@ -7,15 +7,19 @@ import { EXTRA_GAS_PERCENTAGE } from '../../utils/constants'
 import { FakeCache } from "../storage"
 import { FakeQueue } from '../queue'
 import { FakeLocker } from '../locker'
-import { Sender, SenderWeb3Impl } from '../sender'
+import { Sender, SenderWeb3Impl, Validator } from '../sender'
 import { TxInfo } from '../types'
 import { toBN, toWei } from 'web3-utils'
 import { addExtraGas } from '../../utils/utils'
-import privateKeyConfig from '../../../config/private-keys.config'
 
 var sandbox = createSandbox()
 
 describe("Test SenderWeb3Impl", () => {
+  let validator: Validator = {
+    address: '0x458b8adf2248709cf739149fe4bab0b20101c4a1',
+    privateKey: '348ce564d427a3311b6536bbcff9390d69395b06ed6c486954e971d960fe8709'
+  }
+
   it("send tx", async () => {
     let nonce = 10
     let gasLimit = 100
@@ -33,10 +37,8 @@ describe("Test SenderWeb3Impl", () => {
 
     let web3 = new Web3(null)
     let chainId = 100
-    let sw = new SenderWeb3Impl("myid", chainId, "0x000", web3, gasService)
+    let sw = new SenderWeb3Impl("myid", chainId, validator, web3, gasService)
     let privateKey = '0x348ce564d427a3311b6536bbcff9390d69395b06ed6c486954e971d960fe8709'
-
-    sandbox.stub(privateKeyConfig, 'getValidatorKey').resolves(privateKey)
 
     let signTransaction = sandbox.stub().resolves({
       messageHash: '0x88cfbd7e51c7a40540b233cf68b62ad1df3e92462f1c6018d6d67eae0f3b08f5',
@@ -93,9 +95,14 @@ describe("Test Sender", () => {
   let lock: FakeLocker
   let sender: Sender
 
+  let validator: Validator = {
+    address: '0x458b8adf2248709cf739149fe4bab0b20101c4a1',
+    privateKey: '348ce564d427a3311b6536bbcff9390d69395b06ed6c486954e971d960fe8709'
+  }
+
   beforeEach(() => {
     web3 = new Web3(null)
-    sw = new SenderWeb3Impl("myid", 100, "0x000", web3, null)
+    sw = new SenderWeb3Impl("myid", 100, validator, web3, null)
     cache = new FakeCache()
     queue = new FakeQueue()
     lock = new FakeLocker()

@@ -8,7 +8,6 @@ import { Locker } from './locker'
 import { Cache } from './storage'
 import { Queue } from './queue'
 import { TransactionConfig, TransactionReceipt } from 'web3-core'
-import { getValidatorKey } from '../../config/private-keys.config'
 import { processEvents } from '../events'
 import { addExtraGas } from '../utils/utils'
 import { toWei, toBN } from 'web3-utils'
@@ -18,20 +17,25 @@ export interface SenderWeb3 {
   getNonce: () => Promise<number>
   getBalance: () => Promise<string>
   sendTx: (nonce: number, gasLimit: number, amount: BN, txinfo: TxInfo) => Promise<TransactionReceipt>
+  processEvents: (task: EventTask) => Promise<TxInfo[]>
+}
+
+export interface Validator {
+  address: string,
+  privateKey: string
 }
 
 export class SenderWeb3Impl implements SenderWeb3 {
   id: string
   chainId: number
-  validatorAddress: string
+  validator: Validator
   web3: Web3
   gasPriceService: any
-  privateKey: string
 
-  constructor(id: string, chainId: number, validatorAddress: string, web3: Web3, gasPriceService: any){
+  constructor(id: string, chainId: number, validator: Validator, web3: Web3, gasPriceService: any){
     this.id = id
     this.chainId = chainId
-    this.validatorAddress = validatorAddress
+    this.validator = validator
     this.web3 = web3
     this.gasPriceService = gasPriceService
   }
@@ -42,9 +46,9 @@ export class SenderWeb3Impl implements SenderWeb3 {
 
   async getNonce(): Promise<number> {
     try {
-      logger.debug({ validatorAddr: this.validatorAddress }, 'Getting transaction count')
-      const transactionCount = await this.web3.eth.getTransactionCount(this.validatorAddress)
-      logger.debug({ validatorAddr: this.validatorAddress, transactionCount }, 'Transaction count obtained')
+      logger.debug({ validatorAddr: this.validator.address }, 'Getting transaction count')
+      const transactionCount = await this.web3.eth.getTransactionCount(this.validator.address)
+      logger.debug({ validatorAddr: this.validator.address, transactionCount }, 'Transaction count obtained')
       return Promise.resolve(transactionCount)
     } catch (e) {
       throw new Error(`Nonce cannot be obtained`)
@@ -62,13 +66,16 @@ export class SenderWeb3Impl implements SenderWeb3 {
       gasPrice: (await this.getPrice()).toString(10),
     }
 
-    let privateKey = await getValidatorKey()
-    let signedTx = await this.web3.eth.accounts.signTransaction(txConfig, privateKey)
+    let signedTx = await this.web3.eth.accounts.signTransaction(txConfig, `0x${this.validator.privateKey}`)
     return this.web3.eth.sendSignedTransaction(signedTx.rawTransaction)
   }
 
-  getBalance(): Promise<string> {
-    return this.web3.eth.getBalance(this.validatorAddress)
+  async getBalance(): Promise<string> {
+    return this.web3.eth.getBalance(this.validator.address)
+  }
+
+  async processEvents(task: EventTask): Promise<TxInfo[]> {
+    return processEvents(task, this.validator)
   }
 }
 
@@ -183,7 +190,7 @@ export class Sender {
   }
 
   async EventToTxInfo(task: EventTask): Promise<TxInfo|null> {
-    let txInfos = await processEvents(task.eventType, task.event)
+    let txInfos = await this.web3.processEvents(task)
     if (txInfos.length === 0 ) {
       return Promise.resolve(null)
     } else {

@@ -11,7 +11,6 @@ const privateKey = require('../config/private-keys.config')
 const expect = require('chai').expect;
 const stub = require('sinon').stub;
 
-stub(privateKey, 'getValidatorKey').resolves('0xc9a740d37dcd6f274a21ec47d556cdab370c16bc99566d7a3479c014719c0cad')
 const deployed = require(path.join(__dirname, '../../data/deployed.json'));
 
 gasPriceService = {
@@ -21,16 +20,15 @@ gasPriceService = {
 };
 
 contract("ThunderBridge", async (accounts) => {
-  var v1 = accounts[0]
   foreign = new web3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address);
   home = new web3.eth.Contract(HomeBridge.abi, deployed.homeBridge.address);
   erc20 = new web3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address);
 
-  before(async () => {
-    await config.initialize()
-  })
-
   beforeEach(() => {
+    v1 = {
+      address: accounts[0],
+      privateKey: 'c9a740d37dcd6f274a21ec47d556cdab370c16bc99566d7a3479c014719c0cad'
+    }
     senderWeb3 = new sender.SenderWeb3Impl("v1", '5777', v1, web3, gasPriceService);
     q = new queue.FakeQueue();
     c = new storage.FakeCache();

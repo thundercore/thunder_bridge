@@ -35,6 +35,7 @@
     "aws-sdk": "^2.480.0",
     "bignumber.js": "^7.2.1",
     "dotenv": "^5.0.1",
+    "envalid": "^6.0.1",
     "http-list-provider": "0.0.5",
     "ioredis": "^3.2.2",
     "lodash": "^4.17.10",
