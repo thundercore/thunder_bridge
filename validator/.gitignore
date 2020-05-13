@@ -6,3 +6,4 @@ coverage/
 logs/
 samples
 built/
+data/deployed.json
