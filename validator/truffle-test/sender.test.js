@@ -6,10 +6,7 @@ const sender = require(path.join(__dirname, '../src/lib/sender'));
 const storage = require(path.join(__dirname, '../src/lib/storage'));
 const queue = require(path.join(__dirname, '../src/lib/queue'));
 const locker = require(path.join(__dirname, '../src/lib/locker'));
-const config = require('../config/')
-const privateKey = require('../config/private-keys.config')
 const expect = require('chai').expect;
-const stub = require('sinon').stub;
 
 const deployed = require(path.join(__dirname, '../../data/deployed.json'));
 
@@ -65,16 +62,39 @@ contract("Test single sender", async (accounts) => {
     task = await makeTransfer()
 
     s = new sender.Sender("v1", q, senderWeb3, l, 1000, c);
-    // Get and fix nonce to nonce-1
-    // FIXME: account nonce may equal to 0.
+    // Get and fix nonce to nonce-1.
     const nonce = await s.readNonce(true)
-    await c.set(s.nonceKey, nonce-1)
+    await c.set(s.nonceKey, (nonce-1).toString())
 
     ret = await s.run(task)
-    // Expect ret == failed and nonce will be updated to nonce
-    expect(ret).to.eq("failed")
+    // Expect ret == nonceTooLow and nonce will be updated to nonce
+    expect(ret).to.eq(sender.SendResult.nonceTooLow)
     expect(await c.get(s.nonceKey)).to.equal(nonce.toString())
     expect(q.nacks.pop()).to.be.deep.equal(task)
+  })
+
+  it("test tx was imported", async () => {
+    // !!FIXME!! How to make duplicate tx?
+    task = await makeTransfer()
+
+    s = new sender.Sender("v1", q, senderWeb3, l, 1000, c);
+    var info = await s.EventToTxInfo(task)
+    var ret = await s.sendTx(info)
+    expect(ret).to.eq("success")
+
+    var ret = await s.sendTx(info)
+    expect(ret).to.eq(sender.SendResult.txImported)
+  })
+
+  it("test gas limit exceeded", async () => {
+    // TODO: maybe run another chain?
+    task = await makeTransfer()
+    s = new sender.Sender("v1", q, senderWeb3, l, 1000, c);
+    var info = await s.EventToTxInfo(task)
+    info.gasEstimate = 100000000000000
+
+    var ret = await s.sendTx(info)
+    expect(ret).to.eq(sender.SendResult.blockGasLimitExceeded)
   })
 
   it("test transfer with same nonce will be fail", async () => {
@@ -83,7 +103,6 @@ contract("Test single sender", async (accounts) => {
     s = new sender.Sender("v1", q, senderWeb3, l, 1000, c);
     // Fix nonce to same value
     const nonce = await s.readNonce(true)
-    console.log("Nonce:", nonce)
     await c.set(s.nonceKey, nonce)
 
     // First task will be success
@@ -94,7 +113,7 @@ contract("Test single sender", async (accounts) => {
     newtask = await makeTransfer()
     await c.set(s.nonceKey, nonce)
     ret = await s.run(newtask)
-    expect(ret).to.eq("failed")
+    expect(ret).to.eq(sender.SendResult.nonceTooLow)
     expect(await c.get(s.nonceKey)).to.eq((nonce+1).toString())
     // Task is not `acked` in queue
     expect(q.nacks.pop()).to.be.deep.equal(newtask)

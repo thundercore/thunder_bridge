@@ -11,4 +11,3 @@ RUN npm install
 
 COPY . .
 CMD ["docker-message"]
-

@@ -91,7 +91,8 @@ class SendTxError {
   }
 
   static isBlockGasLimitExceededError(e: Error): boolean {
-    return e.message.includes('exceeds block gas limit') // geth
+    return e.message.includes('exceeds block gas limit') || // geth
+      e.message.includes('Exceeds block gas limit') // truffle
   }
 
   static isTxWasImportedError(e: Error): boolean {
@@ -103,10 +104,13 @@ class SendTxError {
   }
 }
 
-enum SendResult {
+export enum SendResult {
   success = "success",
   failed = "failed",
+  txImported = "txImported",
+  blockGasLimitExceeded = "blockGasLimitExceeded",
   insufficientFunds = "insufficientFunds",
+  nonceTooLow = "nonceTooLow",
   skipped = "skipped"
 }
 
@@ -151,7 +155,7 @@ export class Sender {
     if (this.cache && !forceUpdate) {
       try {
         let nonce = await this.cache.get(this.nonceKey)
-        if (nonce) {
+        if (nonce !== undefined) {
           logger.debug({ nonce }, `Nonce found in the DB, key: ${this.nonceKey}`)
           return Promise.resolve(Number(nonce))
         } else {
@@ -200,23 +204,30 @@ export class Sender {
   }
 
   async run(task: EventTask): Promise<SendResult> {
+    let result: SendResult
+
     logger.info(`Process ${task.eventType} event '${task.event.transactionHash}'`)
     let txInfo = await this.EventToTxInfo(task)
     if (txInfo === null) {
-      this.queue.ackMsg(task)
-      return Promise.resolve(SendResult.skipped)
+      result = SendResult.skipped
+    } else {
+      result = await this.sendTx(txInfo)
     }
-    logger.debug({task, txInfo}, "EventTask to TxInfo")
 
-    let result = await this.sendTx(txInfo)
     logger.info({result}, "SendResult")
     switch (result) {
       case SendResult.success:
+      case SendResult.skipped:
+      case SendResult.txImported:
+      case SendResult.blockGasLimitExceeded:
         this.queue.ackMsg(task)
         break
+
       case SendResult.failed:
+      case SendResult.nonceTooLow:
         this.queue.nackMsg(task)
         break
+
       case SendResult.insufficientFunds:
         const currentBalance = await this.web3.getBalance()
         const gasLimit = addExtraGas(txInfo.gasEstimate, EXTRA_GAS_PERCENTAGE)
@@ -228,6 +239,7 @@ export class Sender {
         this.queue.channel.close()
         this.waitForFunds(minimumBalance)
         break
+
       default:
         throw Error("No such result type")
     }
@@ -270,12 +282,12 @@ export class Sender {
       switch (true) {
         case SendTxError.isTxWasImportedError(e):
           logger.info(`tx ${job.transactionReference} was already imported. (skiped)`)
-          result = SendResult.success
+          result = SendResult.txImported
           break
 
         case SendTxError.isBlockGasLimitExceededError(e):
           logger.info(`tx ${job.transactionReference} block gas limit exceeded.(skiped)`)
-          result = SendResult.success
+          result = SendResult.blockGasLimitExceeded
           break
 
         case SendTxError.isInsufficientFoundError(e):
@@ -285,6 +297,11 @@ export class Sender {
         case SendTxError.isNonceTooLowError(e):
           logger.info(`tx ${job.transactionReference} nonce is too low. Force update nonce.`)
           nonce = await this.readNonce(true)
+          result = SendResult.nonceTooLow
+          break
+
+        default:
+          logger.error(`Unknown error, tx: ${job.transactionReference}`)
           break
       }
     }

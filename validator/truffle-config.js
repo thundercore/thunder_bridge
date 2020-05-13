@@ -34,14 +34,12 @@ module.exports = {
   contracts_directory: "../contracts/contracts",
   migrations_directory: "../contracts/migrations",
   contracts_build_directory: "../contracts/build/contracts",
+
   networks: {
     develop: {
       host: "127.0.0.1",
       port: 8545,
       network_id: "*",
-      gas: 10000000000000,
-      gasPrice: 10000000000000000,
-      defaultEtherBalance: 10000000000000,
     }
   },
 

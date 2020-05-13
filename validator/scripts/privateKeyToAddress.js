@@ -6,7 +6,6 @@ const privateKey = require('../config/private-keys.config')
 
 async function main() {
   const validator = await privateKey.loadValidatorFromAWS()
-  console.log(validator.address)
 }
 
 main()

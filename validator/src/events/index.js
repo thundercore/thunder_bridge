@@ -9,8 +9,6 @@ const processTransfersBuilder = require('./processTransfers')
 async function processEvents(task, validator) {
   const events = [task.event]
 
-  console.log(validator)
-
   var builder;
   switch (task.eventType) {
     case 'native-erc-signature-request':
