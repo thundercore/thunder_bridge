@@ -1,4 +1,4 @@
-const logger = require('../services/logger').default.child({
+const logger = require('../services/logger').child({
   module: 'web3'
 })
 const { sendRawTx } = require('./sendTx')

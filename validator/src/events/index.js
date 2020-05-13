@@ -1,31 +1,42 @@
 const config = require('../../config')
 
-const processSignatureRequests = require('./processSignatureRequests')(config)
-const processCollectedSignatures = require('./processCollectedSignatures')(config)
-const processAffirmationRequests = require('./processAffirmationRequests')(config)
-const processTransfers = require('./processTransfers')(config)
+const processSignatureRequestsBuilder = require('./processSignatureRequests')
+const processCollectedSignaturesBuilder = require('./processCollectedSignatures')
+const processAffirmationRequestsBuilder = require('./processAffirmationRequests')
+const processTransfersBuilder = require('./processTransfers')
 
 
-function processEvents(eventType, event) {
-  const events = [event]
+async function processEvents(task, validator) {
+  const events = [task.event]
 
-  switch (eventType) {
+  var builder;
+  switch (task.eventType) {
     case 'native-erc-signature-request':
     case 'erc-erc-signature-request':
     case 'erc-native-signature-request':
-      return processSignatureRequests(events)
+      builder = processSignatureRequestsBuilder
+      break
+
     case 'native-erc-collected-signatures':
     case 'erc-erc-collected-signatures':
     case 'erc-native-collected-signatures':
-      return processCollectedSignatures(events)
+      builder = processCollectedSignaturesBuilder
+      break
+
     case 'native-erc-affirmation-request':
-      return processAffirmationRequests(events)
+      builder = processAffirmationRequestsBuilder
+      break
+
     case 'erc-erc-affirmation-request':
     case 'erc-native-affirmation-request':
-      return processTransfers(events)
+      builder = processTransfersBuilder
+      break
+
     default:
-      return []
+      throw Error(`event type ${task.eventType} is not subscribed`)
   }
+
+  return builder(config, validator)(events)
 }
 
 

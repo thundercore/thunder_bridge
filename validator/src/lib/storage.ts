@@ -12,13 +12,13 @@ export interface Cache {
 
 export class FakeCache implements Cache {
     status: string = "processing"
-    m = new Map()
+    m = {}
 
     async get(key: string): Promise<string> {
-      return Promise.resolve(this.m.get(key))
+      return Promise.resolve(this.m[key])
     }
 
     async set(key: string, value: string): Promise<void> {
-      this.m.set(key, value)
+      this.m[key] = value
     }
 }

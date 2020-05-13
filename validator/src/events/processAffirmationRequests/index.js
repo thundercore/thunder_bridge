@@ -1,5 +1,5 @@
 require('dotenv').config()
-const rootLogger = require('../../services/logger').default
+const rootLogger = require('../../services/logger')
 const { web3Home } = require('../../services/web3')
 const promiseLimit = require('promise-limit')
 const bridgeValidatorsABI = require('../../../abis/BridgeValidators.abi')
@@ -16,7 +16,7 @@ const limit = promiseLimit(MAX_CONCURRENT_EVENTS)
 
 let validatorContract = null
 
-function processAffirmationRequestsBuilder(config) {
+function processAffirmationRequestsBuilder(config, validator) {
   const homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
 
   return async function processAffirmationRequests(affirmationRequests) {
@@ -54,7 +54,7 @@ function processAffirmationRequestsBuilder(config) {
             recipient,
             value,
             txHash: affirmationRequest.transactionHash,
-            address: config.validatorAddress
+            address: validator.address
           })
           logger.debug({ gasEstimate }, 'Gas estimated')
         } catch (e) {
@@ -63,7 +63,7 @@ function processAffirmationRequestsBuilder(config) {
               'RPC Connection Error: submitSignature Gas Estimate cannot be obtained.'
             )
           } else if (e instanceof InvalidValidatorError) {
-            logger.fatal({ address: config.validatorAddress }, 'Invalid validator')
+            logger.fatal({ address: validator.address }, 'Invalid validator')
             process.exit(EXIT_CODES.INCOMPATIBILITY)
           } else if (e instanceof AlreadySignedError) {
             logger.info(`Already signed affirmationRequest ${affirmationRequest.transactionHash}`)
@@ -83,7 +83,7 @@ function processAffirmationRequestsBuilder(config) {
 
         const data = await homeBridge.methods
           .executeAffirmation(recipient, value, affirmationRequest.transactionHash)
-          .encodeABI({ from: config.validatorAddress })
+          .encodeABI({ from: validator.address })
 
         txToSend.push({
           data,

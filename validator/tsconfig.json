@@ -1,14 +1,16 @@
 {
     "compilerOptions": {
-        "outDir": "./built",
-        "allowJs": true,
-        "target": "es5",
+        "outDir": "./built/src",
+        "target": "es6",
         "module": "commonjs",
         "moduleResolution": "node",
         "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        // "allowJs": true,
     },
-    "include": [
-        "./src/**/*"
+    "exclude": [
+        "./node_modules/**/*",
+        "./built/**/*",
+        "./e2e/**/*",
     ]
 }

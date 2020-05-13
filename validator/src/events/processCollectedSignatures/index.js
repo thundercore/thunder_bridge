@@ -2,7 +2,7 @@ require('dotenv').config()
 const promiseLimit = require('promise-limit')
 const { HttpListProviderError } = require('http-list-provider')
 const bridgeValidatorsABI = require('../../../abis/BridgeValidators.abi')
-const rootLogger = require('../../services/logger').default
+const rootLogger = require('../../services/logger')
 const { web3Home, web3Foreign } = require('../../services/web3')
 const { signatureToVRS } = require('../../utils/message')
 const estimateGas = require('./estimateGas')
@@ -17,7 +17,7 @@ const limit = promiseLimit(MAX_CONCURRENT_EVENTS)
 
 let validatorContract = null
 
-function processCollectedSignaturesBuilder(config) {
+function processCollectedSignaturesBuilder(config, validator) {
   const homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
 
   const foreignBridge = new web3Foreign.eth.Contract(
@@ -53,7 +53,7 @@ function processCollectedSignaturesBuilder(config) {
         })
 
         if (
-          authorityResponsibleForRelay === web3Home.utils.toChecksumAddress(config.validatorAddress)
+          authorityResponsibleForRelay === web3Home.utils.toChecksumAddress(validator.address)
         ) {
           logger.info(`Processing CollectedSignatures ${colSignature.transactionHash}`)
           const message = await homeBridge.methods.message(messageHash).call()

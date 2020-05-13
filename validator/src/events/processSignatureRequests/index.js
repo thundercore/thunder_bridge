@@ -2,11 +2,10 @@ require('dotenv').config()
 const promiseLimit = require('promise-limit')
 const { HttpListProviderError } = require('http-list-provider')
 const bridgeValidatorsABI = require('../../../abis/BridgeValidators.abi')
-const rootLogger = require('../../services/logger').default
+const rootLogger = require('../../services/logger')
 const { web3Home, web3Foreign } = require('../../services/web3')
 const { createMessage } = require('../../utils/message')
 const estimateGas = require('./estimateGas')
-const privateKey = require('../../../config/private-keys.config')
 const {
   AlreadyProcessedError,
   AlreadySignedError,
@@ -24,7 +23,7 @@ const limit = promiseLimit(MAX_CONCURRENT_EVENTS)
 let expectedMessageLength = null
 let validatorContract = null
 
-function processSignatureRequestsBuilder(config) {
+function processSignatureRequestsBuilder(config, validator) {
   const homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
 
   return async function processSignatureRequests(signatureRequests) {
@@ -80,8 +79,8 @@ function processSignatureRequestsBuilder(config) {
           bridgeAddress: config.foreignBridgeAddress,
           expectedMessageLength
         })
-        const pk = await privateKey.getValidatorKey()
-        const signature = web3Home.eth.accounts.sign(message, `0x${pk}`)
+
+        const signature = web3Home.eth.accounts.sign(message, `0x${validator.privateKey}`)
 
         let gasEstimate
         try {
@@ -92,7 +91,7 @@ function processSignatureRequestsBuilder(config) {
             validatorContract,
             signature: signature.signature,
             message,
-            address: config.validatorAddress
+            address: validator.address
           })
           logger.debug({ gasEstimate }, 'Gas estimated')
         } catch (e) {
@@ -101,7 +100,7 @@ function processSignatureRequestsBuilder(config) {
               'RPC Connection Error: submitSignature Gas Estimate cannot be obtained.'
             )
           } else if (e instanceof InvalidValidatorError) {
-            logger.fatal({ address: config.validatorAddress }, 'Invalid validator')
+            logger.fatal({ address: validator.address }, 'Invalid validator')
             process.exit(EXIT_CODES.INCOMPATIBILITY)
           } else if (e instanceof AlreadySignedError) {
             logger.info(`Already signed signatureRequest ${signatureRequest.transactionHash}`)
@@ -121,7 +120,7 @@ function processSignatureRequestsBuilder(config) {
 
         const data = await homeBridge.methods
           .submitSignature(signature.signature, message)
-          .encodeABI({ from: config.validatorAddress })
+          .encodeABI({ from: validator.address })
 
         txToSend.push({
           data,

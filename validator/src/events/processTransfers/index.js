@@ -2,7 +2,7 @@ require('dotenv').config()
 const promiseLimit = require('promise-limit')
 const { HttpListProviderError } = require('http-list-provider')
 const bridgeValidatorsABI = require('../../../abis/BridgeValidators.abi')
-const rootLogger = require('../../services/logger').default
+const rootLogger = require('../../services/logger')
 const { web3Home, web3Foreign } = require('../../services/web3')
 const {
   AlreadyProcessedError,
@@ -21,11 +21,11 @@ const limit = promiseLimit(MAX_CONCURRENT_EVENTS)
 
 let validatorContract = null
 
-function processTransfersBuilder(config) {
+function processTransfersBuilder(config, validator) {
   const homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
 
   return async function processTransfers(transfers) {
-    const txToSend = []
+    var txToSend = []
 
     if (validatorContract === null) {
       rootLogger.debug('Getting validator contract address')
@@ -73,7 +73,7 @@ function processTransfersBuilder(config) {
             recipient: from,
             value,
             txHash: transfer.transactionHash,
-            address: config.validatorAddress
+            address: validator.address
           })
           logger.debug({ gasEstimate }, 'Gas estimated')
         } catch (e) {
@@ -82,7 +82,7 @@ function processTransfersBuilder(config) {
               'RPC Connection Error: submitSignature Gas Estimate cannot be obtained.'
             )
           } else if (e instanceof InvalidValidatorError) {
-            logger.fatal({ address: config.validatorAddress }, 'Invalid validator')
+            logger.fatal({ address: validator.address }, 'Invalid validator')
             process.exit(EXIT_CODES.INCOMPATIBILITY)
           } else if (e instanceof AlreadySignedError) {
             logger.info(`Already signed transfer ${transfer.transactionHash}`)
@@ -100,15 +100,18 @@ function processTransfersBuilder(config) {
 
         const data = await homeBridge.methods
           .executeAffirmation(from, value, transfer.transactionHash)
-          .encodeABI({ from: config.validatorAddress })
+          .encodeABI({ from: validator.address })
+
+        logger.info({from, value, data}, "executeAffirmation.encodeABI")
 
         const t = {
           data,
           gasEstimate,
           transactionReference: transfer.transactionHash,
           to: config.homeBridgeAddress,
-          event: transfer
         }
+        txToSend.push(t)
+        logger.info({t}, "TxInfo")
       })
     )
 

@@ -20,10 +20,6 @@
 
 // const infuraKey = "fj4jll3k.....";
 //
-const HDWalletProvider = require('@truffle/hdwallet-provider');
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
-const mnemonic = "camp stove sample such dream into mom split junk very rabbit garbage"
 
 module.exports = {
   /**
@@ -38,14 +34,12 @@ module.exports = {
   contracts_directory: "../contracts/contracts",
   migrations_directory: "../contracts/migrations",
   contracts_build_directory: "../contracts/build/contracts",
+
   networks: {
     develop: {
-      defaultEtherBalance: 10000000000000,
+      host: "127.0.0.1",
       port: 8545,
-      gas: 10000000000000,
-      gasPrice: 10000000000000000,
       network_id: "*",
-      provider: () => new HDWalletProvider(mnemonic, "http://127.0.0.1:8545")
     }
   },
 

@@ -31,6 +31,9 @@ async function deployErcToErc(erc20TokenAddress) {
         },
         foreignBridge: {
           ...foreignBridge
+        },
+        erc20Token: {
+          address: erc20TokenAddress
         }
       },
       null,
