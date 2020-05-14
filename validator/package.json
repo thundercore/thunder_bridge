@@ -16,7 +16,8 @@
     "dev-chain": "docker run -d -p 8545:8545 --name dev-chain trufflesuite/ganache-cli:latest -m 'wisdom zero output drift choice bright east stuff craft inform invest patient' --callGasLimit 10000000000000 -l 10000000000000 -g 10000000000000000 -e 10000000000000 -i 5777",
     "dev-chain:stop": "docker rm -f dev-chain",
     "truffle-test": "npm run tsc && NODE_ENV=test truffle test built/truffle-test/* --network develop",
-    "tsc": "tsc && cp -r ./abis/ ./truffle-test/ ./config/ ./.env ./test/ ./src/ ./built",
+    "truffle:compile": "truffle compile",
+    "tsc": "tsc && cp -r ./abis/ ./truffle-test/ ./config/ ./test/ ./src/ ./built",
     "coverage": "NODE_ENV=test nyc --reporter=text --reporter=html mocha",
     "postinstall": "npm install --prefix e2e && mkdir -p logs",
     "docker-message": "echo 'Please run a valid npm command'",
@@ -69,12 +70,12 @@
     "mocha": "^5.2.0",
     "ndjson": "^1.5.0",
     "nyc": "^12.0.2",
+    "openzeppelin-solidity": "^1.10.0",
     "prettier": "^1.12.1",
     "proxyquire": "^2.0.1",
     "simple-statistics": "^6.1.0",
     "sinon": "^6.1.0",
     "truffle": "^5.1.24",
-    "openzeppelin-solidity": "^1.10.0",
     "ts-node": "^8.9.1"
   },
   "engines": {

@@ -2,9 +2,13 @@
 
 import os
 import argparse
+import shutil
 import subprocess
 import contextlib
 
+
+PWD = os.path.realpath(os.path.dirname(__file__))
+CONTRACT_DIR = os.path.join(PWD, '..', 'contracts')
 
 def unittest(args):
     envs = {
@@ -27,6 +31,18 @@ def dev_chain():
 
 
 def truffle(args):
+    print('Copy {} -> {}'.format(
+        os.path.join(CONTRACT_DIR, 'deploy', 'env.truffle'),
+        os.path.join(CONTRACT_DIR, 'deploy', '.env'),
+    ))
+    shutil.copy(
+        os.path.join(CONTRACT_DIR, 'deploy', 'env.truffle'),
+        os.path.join(CONTRACT_DIR, 'deploy', '.env'),
+    )
+
+    # `truffle test` will compile contract to /tmp
+    subprocess.check_call(['npm', 'run', 'truffle:compile'])
+
     ret = True
     with dev_chain():
         try:
