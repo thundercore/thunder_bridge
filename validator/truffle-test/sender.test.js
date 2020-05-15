@@ -10,7 +10,7 @@ const expect = require('chai').expect;
 
 const deployed = require(path.join(__dirname, '../../data/deployed.json'));
 
-gasPriceService = {
+const gasPriceService = {
     getPrice: async () => {
         return await web3.eth.getGasPrice();
     }

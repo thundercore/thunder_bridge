@@ -47,6 +47,7 @@ async function initialize() {
   }
 }
 
+// @ts-ignore
 async function loopRunner({ sendToQueue }) {
   try {
     if (connection.isConnected() && redis.status === 'ready') {

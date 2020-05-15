@@ -13,7 +13,7 @@ const ONE = toBN(1)
 
 export interface ProcessState {
   lastProcessedBlock: BN
-  updateLastProcessedBlock: (lastBlockNumber: BN) => Promise<void>
+  updateLastProcessedBlock: (lastBlockNumber: BN) => Promise<string | void>
 }
 
 export interface WatcherWeb3 {
@@ -23,12 +23,12 @@ export interface WatcherWeb3 {
 }
 
 export interface KVStore {
-  get: (key: string) => Promise<string>
+  get: (key: string) => Promise<string | null>
   set: (key: string, value: string) => Promise<string>
 }
 
 export class ProcessStateImpl implements ProcessState {
-  redis: any
+  redis: KVStore
   startBlock: BN
   lastProcessedBlock: BN
   lastBlockRedisKey: string
@@ -37,6 +37,7 @@ export class ProcessStateImpl implements ProcessState {
     this.redis = redis
     this.lastBlockRedisKey = `${id}:lastProcessedBlock`
     this.startBlock = startBlock
+    this.lastProcessedBlock = toBN(0)
   }
 
   async getLastProcessedBlock() {
@@ -115,7 +116,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
     )
 
     const event = this.eventContract.options.jsonInterface.find(function(item) {
-      return item.type === 'event' && item.name == eventName
+      return item.type === 'event' && item.name === eventName
     })
     if (!event) {
       throw new Error(`${eventName} not in the contract's ABI`)
@@ -147,6 +148,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
     }
     let events
     try {
+      // @ts-ignore
       events = logs.map(log => this.decodeEventAbi(event, log))
     } catch (e) {
       throw new Error(`${eventName} events cannot be obtained, event decoding failed: ${e}`)
@@ -154,7 +156,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
     return events
   }
 
-  encodeEventAbi(event, fromBlock, toBlock, filter): PastLogsOptions {
+  encodeEventAbi(event: any, fromBlock: any, toBlock: any, filter: any): PastLogsOptions {
     const params = {
       address: this.eventContract.options.address.toLowerCase(),
       fromBlock: this.web3.utils.toHex(fromBlock),
@@ -163,10 +165,10 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
     }
 
     let indexedTopics = event.inputs
-      .filter(function(i) {
+      .filter(function(i:any) {
         return i.indexed === true
       })
-      .map(i => {
+      .map((i: any) => {
         let value = filter[i.name]
         if (!value) {
           return null
@@ -178,7 +180,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
     return params
   }
 
-  decodeEventAbi(event, result): EventData {
+  decodeEventAbi(event: any, result: any): EventData {
     let argTopics = result.topics.slice(1)
     result.returnValues = this.web3.eth.abi.decodeLog(event.inputs, result.data, argTopics)
     delete result.returnValues.__length__

@@ -68,7 +68,7 @@ export class SenderWeb3Impl implements SenderWeb3 {
     }
 
     let signedTx = await this.web3.eth.accounts.signTransaction(txConfig, `0x${this.validator.privateKey}`)
-    return this.web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+    return this.web3.eth.sendSignedTransaction(signedTx.rawTransaction!)
   }
 
   async getBalance(): Promise<string> {
@@ -230,7 +230,7 @@ export class Sender {
 
       case SendResult.insufficientFunds:
         const currentBalance = await this.web3.getBalance()
-        const gasLimit = addExtraGas(txInfo.gasEstimate, EXTRA_GAS_PERCENTAGE)
+        const gasLimit = addExtraGas(txInfo!.gasEstimate, EXTRA_GAS_PERCENTAGE)
         const gasPrice = this.web3.getPrice()
         let minimumBalance = gasLimit.multipliedBy(gasPrice)
         logger.error(

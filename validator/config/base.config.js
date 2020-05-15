@@ -6,14 +6,14 @@ const { isAddress, toBN } = require('web3').utils
 const { web3Home, web3Foreign } = require('../src/services/web3')
 const { privateKeyToAddress } = require('../src/utils/utils')
 
-const homeNativeErcAbi = require('../abis/HomeBridgeNativeToErc.abi')
-const foreignNativeErcAbi = require('../abis/ForeignBridgeNativeToErc.abi')
+const homeNativeErcAbi = require('../abis/HomeBridgeNativeToErc.abi.json')
+const foreignNativeErcAbi = require('../abis/ForeignBridgeNativeToErc.abi.json')
 
-const homeErcErcAbi = require('../abis/HomeBridgeErcToErc.abi')
-const foreignErcErcAbi = require('../abis/ForeignBridgeErcToErc.abi')
+const homeErcErcAbi = require('../abis/HomeBridgeErcToErc.abi.json')
+const foreignErcErcAbi = require('../abis/ForeignBridgeErcToErc.abi.json')
 
-const homeErcNativeAbi = require('../abis/HomeBridgeErcToNative.abi')
-const foreignErcNativeAbi = require('../abis/ForeignBridgeErcToNative.abi')
+const homeErcNativeAbi = require('../abis/HomeBridgeErcToNative.abi.json')
+const foreignErcNativeAbi = require('../abis/ForeignBridgeErcToNative.abi.json')
 
 let homeAbi
 let foreignAbi

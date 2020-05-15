@@ -1,16 +1,23 @@
 {
     "compilerOptions": {
-        "outDir": "./built/src",
+        "outDir": "./built",
         "target": "es6",
         "module": "commonjs",
         "moduleResolution": "node",
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
-        // "allowJs": true,
+        "resolveJsonModule": true,
+        "allowJs": true,
+        "strict": true
     },
+    "include": [
+        "src/**/*",
+        "abis/**/*",
+        "config/**/*"
+    ],
     "exclude": [
         "./node_modules/**/*",
         "./built/**/*",
-        "./e2e/**/*",
+        "./e2e/**/*"
     ]
 }

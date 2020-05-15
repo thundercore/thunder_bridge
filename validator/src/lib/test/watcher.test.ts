@@ -11,15 +11,16 @@ import { EventData, Filter } from 'web3-eth-contract'
 import { toBN } from 'web3-utils'
 import { FakeQueue } from '../queue'
 
-import { expect } from 'chai'
+import { expect, assert } from 'chai'
 import { strictEqual } from 'assert'
 import Web3 from 'web3'
+// @ts-ignore
 import requestManager from 'web3-core-requestmanager'
 import BN from 'bn.js'
 import sinon from 'sinon'
 
 class FakeProcessState implements ProcessState {
-  lastProcessedBlock: BN
+  lastProcessedBlock: BN = toBN(0)
 
   async updateLastProcessedBlock(block: BN): Promise<void> {
     this.lastProcessedBlock = block
@@ -63,7 +64,9 @@ class FakeWatcherWeb3 implements WatcherWeb3 {
 }
 
 class MemKVStore implements KVStore {
-  store: object = {}
+  store: {
+    [key: string]: string
+  } = {}
 
   get(key: string): Promise<string> {
     return Promise.resolve(this.store[key])
@@ -110,7 +113,10 @@ describe('Test EventWatcher', () => {
       fromBlock: 46,
       toBlock: 49,
     }
-    expect(task.event.returnValues).to.deep.equal(expectation)
+    assert.isDefined(task)
+    if (task) {
+      expect(task.event.returnValues).to.deep.equal(expectation)
+    }
 
     let lastBlockToProcess = await watcher.getLastBlockToProcess()
     expect(lastBlockToProcess.toString(), toBN(49).toString())
