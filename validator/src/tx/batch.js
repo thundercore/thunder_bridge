@@ -41,5 +41,5 @@ class BatchRequest {
 }
 
 module.exports = {
-  BatchRequest: BatchRequest,
+  BatchRequest,
 }

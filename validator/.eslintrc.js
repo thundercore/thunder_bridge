@@ -13,7 +13,7 @@ module.exports = {
     contract: 'readonly',
     web3: true,
   },
-  plugins: ['@typescript-eslint', 'import'],
+  plugins: ['@typescript-eslint'],
   extends: [
     'eslint:recommended',
     'airbnb-base',
@@ -23,5 +23,16 @@ module.exports = {
     'prettier/@typescript-eslint',
     'plugin:prettier/recommended',
   ],
-  rules: {},
+  rules: {
+    'lines-between-class-members': ['off'],
+    'prefer-destructuring': ['off'],
+    'import/extensions': [
+      'error',
+      'ignorePackages',
+      {
+        js: 'never',
+        ts: 'never',
+      },
+    ],
+  },
 }

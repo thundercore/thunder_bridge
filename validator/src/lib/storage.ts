@@ -1,7 +1,6 @@
-
 declare namespace Cache {
-    type KeyType = string;
-    type ValueType = string | number | any[];
+  type KeyType = string
+  type ValueType = string | number | any[]
 }
 
 export interface Cache {
@@ -16,11 +15,11 @@ export class FakeCache implements Cache {
       [key: string]: Cache.ValueType;
     } = {}
 
-    async get(key: Cache.KeyType): Promise<Cache.ValueType> {
-      return Promise.resolve(this.m[key])
-    }
+  async get(key: Cache.KeyType): Promise<Cache.ValueType> {
+    return Promise.resolve(this.m[key])
+  }
 
-    async set(key: Cache.KeyType, value: Cache.ValueType): Promise<void> {
-      this.m[key] = value
-    }
+  async set(key: Cache.KeyType, value: Cache.ValueType): Promise<void> {
+    this.m[key] = value
+  }
 }

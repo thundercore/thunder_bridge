@@ -5,7 +5,7 @@ import { Contract, EventData, Filter } from 'web3-eth-contract'
 import { PastLogsOptions } from 'web3-core'
 import { toBN } from 'web3-utils'
 
-import logger from "../services/logger"
+import logger from '../services/logger'
 import { EventTask } from './types'
 
 const ONE = toBN(1)
@@ -89,25 +89,15 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
     try {
       const contractAddress = this.bridgeContract.options.address
       logger.debug({ contractAddress }, 'Getting required block confirmations')
-      requiredBlockConfirmations = await this.bridgeContract.methods
-        .requiredBlockConfirmations()
-        .call()
-      logger.debug(
-        { contractAddress, requiredBlockConfirmations },
-        'Required block confirmations obtained',
-      )
+      requiredBlockConfirmations = await this.bridgeContract.methods.requiredBlockConfirmations().call()
+      logger.debug({ contractAddress, requiredBlockConfirmations }, 'Required block confirmations obtained')
     } catch (e) {
       throw new Error(`Required block confirmations cannot be obtained`)
     }
     return toBN(requiredBlockConfirmations)
   }
 
-  async getEvents(
-    eventName: string,
-    fromBlock: BN,
-    toBlock: BN,
-    filter: Filter,
-  ): Promise<EventData[]> {
+  async getEvents(eventName: string, fromBlock: BN, toBlock: BN, filter: Filter): Promise<EventData[]> {
     const contractAddress = this.eventContract.options.address
     logger.info(
       { contractAddress, eventName, fromBlock: fromBlock.toString(), toBlock: toBlock.toString() },
@@ -148,7 +138,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
     let events
     try {
       // @ts-ignore
-      events = logs.map(log => this.decodeEventAbi(event, log))
+      events = logs.map((log) => this.decodeEventAbi(event, log))
     } catch (e) {
       throw new Error(`${eventName} events cannot be obtained, event decoding failed: ${e}`)
     }
@@ -163,12 +153,12 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
       topics: [event.signature],
     }
 
-    let indexedTopics = event.inputs
-      .filter(function(i:any) {
+    const indexedTopics = event.inputs
+      .filter(function (i: any) {
         return i.indexed === true
       })
       .map((i: any) => {
-        let value = filter[i.name]
+        const value = filter[i.name]
         if (!value) {
           return null
         }
@@ -180,7 +170,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
   }
 
   decodeEventAbi(event: any, result: any): EventData {
-    let argTopics = result.topics.slice(1)
+    const argTopics = result.topics.slice(1)
     result.returnValues = this.web3.eth.abi.decodeLog(event.inputs, result.data, argTopics)
     delete result.returnValues.__length__
     result.event = event.name
@@ -202,13 +192,7 @@ export class EventWatcher {
   web3: WatcherWeb3
   status: ProcessState
 
-  constructor(
-    id: string,
-    event: string,
-    eventFilter: Filter,
-    web3: WatcherWeb3,
-    status: ProcessState,
-  ) {
+  constructor(id: string, event: string, eventFilter: Filter, web3: WatcherWeb3, status: ProcessState) {
     this.id = id
     this.event = event
     this.eventFilter = eventFilter
@@ -245,18 +229,15 @@ export class EventWatcher {
 
       if (events.length) {
         events.map(async (event) => {
-          let task: EventTask = {
+          const task: EventTask = {
             eventType: this.id,
-            event: event,
+            event,
           }
           await sendToQueue(task)
         })
       }
 
-      logger.debug(
-        { lastProcessedBlock: lastBlockToProcess.toString() },
-        'Updating last processed block',
-      )
+      logger.debug({ lastProcessedBlock: lastBlockToProcess.toString() }, 'Updating last processed block')
       await this.status.updateLastProcessedBlock(lastBlockToProcess)
     } catch (e) {
       logger.error(e)

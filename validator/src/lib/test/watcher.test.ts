@@ -1,11 +1,3 @@
-import {
-  EventWatcher,
-  ProcessState,
-  WatcherWeb3,
-  WatcherWeb3Impl,
-  ProcessStateImpl,
-  KVStore,
-} from '../watcher'
 import { describe, before } from 'mocha'
 import { EventData, Filter } from 'web3-eth-contract'
 import { toBN } from 'web3-utils'
@@ -29,8 +21,8 @@ class FakeProcessState implements ProcessState {
 }
 
 class FakeWatcherWeb3 implements WatcherWeb3 {
-  lastBlockNumber: number = 0
-  blockConfirmations: number = 0
+  lastBlockNumber = 0
+  blockConfirmations = 0
 
   async getLastBlockNumber(): Promise<BN> {
     return Promise.resolve(toBN(this.lastBlockNumber))
@@ -41,24 +33,26 @@ class FakeWatcherWeb3 implements WatcherWeb3 {
   }
 
   async getEvents(event: string, fromBlock: BN, toBlock: BN, filter: Filter): Promise<EventData[]> {
-    let ret: EventData[] = [{
-      returnValues: {
-        fromBlock: fromBlock.toNumber(),
-        toBlock: toBlock.toNumber(),
+    const ret: EventData[] = [
+      {
+        returnValues: {
+          fromBlock: fromBlock.toNumber(),
+          toBlock: toBlock.toNumber(),
+        },
+        raw: {
+          data: '',
+          topics: [],
+        },
+        event,
+        signature: '',
+        logIndex: 0,
+        transactionIndex: fromBlock.toNumber(),
+        transactionHash: '',
+        blockHash: '',
+        blockNumber: toBlock.toNumber(),
+        address: '',
       },
-      raw: {
-        data: '',
-        topics: [],
-      },
-      event: event,
-      signature: '',
-      logIndex: 0,
-      transactionIndex: fromBlock.toNumber(),
-      transactionHash: '',
-      blockHash: '',
-      blockNumber: toBlock.toNumber(),
-      address: '',
-    }]
+    ]
     return Promise.resolve(ret)
   }
 }
@@ -79,14 +73,14 @@ class MemKVStore implements KVStore {
 }
 
 describe('Test EventWatcher', () => {
-  let web3 = new FakeWatcherWeb3()
-  let state = new FakeProcessState()
-  let watcher = new EventWatcher('mytestcase', 'testevent', {}, web3, state)
+  const web3 = new FakeWatcherWeb3()
+  const state = new FakeProcessState()
+  const watcher = new EventWatcher('mytestcase', 'testevent', {}, web3, state)
 
   it('test get last block to process', async () => {
     web3.lastBlockNumber = 100
     web3.blockConfirmations = 51
-    let lastBlockToProcess = await watcher.getLastBlockToProcess()
+    const lastBlockToProcess = await watcher.getLastBlockToProcess()
     expect(lastBlockToProcess.toString(), toBN(49).toString())
   })
 
@@ -126,7 +120,7 @@ describe('Test EventWatcher', () => {
       expect(task.event.returnValues).to.deep.equal(expectation)
     }
 
-    let lastBlockToProcess = await watcher.getLastBlockToProcess()
+    const lastBlockToProcess = await watcher.getLastBlockToProcess()
     expect(lastBlockToProcess.toString(), toBN(49).toString())
   })
 })
@@ -142,32 +136,32 @@ describe('Test WatcherWeb3Impl', () => {
   })
 
   it('Test getLastBlockNumber', async () => {
-    let provider = null
-    let web3 = new Web3(provider)
+    const provider = null
+    const web3 = new Web3(provider)
     const Contract = web3.eth.Contract
-    let contract = new Contract([])
+    const contract = new Contract([])
     const getBlockNumber = sinon.stub(web3.eth, 'getBlockNumber')
     getBlockNumber.resolves(10)
 
-    let watcherWeb3 = new WatcherWeb3Impl(web3, contract, contract)
-    let blockNumber = await watcherWeb3.getLastBlockNumber()
+    const watcherWeb3 = new WatcherWeb3Impl(web3, contract, contract)
+    const blockNumber = await watcherWeb3.getLastBlockNumber()
     expect(blockNumber.toNumber()).to.equal(10)
   })
 
   it('Test getRequiredBlockConfirmations', async () => {
-    let provider = null
-    let web3 = new Web3(provider)
+    const provider = null
+    const web3 = new Web3(provider)
     const Contract = web3.eth.Contract
-    let bridgeContract = new Contract([])
+    const bridgeContract = new Contract([])
     bridgeContract.methods = {
       requiredBlockConfirmations: () => ({ call: sinon.stub().resolves(10) }),
     }
-    let eventContract = new Contract([])
+    const eventContract = new Contract([])
     eventContract.methods = {
       requiredBlockConfirmations: () => ({ call: sinon.stub().resolves(50) }),
     }
-    let watcherWeb3 = new WatcherWeb3Impl(web3, bridgeContract, eventContract)
-    let blockNumber = await watcherWeb3.getRequiredBlockConfirmations()
+    const watcherWeb3 = new WatcherWeb3Impl(web3, bridgeContract, eventContract)
+    const blockNumber = await watcherWeb3.getRequiredBlockConfirmations()
     expect(blockNumber.toNumber()).to.equal(10)
   })
 })
@@ -236,9 +230,7 @@ describe('Test WatcherWeb3Impl getEvents', () => {
       web3.utils.toChecksumAddress('0x2c66e58c123fe807ef9c36682257fa6bfb4afa52'),
     )
     expect(events[0].returnValues.value).to.equal(
-      web3.utils.hexToNumberString(
-        '0x0000000000000000000000000000000000000000000000000000000009b5cf30',
-      ),
+      web3.utils.hexToNumberString('0x0000000000000000000000000000000000000000000000000000000009b5cf30'),
     )
     expect(events[0].event).to.equal('Transfer')
   })
@@ -282,7 +274,8 @@ describe('Test WatcherWeb3Impl getEvents', () => {
     const toBlock = toBN(10)
     await watcherWeb3.getEvents('Transfer', fromBlock, toBlock, {})
 
-    let request1, request2
+    let request1
+    let request2
     expect(rm.sendBatch.lastCall.args).length(2)
     request1 = rm.sendBatch.lastCall.args[0][0]
     request2 = rm.sendBatch.lastCall.args[0][1]
@@ -290,8 +283,8 @@ describe('Test WatcherWeb3Impl getEvents', () => {
     expect(request2.method).to.equal('eth_getLogs')
     expect(request2.params).to.deep.equal([
       {
-        fromBlock: '0x' + fromBlock.toString('hex'),
-        toBlock: '0x' + toBlock.toString('hex'),
+        fromBlock: `0x${fromBlock.toString('hex')}`,
+        toBlock: `0x${toBlock.toString('hex')}`,
         address: eventContract.options.address.toLowerCase(),
         topics: ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', null, null],
       },
@@ -307,8 +300,8 @@ describe('Test WatcherWeb3Impl getEvents', () => {
     expect(request2.method).to.equal('eth_getLogs')
     expect(request2.params).to.deep.equal([
       {
-        fromBlock: '0x' + fromBlock.toString('hex'),
-        toBlock: '0x' + toBlock.toString('hex'),
+        fromBlock: `0x${fromBlock.toString('hex')}`,
+        toBlock: `0x${toBlock.toString('hex')}`,
         address: eventContract.options.address.toLowerCase(),
         topics: [
           '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
@@ -328,8 +321,8 @@ describe('Test WatcherWeb3Impl getEvents', () => {
     expect(request2.method).to.equal('eth_getLogs')
     expect(request2.params).to.deep.equal([
       {
-        fromBlock: '0x' + fromBlock.toString('hex'),
-        toBlock: '0x' + toBlock.toString('hex'),
+        fromBlock: `0x${fromBlock.toString('hex')}`,
+        toBlock: `0x${toBlock.toString('hex')}`,
         address: eventContract.options.address.toLowerCase(),
         topics: [
           '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',

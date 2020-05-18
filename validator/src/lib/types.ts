@@ -1,8 +1,8 @@
-import { EventData } from 'web3-eth-contract';
+import { EventData } from 'web3-eth-contract'
 import BN from 'bn.js'
 
 export interface EventTask {
-  eventType: string,
+  eventType: string
   event: EventData
 }
 

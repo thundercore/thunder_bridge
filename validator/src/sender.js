@@ -16,7 +16,7 @@ const {
   waitForFunds,
   watchdog,
   nonceError,
-  blockGasLimitExceededError
+  blockGasLimitExceededError,
 } = require('./utils/utils')
 const { EXIT_CODES, EXTRA_GAS_PERCENTAGE } = require('./utils/constants')
 const { processEvents } = require('./events')
@@ -50,16 +50,20 @@ async function initialize() {
     chainId = await getChainId(config.id)
     connectSenderToQueue({
       queueName: config.queue,
-      cb: options => {
+      cb: (options) => {
         if (config.maxProcessingTime) {
-          return watchdog(() => main(options), config.maxProcessingTime, () => {
-            logger.fatal(`Max processing time ${config.maxProcessingTime} reached`)
-            process.exit(EXIT_CODES.MAX_TIME_REACHED)
-          })
+          return watchdog(
+            () => main(options),
+            config.maxProcessingTime,
+            () => {
+              logger.fatal(`Max processing time ${config.maxProcessingTime} reached`)
+              process.exit(EXIT_CODES.MAX_TIME_REACHED)
+            },
+          )
         }
 
         return main(options)
-      }
+      },
     })
   } catch (e) {
     logger.error(e.message)
@@ -68,9 +72,7 @@ async function initialize() {
 }
 
 function resume(newBalance) {
-  logger.info(
-    `Validator balance changed. New balance is ${newBalance}. Resume messages processing.`
-  )
+  logger.info(`Validator balance changed. New balance is ${newBalance}. Resume messages processing.`)
   initialize()
 }
 
@@ -85,10 +87,9 @@ async function readNonce(forceUpdate) {
   if (nonce) {
     logger.debug({ nonce }, 'Nonce found in the DB')
     return Number(nonce)
-  } else {
-    logger.debug("Nonce wasn't found in the DB")
-    return getNonce(web3Instance, VALIDATOR_ADDRESS)
   }
+  logger.debug("Nonce wasn't found in the DB")
+  return getNonce(web3Instance, VALIDATOR_ADDRESS)
 }
 
 function updateNonce(nonce) {
@@ -104,7 +105,7 @@ async function main({ msg, ackMsg, nackMsg, sendToQueue, channel }) {
 
     const task = JSON.parse(msg.content)
     logger.info(`Task ${task.eventType} received with ${task.events.length} events to process`)
-    let jobs = await processEvents(task.eventType, task.events)
+    const jobs = await processEvents(task.eventType, task.events)
 
     const gasPrice = GasPrice.getPrice()
     const ttl = Number(REDIS_LOCK_TTL) * jobs.length
@@ -118,9 +119,8 @@ async function main({ msg, ackMsg, nackMsg, sendToQueue, channel }) {
     let minimumBalance = null
     const failedEvents = []
 
-
     logger.debug(`Sending ${jobs.length} transactions`)
-    await syncForEach(jobs, async job => {
+    await syncForEach(jobs, async (job) => {
       const gasLimit = addExtraGas(job.gasEstimate, EXTRA_GAS_PERCENTAGE)
 
       try {
@@ -135,13 +135,13 @@ async function main({ msg, ackMsg, nackMsg, sendToQueue, channel }) {
           privateKey: await privateKey.getValidatorKey(),
           to: job.to,
           chainId,
-          web3: web3Instance
+          web3: web3Instance,
         })
 
-        nonce++
+        nonce += 1
         logger.info(
           { eventTransactionHash: job.transactionReference, generatedTransactionHash: txHash },
-          `Tx generated ${txHash} for event Tx ${job.transactionReference}`
+          `Tx generated ${txHash} for event Tx ${job.transactionReference}`,
         )
       } catch (e) {
         logger.error(
@@ -156,7 +156,7 @@ async function main({ msg, ackMsg, nackMsg, sendToQueue, channel }) {
            nonce: ${nonce}
            chainId: ${chainId}
            amount: "0"`,
-          e.message
+          e.message,
         )
         if (
           !e.message.includes('Transaction with the same hash was already imported') &&
@@ -170,7 +170,7 @@ async function main({ msg, ackMsg, nackMsg, sendToQueue, channel }) {
           const currentBalance = await web3Instance.eth.getBalance(VALIDATOR_ADDRESS)
           minimumBalance = gasLimit.multipliedBy(gasPrice)
           logger.error(
-            `Insufficient funds: ${currentBalance}. Stop processing messages until the balance is at least ${minimumBalance}.`
+            `Insufficient funds: ${currentBalance}. Stop processing messages until the balance is at least ${minimumBalance}.`,
           )
         } else if (nonceError(e)) {
           nonce = await readNonce(true)
@@ -188,16 +188,14 @@ async function main({ msg, ackMsg, nackMsg, sendToQueue, channel }) {
       logger.info(`Sending ${failedEvents.length} failed "${task.eventType}" event to Queue`)
       await sendToQueue({
         eventType: task.eventType,
-        events: failedEvents
+        events: failedEvents,
       })
     }
     ackMsg(msg)
     logger.debug(`Finished processing msg`)
 
     if (insufficientFunds) {
-      logger.warn(
-        'Insufficient funds. Stop sending transactions until the account has the minimum balance'
-      )
+      logger.warn('Insufficient funds. Stop sending transactions until the account has the minimum balance')
       channel.close()
       waitForFunds(web3Instance, VALIDATOR_ADDRESS, minimumBalance, resume, logger)
     }

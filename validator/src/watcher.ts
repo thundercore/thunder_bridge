@@ -23,39 +23,26 @@ function NewWatcher(): EventWatcher {
   const bridgeContract = new web3Instance.eth.Contract(config.bridgeAbi, config.bridgeContractAddress)
   const eventContract = new web3Instance.eth.Contract(config.eventAbi, config.eventContractAddress)
 
-  let web3 = new WatcherWeb3Impl(web3Instance, bridgeContract, eventContract)
-  let state = new ProcessStateImpl(config.id, redis, config.startBlock)
+  const web3 = new WatcherWeb3Impl(web3Instance, bridgeContract, eventContract)
+  const state = new ProcessStateImpl(config.id, redis, config.startBlock)
   return new EventWatcher(config.id, config.event, config.eventFilter, web3, state)
 }
 
-let watcher = NewWatcher()
-
-async function initialize() {
-  try {
-    const checkHttps = checkHTTPS(process.env.ALLOW_HTTP, logger)
-
-    rpcUrlsManager.homeUrls.forEach(checkHttps('home'))
-    rpcUrlsManager.foreignUrls.forEach(checkHttps('foreign'))
-
-    connectWatcherToQueue({
-      queueName: config.queue,
-      cb: loopRunner
-    })
-  } catch (e) {
-    logger.error(e)
-    process.exit(EXIT_CODES.GENERAL_ERROR)
-  }
-}
+const watcher = NewWatcher()
 
 // @ts-ignore
 async function loopRunner({ sendToQueue }) {
   try {
     if (connection.isConnected() && redis.status === 'ready') {
       if (config.maxProcessingTime) {
-        await watchdog(() => watcher.run(sendToQueue), config.maxProcessingTime, () => {
-          logger.fatal('Max processing time reached')
-          process.exit(EXIT_CODES.MAX_TIME_REACHED)
-        })
+        await watchdog(
+          () => watcher.run(sendToQueue),
+          config.maxProcessingTime,
+          () => {
+            logger.fatal('Max processing time reached')
+            process.exit(EXIT_CODES.MAX_TIME_REACHED)
+          },
+        )
       } else {
         await watcher.run(sendToQueue)
       }
@@ -67,7 +54,23 @@ async function loopRunner({ sendToQueue }) {
   setTimeout(() => {
     loopRunner({ sendToQueue })
   }, config.pollingInterval)
+}
 
+async function initialize() {
+  try {
+    const checkHttps = checkHTTPS(process.env.ALLOW_HTTP, logger)
+
+    rpcUrlsManager.homeUrls.forEach(checkHttps('home'))
+    rpcUrlsManager.foreignUrls.forEach(checkHttps('foreign'))
+
+    connectWatcherToQueue({
+      queueName: config.queue,
+      cb: loopRunner,
+    })
+  } catch (e) {
+    logger.error(e)
+    process.exit(EXIT_CODES.GENERAL_ERROR)
+  }
 }
 
 initialize()
