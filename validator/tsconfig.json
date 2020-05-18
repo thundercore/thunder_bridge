@@ -13,7 +13,9 @@
     "include": [
         "src/**/*",
         "abis/**/*",
-        "config/**/*"
+        "config/**/*",
+        "test/**/*",
+        "truffle-test/**/*"
     ],
     "exclude": [
         "./node_modules/**/*",

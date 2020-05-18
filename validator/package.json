@@ -17,7 +17,7 @@
     "dev-chain:stop": "docker rm -f dev-chain",
     "truffle-test": "npm run tsc && NODE_ENV=test truffle test built/truffle-test/* --network develop",
     "truffle:compile": "truffle compile",
-    "tsc": "tsc && cp -r ./test/ ./truffle-test/ ./built",
+    "tsc": "tsc",
     "coverage": "NODE_ENV=test nyc --reporter=text --reporter=html mocha",
     "postinstall": "npm install --prefix e2e && mkdir -p logs",
     "docker-message": "echo 'Please run a valid npm command'",

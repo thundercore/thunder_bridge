@@ -6,6 +6,12 @@ module.exports = {
   },
   env: {
     node: true,
+    mocha: true,
+  },
+  globals: {
+    artifacts: 'readonly',
+    contract: 'readonly',
+    web3: true,
   },
   plugins: ['@typescript-eslint', 'import'],
   extends: [
