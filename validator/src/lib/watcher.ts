@@ -5,7 +5,7 @@ import { Contract, EventData, Filter } from 'web3-eth-contract'
 import { PastLogsOptions } from 'web3-core'
 import { toBN } from 'web3-utils'
 
-import logger from '../services/logger'
+import logger = require('../services/logger')
 import { EventTask } from './types'
 
 const ONE = toBN(1)
@@ -121,6 +121,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
 
     // @ts-ignore
     batch.add(this.web3.eth.getPastLogs.request(logFilter))
+    logger.debug({batch})
 
     let results
     try {
@@ -130,6 +131,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
     }
 
     const [latestBlock, logs] = results
+    logger.debug({ results })
     if (latestBlock < toBlock.toNumber()) {
       throw new Error(
         `${eventName} event cannot be obtained: getEvents(fromBlock: ${fromBlock.toNumber()}, toBlock: ${toBlock.toNumber()}) called when latest block reported by RPC node is ${latestBlock}`,

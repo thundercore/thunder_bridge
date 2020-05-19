@@ -1,3 +1,11 @@
+import {
+  EventWatcher,
+  ProcessState,
+  WatcherWeb3,
+  WatcherWeb3Impl,
+  ProcessStateImpl,
+  KVStore,
+} from "../watcher"
 import { describe, before } from 'mocha'
 import { EventData, Filter } from 'web3-eth-contract'
 import { toBN } from 'web3-utils'

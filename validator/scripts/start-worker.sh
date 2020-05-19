@@ -2,7 +2,7 @@
 
 set -o pipefail
 
-WORKERS_DIR="src/"
+WORKERS_DIR="built/src/"
 LOGS_DIR="logs/"
 
 WORKER="${WORKERS_DIR}${1}.js"

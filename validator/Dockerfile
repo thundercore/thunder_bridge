@@ -1,4 +1,4 @@
-FROM node:8
+FROM node:10
 
 RUN apt-get update -yq && \
 	apt-get install -yq build-essential libc6-dev libc6-dev-i386 wget && \

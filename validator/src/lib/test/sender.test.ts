@@ -7,7 +7,6 @@ import { BigNumber } from 'bignumber.js'
 import { EXTRA_GAS_PERCENTAGE } from '../../utils/constants'
 
 import { FakeCache } from '../storage'
-import { FakeQueue } from '../queue'
 import { FakeLocker } from '../locker'
 import { Sender, SenderWeb3Impl, Validator, SendResult } from '../sender'
 import { TxInfo } from '../types'

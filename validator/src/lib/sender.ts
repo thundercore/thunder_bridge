@@ -8,6 +8,8 @@ import { Cache } from './storage'
 import { TransactionConfig, TransactionReceipt } from 'web3-core'
 import { processEvents } from '../events'
 import { addExtraGas } from '../utils/utils'
+import { toBN, toWei } from 'web3-utils'
+import { BigNumber } from 'bignumber.js'
 
 export interface SenderWeb3 {
   getPrice: () => Promise<number>
@@ -119,7 +121,7 @@ export class Sender {
   noncelock: string
   nonceKey: string
 
-  constructor(id: string, web3: SenderWeb3, locker: Locker, cache?: Cache){
+  constructor(id: string, web3: SenderWeb3, locker: Locker, cache?: Cache) {
     this.id = id
     this.web3 = web3
     this.locker = locker

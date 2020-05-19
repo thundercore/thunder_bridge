@@ -10,8 +10,8 @@ const abisDir = path.join(__dirname, '..', 'contracts/build/contracts')
 const homeWeb3 = new Web3(new Web3.providers.HttpProvider('http://parity1:8545'))
 const foreignWeb3 = new Web3(new Web3.providers.HttpProvider('http://parity2:8545'))
 
-const HOME_BRIDGE_ADDRESS = '0x1feB40aD9420b186F019A717c37f5546165d411E'
-const FOREIGN_BRIDGE_ADDRESS = '0x4a58D6d8D416a5fBCAcf3dC52eb8bE8948E25127'
+const HOME_BRIDGE_ADDRESS = '0x32198D570fffC7033641F8A9094FFDCaAEF42624'
+const FOREIGN_BRIDGE_ADDRESS = '0x5118AC62AE912Dd5B51EEfF7338c4fcb0248Ba8c'
 
 const { toBN } = foreignWeb3.utils
 
@@ -21,11 +21,11 @@ foreignWeb3.eth.accounts.wallet.add(user.privateKey)
 const tokenAbi = require(path.join(abisDir, 'ERC677BridgeToken.json')).abi
 const erc20Token = new foreignWeb3.eth.Contract(
   tokenAbi,
-  '0x3C665A31199694Bf723fD08844AD290207B5797f'
+  '0xdbeE25CbE97e4A5CC6c499875774dc7067E9426B'
 )
 const erc677Token = new homeWeb3.eth.Contract(
   tokenAbi,
-  '0x792455a6bCb62Ed4C4362D323E0590654CA4765c'
+  '0xE0CCE6C39cA0cB5699e8a607c4B9eC6248C85F9f'
 )
 
 describe('erc to erc', () => {

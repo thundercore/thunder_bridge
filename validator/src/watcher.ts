@@ -3,7 +3,7 @@ require('dotenv').config()
 import { EventWatcher, WatcherWeb3Impl, ProcessStateImpl } from './lib/watcher'
 
 import * as path from 'path'
-import * as logger from './services/logger'
+import logger = require('./services/logger')
 import * as rpcUrlsManager from './services/getRpcUrlsManager'
 
 import { connectWatcherToQueue, connection } from './services/amqpClient'
@@ -68,6 +68,7 @@ async function initialize() {
       cb: loopRunner,
     })
   } catch (e) {
+    console.log(e)
     logger.error(e)
     process.exit(EXIT_CODES.GENERAL_ERROR)
   }
