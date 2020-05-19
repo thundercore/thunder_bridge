@@ -1,10 +1,8 @@
 require('dotenv').config()
 
-const privateKey = require('./private-keys.config')
 const envalid = require('envalid')
 const { isAddress, toBN } = require('web3').utils
 const { web3Home, web3Foreign } = require('../src/services/web3')
-const { privateKeyToAddress } = require('../src/utils/utils')
 
 const homeNativeErcAbi = require('../abis/HomeBridgeNativeToErc.abi.json')
 const foreignNativeErcAbi = require('../abis/ForeignBridgeNativeToErc.abi.json')
@@ -43,13 +41,11 @@ let validations = {
   FOREIGN_BRIDGE_ADDRESS: validateAddress(),
   FOREIGN_POLLING_INTERVAL: envalid.num({default: 2000}),
   FOREIGN_START_BLOCK: bigNumValidator(),
+  QUEUE_URL: envalid.str(),
+  REDIS_LOCK_TTL: envalid.num()
 }
 
-const env = envalid.cleanEnv(process.env, validations, {
-  reporter: ({ errors, env }) => {
-    console.error('Invalid env vars: ' + Object.keys(errors))
-  }
-})
+const env = envalid.cleanEnv(process.env, validations, {})
 
 switch (env.BRIDGE_MODE) {
   case 'NATIVE_TO_ERC':
@@ -93,7 +89,6 @@ const bridgeConfig = {
   foreignBridgeAddress: env.FOREIGN_BRIDGE_ADDRESS,
   foreignBridgeAbi: foreignAbi,
   eventFilter: {},
-  validatorAddress: null,
   maxProcessingTime
 }
 
@@ -122,4 +117,5 @@ module.exports = {
   homeConfig,
   foreignConfig,
   id,
+  queueUrl: env.QUEUE_URL
 }

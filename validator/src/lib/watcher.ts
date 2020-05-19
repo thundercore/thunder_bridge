@@ -7,7 +7,6 @@ import { toBN } from 'web3-utils'
 
 import logger from "../services/logger"
 import { EventTask } from './types'
-import { Queue } from './queue'
 
 const ONE = toBN(1)
 
@@ -228,7 +227,7 @@ export class EventWatcher {
     return lastBlockNumber.sub(requiredBlockConfirmations)
   }
 
-  async run(queue: Queue<EventTask>) {
+  async run(sendToQueue: (task: EventTask) => Promise<void>) {
     try {
       const lastBlockToProcess = await this.getLastBlockToProcess()
       const lastProcessedBlock = this.status.lastProcessedBlock
@@ -250,7 +249,7 @@ export class EventWatcher {
             eventType: this.id,
             event: event,
           }
-          await queue.push(task)
+          await sendToQueue(task)
         })
       }
 

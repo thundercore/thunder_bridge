@@ -14,11 +14,17 @@ def unittest(args):
     envs = {
         'HOME_BRIDGE_ADDRESS': '0x1feB40aD9420b186F019A717c37f5546165d411E',
         'FOREIGN_BRIDGE_ADDRESS': '0x4a58D6d8D416a5fBCAcf3dC52eb8bE8948E25127',
+        'HOME_RPC_URL': 'localhost:8545',
+        'FOREIGN_RPC_URL': 'localhost:8545',
         'HOME_START_BLOCK': '0',
         'FOREIGN_START_BLOCK': '0',
+        'BRIDGE_MODE': 'ERC_TO_ERC',
+        'QUEUE_URL': 'localhost',
+        'REDIS_LOCK_TTL': '1000',
     }
     os.environ.update(envs)
     subprocess.check_call(['npm', 'run', 'test'])
+    subprocess.check_call(['npm', 'run', 'test:ts'])
 
 
 @contextlib.contextmanager

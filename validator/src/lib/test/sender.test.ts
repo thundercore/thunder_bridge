@@ -7,7 +7,7 @@ import { EXTRA_GAS_PERCENTAGE } from '../../utils/constants'
 import { FakeCache } from "../storage"
 import { FakeQueue } from '../queue'
 import { FakeLocker } from '../locker'
-import { Sender, SenderWeb3Impl, Validator } from '../sender'
+import { Sender, SenderWeb3Impl, Validator, SendResult } from '../sender'
 import { TxInfo } from '../types'
 import { toBN, toWei } from 'web3-utils'
 import { addExtraGas } from '../../utils/utils'
@@ -79,7 +79,7 @@ describe("Test SenderWeb3Impl", () => {
       data: txinfo.data,
       value: toWei(amount),
       gas: gasLimit.toString(),
-      gasPrice: gasService.getPrice().toString(),
+      gasPrice: (await gasService.getPrice()).toString(),
     }
     expect(signTransaction.lastCall.args[0]).to.be.deep.equal(expectTxConfig)
     expect(signTransaction.lastCall.args[1]).to.be.deep.equal(privateKey)
@@ -92,7 +92,6 @@ describe("Test Sender", () => {
   let web3: Web3
   let sw: SenderWeb3Impl
   let cache: FakeCache
-  let queue: FakeQueue
   let lock: FakeLocker
   let sender: Sender
 
@@ -105,9 +104,8 @@ describe("Test Sender", () => {
     web3 = new Web3(null)
     sw = new SenderWeb3Impl("myid", 100, validator, web3, null)
     cache = new FakeCache()
-    queue = new FakeQueue()
     lock = new FakeLocker()
-    sender = new Sender("myid", queue, sw, lock, 3, cache)
+    sender = new Sender("myid", sw, lock, cache)
   })
 
   afterEach(() => {
@@ -188,7 +186,7 @@ describe("Test Sender", () => {
     sw.sendTx = sandbox.stub().throws(Error("Transaction with the same hash was already imported"))
 
     let result = await sender.sendTx(txinfo)
-    expect(result).eq("success")
+    expect(result).eq(SendResult.txImported)
     // Nonce should not be ++
     expect(await cache.get(sender.nonceKey)).eq("50")
   })
@@ -210,7 +208,7 @@ describe("Test Sender", () => {
     let result = await sender.sendTx(txinfo)
 
     // Result failed
-    expect(result).eq("failed")
+    expect(result).eq(SendResult.nonceTooLow)
     // Nonce should be update by querying web3
     expect(await cache.get(sender.nonceKey)).eq("100")
   })
@@ -248,7 +246,7 @@ describe("Test Sender", () => {
     sw.sendTx = sandbox.stub().throws(Error("exceeds block gas limit"))
     let result = await sender.sendTx(txinfo)
 
-    expect(result).eq("success")
+    expect(result).eq(SendResult.blockGasLimitExceeded)
     // Nonce should not be ++
     expect(await cache.get(sender.nonceKey)).eq("50")
   })

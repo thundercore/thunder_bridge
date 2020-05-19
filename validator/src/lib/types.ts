@@ -6,7 +6,6 @@ export interface EventTask {
   event: EventData
 }
 
-
 export interface TxInfo {
   data: string
   gasEstimate: BN

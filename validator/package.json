@@ -12,6 +12,7 @@
     "sender:foreign": "./scripts/start-worker.sh sender foreign-sender",
     "dev": "concurrently -n 'watcher:signature-request,watcher:collected-signatures,watcher:affirmation-request,sender:home,sender:foreign' -c 'red,green,yellow,blue,magenta' 'npm run watcher:signature-request' 'npm run watcher:collected-signatures' 'npm run watcher:affirmation-request' 'npm run sender:home' 'npm run sender:foreign'",
     "test": "NODE_ENV=test mocha test/*",
+    "test:ts": "NODE_ENV=test mocha -r ts-node/register src/lib/test/*",
     "test:watch": "NODE_ENV=test mocha --watch --reporter=min",
     "dev-chain": "docker run -d -p 7545:8545 --name dev-chain trufflesuite/ganache-cli:latest -m 'wisdom zero output drift choice bright east stuff craft inform invest patient' --callGasLimit 10000000000000 -l 10000000000000 -g 10000000000000000 -e 10000000000000 -i 5777",
     "dev-chain:stop": "docker rm -f dev-chain",
@@ -49,6 +50,7 @@
     "promise-limit": "^2.7.0",
     "promise-retry": "^1.1.1",
     "redlock": "^3.1.2",
+    "ts-retry-promise": "^0.3.1",
     "typescript": "^3.8.3",
     "web3": "1.2.6",
     "web3-utils": "1.2.6"

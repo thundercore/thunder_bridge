@@ -11,6 +11,7 @@ module.exports = {
   eventContractAddress: process.env.ERC20_TOKEN_ADDRESS,
   eventAbi: erc20Abi,
   eventFilter: { to: process.env.FOREIGN_BRIDGE_ADDRESS },
+  queue_url: baseConfig.queueUrl,
   queue: 'home',
   name: `watcher-${id}`,
   id

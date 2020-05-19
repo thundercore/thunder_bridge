@@ -6,14 +6,14 @@ declare namespace Cache {
 
 export interface Cache {
     status: string
-    get: (key: Cache.KeyType) => Promise<Cache.ValueType>
-    set: (key: Cache.KeyType, value: Cache.ValueType) => Promise<void>
+    get: (key: Cache.KeyType) => Promise<Cache.ValueType|null>
+    set: (key: Cache.KeyType, value: Cache.ValueType) => Promise<void|string>
 }
 
 export class FakeCache implements Cache {
     status: string = "processing"
     m: {
-      [key: string]: string | number | any[];
+      [key: string]: Cache.ValueType;
     } = {}
 
     async get(key: Cache.KeyType): Promise<Cache.ValueType> {

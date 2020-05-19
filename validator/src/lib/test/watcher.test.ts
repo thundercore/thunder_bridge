@@ -9,7 +9,6 @@ import {
 import { describe, before } from 'mocha'
 import { EventData, Filter } from 'web3-eth-contract'
 import { toBN } from 'web3-utils'
-import { FakeQueue } from '../queue'
 
 import { expect, assert } from 'chai'
 import { strictEqual } from 'assert'
@@ -18,6 +17,7 @@ import Web3 from 'web3'
 import requestManager from 'web3-core-requestmanager'
 import BN from 'bn.js'
 import sinon from 'sinon'
+import { EventTask } from '../types'
 
 class FakeProcessState implements ProcessState {
   lastProcessedBlock: BN = toBN(0)
@@ -94,9 +94,13 @@ describe('Test EventWatcher', () => {
     web3.lastBlockNumber = 100
     web3.blockConfirmations = 51
     state.lastProcessedBlock = toBN(50)
-    let queue = new FakeQueue()
-    await watcher.run(queue)
-    strictEqual(queue.queue.length, 0)
+    let queue: any[] = []
+    let sendToQueue = (item: EventTask): Promise<void> => {
+      queue.push(item)
+      return Promise.resolve()
+    }
+    await watcher.run(sendToQueue)
+    strictEqual(queue.length, 0)
   })
 
   it('test process new block', async () => {
@@ -104,11 +108,15 @@ describe('Test EventWatcher', () => {
     web3.lastBlockNumber = 100
     web3.blockConfirmations = 51
     state.lastProcessedBlock = toBN(45)
-    let queue = new FakeQueue()
-    await watcher.run(queue)
+    let queue: any[] = []
+    let sendToQueue = (item: EventTask): Promise<void> => {
+      queue.push(item)
+      return Promise.resolve()
+    }
+    await watcher.run(sendToQueue)
 
-    strictEqual(queue.queue.length, 1)
-    let task = queue.queue.pop()
+    strictEqual(queue.length, 1)
+    let task = queue.pop()
     let expectation = {
       fromBlock: 46,
       toBlock: 49,

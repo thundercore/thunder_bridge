@@ -1,12 +1,10 @@
 import BN from 'bn.js'
 import Web3 from 'web3'
 import logger from "../services/logger"
-import promiseRetry from 'promise-retry'
 import { EXTRA_GAS_PERCENTAGE } from '../utils/constants'
 import { EventTask, TxInfo } from './types'
 import { Locker } from './locker'
 import { Cache } from './storage'
-import { Queue } from './queue'
 import { TransactionConfig, TransactionReceipt } from 'web3-core'
 import { processEvents } from '../events'
 import { addExtraGas } from '../utils/utils'
@@ -117,28 +115,18 @@ export enum SendResult {
 
 export class Sender {
   id: string
-  queue: Queue<EventTask>
   web3: SenderWeb3
   locker: Locker
-  ttl: number
   cache?: Cache
   noncelock: string
   nonceKey: string
 
-  constructor(
-    id: string,
-    queue: Queue<EventTask>,
-    web3: SenderWeb3,
-    locker: Locker,
-    ttl: number,
-    cache?: Cache
-    ){
+  constructor(id: string, web3: SenderWeb3, locker: Locker, cache?: Cache){
     this.id = id
-    this.queue = queue
     this.web3 = web3
     this.locker = locker
-    this.ttl = ttl
     this.cache = cache
+
     this.noncelock = `lock:${this.id}:nonce`
     this.nonceKey = `${this.id}:nonce`
   }
@@ -169,31 +157,6 @@ export class Sender {
     return this.web3.getNonce()
   }
 
-  async waitForFunds(minimumBalance: BN) {
-    promiseRetry(
-      async retry => {
-        logger.debug('Getting balance of validator account')
-        const newBalance = toBN(await this.web3.getBalance())
-        if (newBalance.gte(minimumBalance)) {
-          logger.info(
-            { balance: newBalance, minimumBalance },
-            'Validator has minimum necessary balance'
-          )
-        } else {
-          logger.debug(
-            { balance: newBalance, minimumBalance },
-            'Balance of validator is still less than the minimum'
-          )
-          retry(null)
-        }
-      },
-      {
-        forever: true,
-        factor: 1
-      }
-    )
-  }
-
   async EventToTxInfo(task: EventTask): Promise<TxInfo|null> {
     let txInfos = await this.web3.processEvents(task)
     if (txInfos.length === 0 ) {
@@ -214,44 +177,13 @@ export class Sender {
       result = await this.sendTx(txInfo)
     }
 
-    logger.info({result}, "SendResult")
-    switch (result) {
-      case SendResult.success:
-      case SendResult.skipped:
-      case SendResult.txImported:
-      case SendResult.blockGasLimitExceeded:
-        this.queue.ackMsg(task)
-        break
-
-      case SendResult.failed:
-      case SendResult.nonceTooLow:
-        this.queue.nackMsg(task)
-        break
-
-      case SendResult.insufficientFunds:
-        const currentBalance = await this.web3.getBalance()
-        const gasLimit = addExtraGas(txInfo!.gasEstimate, EXTRA_GAS_PERCENTAGE)
-        const gasPrice = this.web3.getPrice()
-        let minimumBalance = gasLimit.multipliedBy(gasPrice)
-        logger.error(
-          `Insufficient funds: ${currentBalance}. Stop processing messages until the balance is at least ${minimumBalance}.`
-        )
-        this.queue.channel.close()
-        this.waitForFunds(minimumBalance)
-        break
-
-      default:
-        throw Error("No such result type")
-    }
-
+    logger.debug({tx: task.event.transactionHash, result}, "run task finished")
     return Promise.resolve(result)
   }
 
   async sendTx(job: TxInfo): Promise<SendResult> {
-    const ttl = Number(this.ttl)
-
-    logger.debug(`Acquiring lock: ${this.locker.key} TTL: ${ttl}ms`)
-    const lock = await this.locker.lock(ttl)
+    logger.debug(`Acquiring lock: ${this.nonceKey}`)
+    const lock = await this.locker.lock(this.nonceKey)
     logger.debug('Lock acquired')
 
     let nonce: number
