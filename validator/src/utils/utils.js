@@ -12,7 +12,7 @@ function checkHTTPS(ALLOW_HTTP, logger) {
   return function(network) {
     return function(url) {
       if (!/^https.*/.test(url)) {
-        if (!ALLOW_HTTP) {
+        if (ALLOW_HTTP !== 'yes') {
           throw new Error(`http is not allowed: ${url}`)
         } else {
           logger.warn(

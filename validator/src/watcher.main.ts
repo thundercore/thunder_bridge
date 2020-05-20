@@ -48,16 +48,16 @@ async function initialize() {
   }
 }
 
-async function loopRunner(sendToQueue: (task: EventTask) => Promise<void>) {
+async function loopRunner(options: { sendToQueue: { (task: EventTask): Promise<void>; } }) {
   try {
     if (connection.isConnected() && redis.status === 'ready') {
       if (config.maxProcessingTime) {
-        await watchdog(() => watcher.run(sendToQueue), config.maxProcessingTime, () => {
+        await watchdog(() => watcher.run(options.sendToQueue), config.maxProcessingTime, () => {
           logger.fatal('Max processing time reached')
           process.exit(EXIT_CODES.MAX_TIME_REACHED)
         })
       } else {
-        await watcher.run(sendToQueue)
+        await watcher.run(options.sendToQueue)
       }
     }
   } catch (e) {
@@ -65,7 +65,7 @@ async function loopRunner(sendToQueue: (task: EventTask) => Promise<void>) {
   }
 
   setTimeout(() => {
-    loopRunner(sendToQueue)
+    loopRunner(options)
   }, config.pollingInterval)
 
 }

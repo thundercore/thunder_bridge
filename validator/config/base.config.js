@@ -39,7 +39,7 @@ let validations = {
   FOREIGN_START_BLOCK: bigNumValidator(),
   QUEUE_URL: envalid.str(),
   REDIS_LOCK_TTL: envalid.num(),
-  ALLOW_HTTP: envalid.bool({default: false}),
+  ALLOW_HTTP: envalid.str({default: 'no'}),
   VALIDATOR_ADDRESS: validateAddress()
 }
 
