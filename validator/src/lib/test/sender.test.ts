@@ -31,13 +31,12 @@ describe('Test SenderWeb3Impl', () => {
       to: 'thundercore',
     }
 
-    const gasService = {
-      getPrice: () => Promise.resolve(10),
-    }
-
     const web3 = new Web3(null)
     const chainId = 100
-    const sw = new SenderWeb3Impl('myid', chainId, validator, web3, gasService)
+    const sw = new SenderWeb3Impl('myid', chainId, validator, web3)
+    const getPrice = stub(sw, 'getPrice')
+    getPrice.resolves('10')
+
     const privateKey = '0x348ce564d427a3311b6536bbcff9390d69395b06ed6c486954e971d960fe8709'
 
     const signTransaction = sandbox.stub().resolves({
@@ -80,7 +79,7 @@ describe('Test SenderWeb3Impl', () => {
       data: txinfo.data,
       value: toWei(amount),
       gas: gasLimit.toString(),
-      gasPrice: (await gasService.getPrice()).toString(),
+      gasPrice: '10',
     }
     expect(signTransaction.lastCall.args[0]).to.be.deep.equal(expectTxConfig)
     expect(signTransaction.lastCall.args[1]).to.be.deep.equal(privateKey)
@@ -102,7 +101,7 @@ describe('Test Sender', () => {
 
   beforeEach(() => {
     web3 = new Web3(null)
-    sw = new SenderWeb3Impl('myid', 100, validator, web3, null)
+    sw = new SenderWeb3Impl('myid', 100, validator, web3)
     cache = new FakeCache()
     lock = new FakeLocker()
     sender = new Sender("myid", sw, lock, cache)

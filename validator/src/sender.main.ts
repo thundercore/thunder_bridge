@@ -6,7 +6,6 @@ import { Message } from "amqplib"
 require('dotenv').config()
 import { connectSenderToQueue } from './services/amqpClient'
 import { redis } from './services/redisClient'
-import GasPrice from './services/gasPrice'
 import logger from './services/logger'
 import rpcUrlsManager from './services/getRpcUrlsManager'
 import { checkHTTPS, watchdog } from './utils/utils'
@@ -26,9 +25,8 @@ import { EventTask } from "./lib/types"
 async function newSender(): Promise<Sender> {
     let chainId = await getChainId(config.id)
     let validator = await loadValidatorFromAWS()
-    GasPrice.start(config.id)
     let web3 = new SenderWeb3Impl(
-        config.id, chainId, validator, config.web3, GasPrice
+        config.id, chainId, validator, config.web3
     )
     let redlock = new RedisLocker(config.REDIS_LOCK_TTL)
     return new Sender(config.id, web3, redlock, redis)

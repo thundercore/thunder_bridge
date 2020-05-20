@@ -12,7 +12,7 @@ import { toBN, toWei } from 'web3-utils'
 import { BigNumber } from 'bignumber.js'
 
 export interface SenderWeb3 {
-  getPrice: () => Promise<number>
+  getPrice: () => Promise<string>
   getNonce: () => Promise<number>
   getBalance: () => Promise<string>
   sendTx: (nonce: number, gasLimit: BigNumber, amount: BN, txinfo: TxInfo) => Promise<TransactionReceipt>
@@ -29,18 +29,16 @@ export class SenderWeb3Impl implements SenderWeb3 {
   chainId: number
   validator: Validator
   web3: Web3
-  gasPriceService: any
 
-  constructor(id: string, chainId: number, validator: Validator, web3: Web3, gasPriceService: any) {
+  constructor(id: string, chainId: number, validator: Validator, web3: Web3) {
     this.id = id
     this.chainId = chainId
     this.validator = validator
     this.web3 = web3
-    this.gasPriceService = gasPriceService
   }
 
-  async getPrice(): Promise<number> {
-    return this.gasPriceService.getPrice()
+  async getPrice(): Promise<string> {
+    return this.web3.eth.getGasPrice()
   }
 
   async getNonce(): Promise<number> {
@@ -62,7 +60,7 @@ export class SenderWeb3Impl implements SenderWeb3 {
       data: txinfo.data,
       value: toWei(amount),
       gas: gasLimit.toString(),
-      gasPrice: (await this.getPrice()).toString(10),
+      gasPrice: await this.getPrice(),
     }
 
     const signedTx = await this.web3.eth.accounts.signTransaction(txConfig, `0x${this.validator.privateKey}`)
