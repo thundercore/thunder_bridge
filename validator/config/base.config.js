@@ -1,5 +1,3 @@
-require('dotenv').config()
-
 const envalid = require('envalid')
 const { isAddress, toBN } = require('web3').utils
 const { web3Home, web3Foreign } = require('../src/services/web3')
@@ -30,19 +28,19 @@ const bigNumValidator = envalid.makeValidator(x => x? toBN(x): toBN(0))
 let validations = {
   BRIDGE_MODE: envalid.str({choices: ['NATIVE_TO_ERC', 'ERC_TO_ERC', 'ERC_TO_NATIVE']}),
   NODE_ENV: envalid.str({default: 'test'}),
+  LOG_LEVEL: envalid.str({default: 'debug'}),
   MAX_PROCESSING_TIME: envalid.num({default: null}),
-  HOME_BRIDGE_ADDRESS: validateAddress(),
   FOREIGN_BRIDGE_ADDRESS: validateAddress(),
-  HOME_BRIDGE_ADDRESS: validateAddress(),
   HOME_BRIDGE_ADDRESS: validateAddress(),
   HOME_POLLING_INTERVAL: envalid.num({default: 2000}),
+  ERC20_TOKEN_ADDRESS: validateAddress(),
   HOME_START_BLOCK: bigNumValidator(),
-  FOREIGN_BRIDGE_ADDRESS: validateAddress(),
-  FOREIGN_BRIDGE_ADDRESS: validateAddress(),
   FOREIGN_POLLING_INTERVAL: envalid.num({default: 2000}),
   FOREIGN_START_BLOCK: bigNumValidator(),
   QUEUE_URL: envalid.str(),
-  REDIS_LOCK_TTL: envalid.num()
+  REDIS_LOCK_TTL: envalid.num(),
+  ALLOW_HTTP: envalid.bool({default: false}),
+  VALIDATOR_ADDRESS: validateAddress()
 }
 
 const env = envalid.cleanEnv(process.env, validations, {})
@@ -117,5 +115,5 @@ module.exports = {
   homeConfig,
   foreignConfig,
   id,
-  queueUrl: env.QUEUE_URL
+  env
 }

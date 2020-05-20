@@ -178,8 +178,8 @@ export class Sender {
   }
 
   async sendTx(job: TxInfo): Promise<SendResult> {
-    logger.debug(`Acquiring lock: ${this.nonceKey}`)
-    const lock = await this.locker.lock(this.nonceKey)
+    logger.debug(`Acquiring lock: ${this.noncelock}`)
+    const lock = await this.locker.lock(this.noncelock)
     logger.debug('Lock acquired')
 
     let nonce: number

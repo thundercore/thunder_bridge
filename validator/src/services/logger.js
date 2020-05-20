@@ -4,11 +4,11 @@ const config = require('../../config')
 
 const logger = pino({
   name: config.name,
-  level: process.env.LOG_LEVEL || 'debug',
+  level: config.LOG_LEVEL,
   base:
-    process.env.NODE_ENV === 'production'
+    config.NODE_ENV === 'production'
       ? {
-          validator: process.env.VALIDATOR_ADDRESS
+          validator: config.VALIDATOR_ADDRESS
         }
       : {}
 })

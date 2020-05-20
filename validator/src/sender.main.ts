@@ -6,7 +6,8 @@ import { Message } from "amqplib"
 require('dotenv').config()
 import { connectSenderToQueue } from './services/amqpClient'
 import { redis } from './services/redisClient'
-import logger from './services/logger'
+import GasPrice from './services/gasPrice'
+import logger = require('./services/logger')
 import rpcUrlsManager from './services/getRpcUrlsManager'
 import { checkHTTPS, watchdog } from './utils/utils'
 import { EXIT_CODES } from './utils/constants'
@@ -17,14 +18,14 @@ if (process.argv.length < 3) {
 }
 
 import config from '../config'
-import { getChainId } from "./tx/web3"
 import { RedisLocker } from "./lib/RedisLocker"
 import { EventTask } from "./lib/types"
 
 
 async function newSender(): Promise<Sender> {
-    let chainId = await getChainId(config.id)
     let validator = await loadValidatorFromAWS()
+    let chainId = await config.web3.eth.net.getId()
+    GasPrice.start(config.id)
     let web3 = new SenderWeb3Impl(
         config.id, chainId, validator, config.web3
     )
@@ -36,7 +37,7 @@ async function newSender(): Promise<Sender> {
 async function initialize() {
   try {
 
-    const checkHttps = checkHTTPS(process.env.ALLOW_HTTP, logger)
+    const checkHttps = checkHTTPS(config.ALLOW_HTTP, logger)
 
     rpcUrlsManager.homeUrls.forEach(checkHttps('home'))
     rpcUrlsManager.foreignUrls.forEach(checkHttps('foreign'))
@@ -45,35 +46,38 @@ async function initialize() {
 
     connectSenderToQueue({
       queueName: config.queue,
-      cb: (options: { msg: Message; ackMsg: any; nackMsg: any; sendToQueue: any; channel: ChannelWrapper }) => {
+      cb: (options: { msg: Message; ackMsg: any; nackMsg: any; rejectMsg: any; channel: ChannelWrapper }) => {
         let task = JSON.parse(options.msg.content.toString())
 
         let runSender = async (task: EventTask) => {
-          let result = await sender.run(task)
+          try {
+            let result = await sender.run(task)
+            switch (result) {
+              case SendResult.success:
+              case SendResult.skipped:
+              case SendResult.txImported:
+              case SendResult.blockGasLimitExceeded:
+                options.ackMsg(options.msg)
+                break
 
-          switch (result) {
-            case SendResult.success:
-            case SendResult.skipped:
-            case SendResult.txImported:
-            case SendResult.blockGasLimitExceeded:
-              options.ackMsg(options.msg)
-              break
+              case SendResult.failed:
+              case SendResult.nonceTooLow:
+                options.nackMsg(options.msg)
+                break
 
-            case SendResult.failed:
-            case SendResult.nonceTooLow:
-              await options.sendToQueue(options.msg)
-              options.ackMsg(options.msg)
-              break
+              case SendResult.insufficientFunds:
+                logger.error(`Insufficient funds.`)
+                options.nackMsg(options.msg)
+                break
 
-            case SendResult.insufficientFunds:
-              logger.error(`Insufficient funds.`)
-              await options.sendToQueue(options.msg)
-              options.ackMsg(options.msg)
-              break
-
-            default:
-              options.nackMsg(options.msg)
-              throw Error("No such result type")
+              default:
+                options.nackMsg(options.msg)
+                throw Error("No such result type")
+            }
+          } catch(e) {
+            console.error(e)
+            options.rejectMsg(options.msg)
+            logger.error({error: e, queueTask: task}, 'queue message was rejected due to run error')
           }
         }
 
@@ -88,6 +92,7 @@ async function initialize() {
       }
     })
   } catch (e) {
+    console.error(e)
     logger.error(e.message)
     process.exit(EXIT_CODES.GENERAL_ERROR)
   }

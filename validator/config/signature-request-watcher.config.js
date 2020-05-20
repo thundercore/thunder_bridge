@@ -5,8 +5,8 @@ const id = `${baseConfig.id}-signature-request`
 module.exports = {
   ...baseConfig.bridgeConfig,
   ...baseConfig.homeConfig,
+  ...baseConfig.env,
   event: 'UserRequestForSignature',
-  queue_url: baseConfig.queueUrl,
   queue: 'home',
   name: `watcher-${id}`,
   id

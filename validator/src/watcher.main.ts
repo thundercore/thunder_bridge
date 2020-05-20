@@ -3,7 +3,7 @@ require('dotenv').config()
 import { EventWatcher, WatcherWeb3Impl, ProcessStateImpl } from './lib/watcher'
 
 import * as path from 'path'
-import * as logger from './services/logger'
+import logger = require('./services/logger')
 import * as rpcUrlsManager from './services/getRpcUrlsManager'
 
 import { connectWatcherToQueue, connection } from './services/amqpClient'
@@ -33,7 +33,7 @@ let watcher = NewWatcher()
 
 async function initialize() {
   try {
-    const checkHttps = checkHTTPS(process.env.ALLOW_HTTP, logger)
+    const checkHttps = checkHTTPS(config.ALLOW_HTTP, logger)
 
     rpcUrlsManager.homeUrls.forEach(checkHttps('home'))
     rpcUrlsManager.foreignUrls.forEach(checkHttps('foreign'))

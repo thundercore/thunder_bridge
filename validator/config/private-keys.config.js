@@ -8,6 +8,10 @@ const { KEY_BUCKET_NAME, KEY_PATH } = process.env
 let cachedValidatorPrivateKey = null
 
 async function getValidatorKey() {
+  if (process.env.NODE_ENV === "test" && process.env.VALIDATOR_ADDRESS_PRIVATE_KEY) {
+    return process.env.VALIDATOR_ADDRESS_PRIVATE_KEY
+  }
+
   if (!KEY_BUCKET_NAME || !KEY_PATH) {
     throw new Error('Validator private key path is not specified')
   }
@@ -31,7 +35,7 @@ async function loadValidatorFromAWS() {
     throw new Error('Failed to get validator private key from AWS')
   }
 
-  validatorAddress = privateKeyToAddress(privateKey)
+  const validatorAddress = privateKeyToAddress(privateKey)
   if (!validatorAddress) {
     throw new Error("Failed to fetch validator address by private key")
   }

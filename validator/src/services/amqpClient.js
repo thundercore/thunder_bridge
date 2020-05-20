@@ -1,13 +1,18 @@
 require('dotenv').config()
-const connection = require('amqp-connection-manager').connect(process.env.QUEUE_URL)
+const config = require('../../config')
+const connection = require('amqp-connection-manager').connect(config.QUEUE_URL)
 const logger = require('./logger')
 
-connection.on('connect', () => {
-  logger.info('Connected to amqp Broker')
+connection.on('connect', (conn, e) => {
+  if (e !== undefined) {
+    logger.error(e, 'Connect to amqp broker failed')
+  } else {
+    logger.info('Connected to amqp Broker')
+  }
 })
 
-connection.on('disconnect', () => {
-  logger.error('Disconnected from amqp Broker')
+connection.on('disconnect', (e) => {
+  logger.error(e, 'Disconnected from amqp Broker')
 })
 
 function connectWatcherToQueue({ queueName, cb }) {
@@ -28,18 +33,20 @@ function connectSenderToQueue({ queueName, cb }) {
     json: true
   })
 
+  console.log(`connect sender to queue: ${queueName}`)
   channelWrapper.addSetup(channel => {
     return Promise.all([
       channel.assertQueue(queueName, { durable: true }),
       channel.prefetch(1),
-      channel.consume(queueName, msg =>
-        cb({
-          msg,
-          channel: channelWrapper,
-          ackMsg: job => channelWrapper.ack(job),
-          nackMsg: job => channelWrapper.nack(job, false, true),
-          sendToQueue: data => channelWrapper.sendToQueue(queueName, data, { persistent: true })
-        })
+      channel.consume(queueName, msg => {
+          cb({
+            msg,
+            channel: channelWrapper,
+            ackMsg: job => channelWrapper.ack(job),
+            nackMsg: job => channelWrapper.nack(job, false, true),
+            rejectMsg: job => channelWrapper.nack(job, false, false),
+          })
+        }
       )
     ])
   })
