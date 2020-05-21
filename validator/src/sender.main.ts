@@ -46,12 +46,12 @@ async function initialize() {
 
     connectSenderToQueue({
       queueName: config.queue,
-      cb: (options: { msg: Message; ackMsg: any; nackMsg: any; rejectMsg: any; channel: ChannelWrapper }) => {
+      cb: (options: { msg: Message; ackMsg: any; nackMsg: any; rejectMsg: any; sendToQueue: any }) => {
         let task = JSON.parse(options.msg.content.toString())
 
         let runSender = async (task: EventTask) => {
           try {
-            let result = await sender.run(task)
+            let result = await sender.run(task, options.sendToQueue)
             switch (result) {
               case SendResult.success:
               case SendResult.skipped:

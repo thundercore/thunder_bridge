@@ -9,10 +9,35 @@ import { EXTRA_GAS_PERCENTAGE } from '../../utils/constants'
 import { FakeCache } from '../storage'
 import { FakeLocker } from '../locker'
 import { Sender, SenderWeb3Impl, Validator, SendResult } from '../sender'
-import { TxInfo } from '../types'
+import { TxInfo, ReceiptTask, EventTask } from '../types'
 import { addExtraGas } from '../../utils/utils'
 
 const sandbox = createSandbox()
+const fakeEvent: EventTask = {
+  eventType: 'fake-event-type',
+  event: {
+    returnValues: {
+      fromBlock: 10,
+      toBlock: 20,
+    },
+    raw: {
+      data: '',
+      topics: [],
+    },
+    event: 'fake-event',
+    signature: '',
+    logIndex: 0,
+    transactionIndex: 10,
+    transactionHash: '',
+    blockHash: '',
+    blockNumber: 20,
+    address: '',
+  },
+}
+
+const sendToQueue = (task: ReceiptTask): Promise<void> => {
+  return Promise.resolve()
+}
 
 describe('Test SenderWeb3Impl', () => {
   const validator: Validator = {
@@ -25,6 +50,7 @@ describe('Test SenderWeb3Impl', () => {
     const gasLimit = new BigNumber(100)
     const amount = toBN('10')
     const txinfo: TxInfo = {
+      eventTask: fakeEvent,
       gasEstimate: toBN(50),
       transactionReference: 'test_send_tx_success',
       data: 'send_tx_data',
@@ -134,6 +160,7 @@ describe('Test Sender', () => {
   it('Test sendTx success', async () => {
     const gasUnit = toBN(10)
     const txinfo: TxInfo = {
+      eventTask: fakeEvent,
       gasEstimate: gasUnit,
       transactionReference: 'test_send_tx_success',
       data: 'send_tx_data',
@@ -158,7 +185,7 @@ describe('Test Sender', () => {
     const s = sandbox.stub().resolves(receipt)
     sw.sendTx = s
 
-    const result = await sender.sendTx(txinfo)
+    const result = await sender.sendTx(txinfo, sendToQueue)
 
     expect(s.lastCall.args[0]).to.be.equal(nonce)
     // Expect call args: gasEstimate = txinfo.gasEstimate * EXTRA_GAS_PERCENTAGE
@@ -176,6 +203,7 @@ describe('Test Sender', () => {
   it('Test sendTx with tx already imported', async () => {
     const gasUnit = toBN(10)
     const txinfo: TxInfo = {
+      eventTask: fakeEvent,
       gasEstimate: gasUnit,
       transactionReference: 'test_send_tx_success',
       data: 'send_tx_data',
@@ -186,7 +214,7 @@ describe('Test Sender', () => {
     sender.readNonce = sandbox.stub().resolves(nonce)
     sw.sendTx = sandbox.stub().throws(Error('Transaction with the same hash was already imported'))
 
-    let result = await sender.sendTx(txinfo)
+    let result = await sender.sendTx(txinfo, sendToQueue)
     expect(result).eq(SendResult.txImported)
 
     // Nonce should not be ++
@@ -196,6 +224,7 @@ describe('Test Sender', () => {
   it('Test sendTx with low nonce', async () => {
     const gasUnit = toBN(10)
     const txinfo: TxInfo = {
+      eventTask: fakeEvent,
       gasEstimate: gasUnit,
       transactionReference: 'test_send_tx_success',
       data: 'send_tx_data',
@@ -207,7 +236,7 @@ describe('Test Sender', () => {
     web3.eth.getTransactionCount = sandbox.stub().resolves(100)
 
     sw.sendTx = sandbox.stub().throws(Error('Transaction nonce is too low'))
-    const result = await sender.sendTx(txinfo)
+    const result = await sender.sendTx(txinfo, sendToQueue)
 
     // Result failed
     expect(result).eq(SendResult.nonceTooLow)
@@ -218,6 +247,7 @@ describe('Test Sender', () => {
   it('Test sendTx with insufficient found', async () => {
     const gasUnit = toBN(10)
     const txinfo: TxInfo = {
+      eventTask: fakeEvent,
       gasEstimate: gasUnit,
       transactionReference: 'test_send_tx_success',
       data: 'send_tx_data',
@@ -227,7 +257,7 @@ describe('Test Sender', () => {
     sender.readNonce = sandbox.stub().resolves(50)
 
     sw.sendTx = sandbox.stub().throws(Error('Insufficient funds'))
-    const result = await sender.sendTx(txinfo)
+    const result = await sender.sendTx(txinfo, sendToQueue)
 
     expect(result).eq('insufficientFunds')
     // Nonce should not be ++
@@ -237,6 +267,7 @@ describe('Test Sender', () => {
   it('Test sendTx with block gas limit exceed', async () => {
     const gasUnit = toBN(10)
     const txinfo: TxInfo = {
+      eventTask: fakeEvent,
       gasEstimate: gasUnit,
       transactionReference: 'test_send_tx_success',
       data: 'send_tx_data',
@@ -246,7 +277,7 @@ describe('Test Sender', () => {
     sender.readNonce = sandbox.stub().resolves(50)
 
     sw.sendTx = sandbox.stub().throws(Error('exceeds block gas limit'))
-    const result = await sender.sendTx(txinfo)
+    const result = await sender.sendTx(txinfo, sendToQueue)
 
     expect(result).eq(SendResult.blockGasLimitExceeded)
     // Nonce should not be ++

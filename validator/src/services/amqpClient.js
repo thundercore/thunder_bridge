@@ -33,10 +33,15 @@ function connectSenderToQueue({ queueName, cb }) {
     json: true
   })
 
-  console.log(`connect sender to queue: ${queueName}`)
+  const receiptQueue = `${queueName}-receipt`
+  const sendToQueue = data => channelWrapper.sendToQueue(receiptQueue, data, { persistent: true })
+
+  logger.info(`Connect sender to consumer queue: ${queueName} and producer queue: ${receiptQueue}`)
+
   channelWrapper.addSetup(channel => {
     return Promise.all([
       channel.assertQueue(queueName, { durable: true }),
+      channel.assertQueue(receiptQueue, { durable: true }),
       channel.prefetch(1),
       channel.consume(queueName, msg => {
           cb({
@@ -45,6 +50,7 @@ function connectSenderToQueue({ queueName, cb }) {
             ackMsg: job => channelWrapper.ack(job),
             nackMsg: job => channelWrapper.nack(job, false, true),
             rejectMsg: job => channelWrapper.nack(job, false, false),
+            sendToQueue
           })
         }
       )

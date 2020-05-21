@@ -2,7 +2,7 @@ import BN from 'bn.js'
 import Web3 from 'web3'
 import logger = require("../services/logger")
 import { EXTRA_GAS_PERCENTAGE } from '../utils/constants'
-import { EventTask, TxInfo } from './types'
+import { EventTask, TxInfo, ReceiptTask } from './types'
 import { Locker } from './locker'
 import { Cache } from './storage'
 import { TransactionConfig, TransactionReceipt } from 'web3-core'
@@ -113,6 +113,9 @@ export enum SendResult {
   skipped = 'skipped',
 }
 
+
+type sendToQueue = (task: ReceiptTask) => Promise<void>;
+
 export class Sender {
   id: string
   web3: SenderWeb3
@@ -161,10 +164,12 @@ export class Sender {
     if (txInfos.length === 0 ) {
       return Promise.resolve(null)
     }
+    let txInfo = txInfos[0]
+    txInfo.eventTask = task
     return Promise.resolve(txInfos[0])
   }
 
-  async run(task: EventTask): Promise<SendResult> {
+  async run(task: EventTask, sendToQueue: sendToQueue): Promise<SendResult> {
     let result: SendResult
 
     logger.info(`Process ${task.eventType} event '${task.event.transactionHash}'`)
@@ -172,14 +177,14 @@ export class Sender {
     if (txInfo === null) {
       result = SendResult.skipped
     } else {
-      result = await this.sendTx(txInfo)
+      result = await this.sendTx(txInfo, sendToQueue)
     }
 
     logger.debug({tx: task.event.transactionHash, result}, "run task finished")
     return Promise.resolve(result)
   }
 
-  async sendTx(job: TxInfo): Promise<SendResult> {
+  async sendTx(txinfo: TxInfo, sendToQueue: sendToQueue): Promise<SendResult> {
     logger.debug(`Acquiring lock: ${this.noncelock}`)
     const lock = await this.locker.lock(this.noncelock)
     logger.debug('Lock acquired')
@@ -194,28 +199,48 @@ export class Sender {
     }
 
     let result = SendResult.failed
-    const gasLimit = addExtraGas(job.gasEstimate, EXTRA_GAS_PERCENTAGE)
+    const gasLimit = addExtraGas(txinfo.gasEstimate, EXTRA_GAS_PERCENTAGE)
     try {
       logger.info(`Sending transaction with nonce ${nonce}`)
-      const receipt = await this.web3.sendTx(nonce, gasLimit, toBN('0'), job)
+      const receipt = await this.web3.sendTx(nonce, gasLimit, toBN('0'), txinfo)
 
       nonce += 1
-      logger.info({ receipt }, `Tx generated ${receipt.transactionHash} for event Tx ${job.transactionReference}`)
-      result = SendResult.success
+
+      if (receipt.status) {
+        logger.info(
+          { receipt },
+          `Tx generated ${receipt.transactionHash} for event Tx ${txinfo.transactionReference}`
+        )
+
+        let receiptTask: ReceiptTask = {
+          eventTask: txinfo.eventTask,
+          timestamp: Date.now(),
+          nonce: nonce,
+          receipt: receipt
+        }
+        await sendToQueue(receiptTask)
+        console.log(receiptTask)
+
+        result = SendResult.success
+      } else {
+        // FIXME: what can we do here?
+        logger.error({receipt}, `transaction was reverted by EVM`)
+      }
+
     } catch (e) {
       logger.error(
-        { eventTransactionHash: job.transactionReference, error: e.message },
-        `Failed to send event Tx ${job.transactionReference}: ${e.message}`,
+        { eventTransactionHash: txinfo.transactionReference, error: e.message },
+        `Failed to send event Tx ${txinfo.transactionReference}: ${e.message}`,
       )
 
       switch (true) {
         case SendTxError.isTxWasImportedError(e):
-          logger.info(`tx ${job.transactionReference} was already imported. (skiped)`)
+          logger.info(`tx ${txinfo.transactionReference} was already imported. (skiped)`)
           result = SendResult.txImported
           break
 
         case SendTxError.isBlockGasLimitExceededError(e):
-          logger.info(`tx ${job.transactionReference} block gas limit exceeded.(skiped)`)
+          logger.info(`tx ${txinfo.transactionReference} block gas limit exceeded.(skiped)`)
           result = SendResult.blockGasLimitExceeded
           break
 
@@ -224,13 +249,13 @@ export class Sender {
           break
 
         case SendTxError.isNonceTooLowError(e):
-          logger.info(`tx ${job.transactionReference} nonce is too low. Force update nonce.`)
+          logger.info(`tx ${txinfo.transactionReference} nonce is too low. Force update nonce.`)
           nonce = await this.readNonce(true)
           result = SendResult.nonceTooLow
           break
 
         default:
-          logger.error(`Unknown error, tx: ${job.transactionReference}`)
+          logger.error(`Unknown error, tx: ${txinfo.transactionReference}`)
           break
       }
     }

@@ -29,14 +29,14 @@ async function main() {
 
   let erc20 = new web3.eth.Contract(erc20Abi, deployed.erc20Token.address)
   console.log(erc20.address)
-  let r = await erc20.methods.transfer(deployed.foreignBridge.address, web3.utils.toWei('0.01')).send({from: '0x6Da72903E0BD3F4D79734dFC459a31093A2B8327'})
+  const r = await erc20.methods.transfer(deployed.foreignBridge.address, web3.utils.toWei('0.01')).send({from: '0x6Da72903E0BD3F4D79734dFC459a31093A2B8327'})
   console.log(r)
   let task = {
       eventType: 'erc-erc-affirmation-request',
       event: r.events.Transfer,
     }
 
-  channelWrapper.sendToQueue(queueName, task, { persistent: true })
+  await channelWrapper.sendToQueue(queueName, task, { persistent: true })
 }
 
 main()
