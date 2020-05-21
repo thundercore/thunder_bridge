@@ -17,7 +17,7 @@ services:
   bridge:
     build: ..
     environment:
-      # - NODE_ENV=production
+      - NODE_ENV=test
       - BRIDGE_MODE=ERC_TO_ERC
       - QUEUE_URL=amqp://rabbit
       - REDIS_URL=redis://redis
