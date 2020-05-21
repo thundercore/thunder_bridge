@@ -27,7 +27,7 @@ async function newSender(): Promise<Sender> {
     let chainId = await config.web3.eth.net.getId()
     GasPrice.start(config.id)
     let web3 = new SenderWeb3Impl(
-        config.id, chainId, validator, config.web3
+        config.id, chainId, validator, config.web3, GasPrice
     )
     let redlock = new RedisLocker(config.REDIS_LOCK_TTL)
     return new Sender(config.id, web3, redlock, redis)

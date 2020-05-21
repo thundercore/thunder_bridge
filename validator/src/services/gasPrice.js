@@ -1,10 +1,11 @@
 require('dotenv').config()
 const fetch = require('node-fetch')
 const Web3Utils = require('web3-utils')
-const { web3Home, web3Foreign } = require('../services/web3')
+const BN = require('bn.js')
+const { web3Home, web3Foreign } = require('./web3')
 const { bridgeConfig } = require('../../config/base.config')
-const logger = require('../services/logger').child({
-  module: 'gasPrice'
+const logger = require('./logger').child({
+  module: 'gasPrice',
 })
 const { setIntervalAndRun } = require('../utils/utils')
 const { DEFAULT_UPDATE_INTERVAL, GAS_PRICE_BOUNDARIES } = require('../utils/constants')
@@ -16,58 +17,95 @@ const {
   FOREIGN_BRIDGE_ADDRESS,
   FOREIGN_GAS_PRICE_FALLBACK,
   FOREIGN_GAS_PRICE_ORACLE_URL,
-  FOREIGN_GAS_PRICE_SPEED_TYPE,
   FOREIGN_GAS_PRICE_UPDATE_INTERVAL,
   HOME_BRIDGE_ADDRESS,
   HOME_GAS_PRICE_FALLBACK,
   HOME_GAS_PRICE_ORACLE_URL,
-  HOME_GAS_PRICE_SPEED_TYPE,
-  HOME_GAS_PRICE_UPDATE_INTERVAL
+  HOME_GAS_PRICE_UPDATE_INTERVAL,
 } = process.env
 
 const homeBridge = new web3Home.eth.Contract(HomeABI, HOME_BRIDGE_ADDRESS)
 
 const foreignBridge = new web3Foreign.eth.Contract(ForeignABI, FOREIGN_BRIDGE_ADDRESS)
 
-let cachedGasPrice = null
+let cachedGasPrice = {
+  standard: '0',
+  fast: '0',
+  instant: '0',
+}
 
 function gasPriceWithinLimits(gasPrice) {
   if (gasPrice < GAS_PRICE_BOUNDARIES.MIN) {
     return GAS_PRICE_BOUNDARIES.MIN
-  } else if (gasPrice > GAS_PRICE_BOUNDARIES.MAX) {
-    return GAS_PRICE_BOUNDARIES.MAX
-  } else {
-    return gasPrice
   }
+  if (gasPrice > GAS_PRICE_BOUNDARIES.MAX) {
+    return GAS_PRICE_BOUNDARIES.MAX
+  }
+  return gasPrice
 }
 
-async function fetchGasPriceFromOracle(oracleUrl, speedType) {
+async function fetchGasPriceFromOracle(oracleUrl) {
   const response = await fetch(oracleUrl)
   const json = await response.json()
-  const oracleGasPrice = json[speedType]
-  if (!oracleGasPrice) {
-    throw new Error(`Response from Oracle didn't include gas price for ${speedType} type.`)
+  const oracleGasPrice = {
+    standard: '0',
+    fast: '0',
+    instant: '0',
   }
-  const gasPrice = gasPriceWithinLimits(oracleGasPrice)
-  return Web3Utils.toWei(gasPrice.toString(), 'gwei')
+  const speedTypes = ['standard', 'fast', 'instant']
+  for (let i = 0; i < speedTypes.length; i++) {
+    const speedType = speedTypes[i]
+    const price = json[speedType]
+    if (!price) {
+      throw new Error(`Response from Oracle didn't include gas price for ${speedType} type.`)
+    }
+    const gasPrice = gasPriceWithinLimits(price)
+    oracleGasPrice[speedType] = Web3Utils.toWei(gasPrice.toString(), 'gwei')
+  }
+  return oracleGasPrice
 }
 
 async function fetchGasPrice({ bridgeContract, oracleFn }) {
-  let gasPrice = null
+  let gasPriceFromOracle = null
   try {
-    gasPrice = await oracleFn()
-    logger.debug({ gasPrice }, 'Gas price updated using the oracle')
+    gasPriceFromOracle = await oracleFn()
+    logger.debug({ gasPriceFromOracle }, 'Gas price updated using the oracle')
   } catch (e) {
     logger.error(`Gas Price API is not available. ${e.message}`)
-
-    try {
-      gasPrice = await bridgeContract.methods.gasPrice().call()
-      logger.debug({ gasPrice }, 'Gas price updated using the contracts')
-    } catch (e) {
-      logger.error(`There was a problem getting the gas price from the contract. ${e.message}`)
-    }
   }
-  return gasPrice
+
+  let gasPriceFromBridgeContract = null
+  try {
+    const p = await bridgeContract.methods.gasPrice().call()
+    gasPriceFromBridgeContract = {
+      standard: p,
+      fast: p,
+      instant: p,
+    }
+    logger.debug({ gasPriceFromBridgeContract }, 'Gas price updated using the contracts')
+  } catch (e) {
+    logger.error(`There was a problem getting the gas price from the contract. ${e.message}`)
+  }
+
+  if (!gasPriceFromOracle) {
+    return gasPriceFromBridgeContract
+  }
+
+  if (!gasPriceFromBridgeContract) {
+    return gasPriceFromOracle
+  }
+
+  return {
+    standard: BN.max(
+      Web3Utils.toBN(gasPriceFromOracle.standard),
+      Web3Utils.toBN(gasPriceFromBridgeContract.standard),
+    ).toString(),
+    fast: BN.max(Web3Utils.toBN(gasPriceFromOracle.fast), Web3Utils.toBN(gasPriceFromBridgeContract.fast)).toString(),
+    instant: BN.max(
+      Web3Utils.toBN(gasPriceFromOracle.instant),
+      Web3Utils.toBN(gasPriceFromBridgeContract.instant),
+    ).toString(),
+  }
 }
 
 let fetchGasPriceInterval = null
@@ -77,22 +115,24 @@ async function start(chainId) {
 
   let bridgeContract = null
   let oracleUrl = null
-  let speedType = null
+  // const speedType = null
   let updateInterval = null
   if (chainId === 'home') {
     bridgeContract = homeBridge
     oracleUrl = HOME_GAS_PRICE_ORACLE_URL
-    speedType = HOME_GAS_PRICE_SPEED_TYPE
     updateInterval = HOME_GAS_PRICE_UPDATE_INTERVAL || DEFAULT_UPDATE_INTERVAL
 
-    cachedGasPrice = HOME_GAS_PRICE_FALLBACK
+    cachedGasPrice.standard = HOME_GAS_PRICE_FALLBACK
+    cachedGasPrice.fast = HOME_GAS_PRICE_FALLBACK
+    cachedGasPrice.instant = HOME_GAS_PRICE_FALLBACK
   } else if (chainId === 'foreign') {
     bridgeContract = foreignBridge
     oracleUrl = FOREIGN_GAS_PRICE_ORACLE_URL
-    speedType = FOREIGN_GAS_PRICE_SPEED_TYPE
     updateInterval = FOREIGN_GAS_PRICE_UPDATE_INTERVAL || DEFAULT_UPDATE_INTERVAL
 
-    cachedGasPrice = FOREIGN_GAS_PRICE_FALLBACK
+    cachedGasPrice.standard = FOREIGN_GAS_PRICE_FALLBACK
+    cachedGasPrice.fast = FOREIGN_GAS_PRICE_FALLBACK
+    cachedGasPrice.instant = FOREIGN_GAS_PRICE_FALLBACK
   } else {
     throw new Error(`Unrecognized chainId '${chainId}'`)
   }
@@ -100,19 +140,36 @@ async function start(chainId) {
   fetchGasPriceInterval = setIntervalAndRun(async () => {
     const gasPrice = await fetchGasPrice({
       bridgeContract,
-      oracleFn: () => fetchGasPriceFromOracle(oracleUrl, speedType)
+      oracleFn: () => fetchGasPriceFromOracle(oracleUrl),
     })
     cachedGasPrice = gasPrice || cachedGasPrice
   }, updateInterval)
 }
 
-function getPrice() {
-  return cachedGasPrice
+
+function getPrice(timestamp) {
+  let speedType = 'standard'
+  const dt = Math.floor(Date.now() / 1000) - timestamp
+  if (dt > 300) {
+    speedType = 'fast'
+  }
+  if (dt > 600) {
+    speedType = 'instant'
+  }
+  return cachedGasPrice[speedType]
+}
+
+// this function is only for unit test
+function setTestCachedGasPrice(price) {
+  if (process.env.GET_PRICE_TEST === 'test') {
+    cachedGasPrice = price
+  }
 }
 
 module.exports = {
   start,
   fetchGasPrice,
   getPrice,
-  gasPriceWithinLimits
+  gasPriceWithinLimits,
+  setTestCachedGasPrice,
 }
