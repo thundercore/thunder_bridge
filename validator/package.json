@@ -16,7 +16,7 @@
     "test:watch": "NODE_ENV=test mocha --watch --reporter=min",
     "dev-chain": "docker run -d -p 7545:8545 --name dev-chain trufflesuite/ganache-cli:latest -m 'wisdom zero output drift choice bright east stuff craft inform invest patient' --callGasLimit 10000000000000 -l 10000000000000 -g 10000000000000000 -e 10000000000000 -i 5777",
     "dev-chain:stop": "docker rm -f dev-chain",
-    "truffle-test": "tsc && cp -r ./truffle-test ./data ./built && NODE_ENV=test truffle test built/truffle-test/*.js --network develop",
+    "truffle-test": "tsc && cp -r ./truffle-test ./data ./built && NODE_ENV=test truffle test built/truffle-test/receiptor.test.js --network develop",
     "truffle:compile": "truffle compile",
     "tsc": "tsc",
     "coverage": "NODE_ENV=test nyc --reporter=text --reporter=html mocha",

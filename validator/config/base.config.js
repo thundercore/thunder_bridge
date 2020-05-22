@@ -40,7 +40,9 @@ let validations = {
   QUEUE_URL: envalid.str(),
   REDIS_LOCK_TTL: envalid.num(),
   ALLOW_HTTP: envalid.str({default: 'no'}),
-  VALIDATOR_ADDRESS: validateAddress()
+  VALIDATOR_ADDRESS: validateAddress(),
+  BLOCK_CONFIRMATION: envalid.num(),
+  GET_RECEIPT_TIMEOUT: envalid.num(),
 }
 
 const env = envalid.cleanEnv(process.env, validations, {})

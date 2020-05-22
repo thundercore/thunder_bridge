@@ -1,5 +1,4 @@
 import { EventData } from 'web3-eth-contract'
-import { TransactionReceipt } from 'web3-core'
 import BN from 'bn.js'
 
 export interface EventTask {
@@ -13,9 +12,10 @@ export interface EventTask {
 
 export interface ReceiptTask {
   eventTask: EventTask
-  nonce: number,
+  nonce: number
   timestamp: number
-  receipt: TransactionReceipt
+  transactionHash: string
+  blockNumber: number
 
   retries?: number
 }

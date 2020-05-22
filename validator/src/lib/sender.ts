@@ -216,7 +216,8 @@ export class Sender {
           eventTask: txinfo.eventTask,
           timestamp: Date.now(),
           nonce: nonce,
-          receipt: receipt
+          transactionHash: receipt.transactionHash,
+          blockNumber: receipt.blockNumber,
         }
         await sendToQueue(receiptTask)
         console.log(receiptTask)
