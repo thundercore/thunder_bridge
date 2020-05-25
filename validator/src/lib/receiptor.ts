@@ -38,7 +38,6 @@ export enum ReceiptResult {
 
 type sendToQueue = (task: EventTask) => Promise<void>
 
-
 export class Receiptor {
   web3: ReceiptorWeb3
 
@@ -50,7 +49,8 @@ export class Receiptor {
     let newTask: EventTask = {
       ...task.eventTask,
       nonce: task.nonce,
-      retries: task.retries? task.retries+1 : 1
+      retries: task.retries? task.retries+1 : 1,
+      timestamp: task.timestamp
     }
     logger.debug({...newTask}, 'resend event task')
     return sendToQueue(newTask)
@@ -66,18 +66,19 @@ export class Receiptor {
   }
 
   async run(task: ReceiptTask, sendToQueue: sendToQueue): Promise<ReceiptResult> {
+    // TODO: use timestamp for filter
     const currBlock = await this.web3.getCurrentBlock()
     // Wait K block for confirmation. Skip if the increasing of block number is less then K.
-    if (currBlock < task.blockNumber + config.BLOCK_CONFIRMATION) {
-      logger.info({blockNumber: task.blockNumber, currentBlockNumber: currBlock, K: config.BLOCK_CONFIRMATION},
+    if (currBlock < task.sentBlock + config.BLOCK_CONFIRMATION) {
+      logger.info({blockNumber: task.sentBlock, currentBlockNumber: currBlock, K: config.BLOCK_CONFIRMATION},
         'task was skipped due to current block number < receipt.blocknumber + k')
       return Promise.resolve(ReceiptResult.skipped)
     }
 
     let result = ReceiptResult.failed
-    let tx: TransactionReceipt|null
+    let receipt: TransactionReceipt|null
     try {
-      tx = await this.getReceipt(task)
+      receipt = await this.getReceipt(task)
     } catch (e) {
       logger.info({timeout: config.GET_RECEIPT_TIMEOUT},
          `Getting receipt ${task.transactionHash} reaches timeout.`)
@@ -86,19 +87,19 @@ export class Receiptor {
     }
 
     switch (true) {
-      case tx === null:
+      case receipt === null:
         logger.error({tx: task.transactionHash}, `get receipt returns null`)
         await this.resendEvent(task, sendToQueue)
         result = ReceiptResult.null
         break
 
-      case tx && tx.status:
-        logger.info({tx}, `get receipt returns success status`)
+      case receipt && receipt.status:
+        logger.info({receipt}, `get receipt returns success status`)
         result = ReceiptResult.success
         break
 
-      case tx && !tx.status:
-        logger.info({tx}, `get receipt returns failed status`)
+      case receipt && !receipt.status:
+        logger.info({receipt}, `get receipt returns failed status`)
         await this.resendEvent(task, sendToQueue)
         result = ReceiptResult.failed
         break

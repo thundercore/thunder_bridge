@@ -16,6 +16,7 @@ export interface SenderWeb3 {
   getPrice: (timestamp: number) => Promise<number>
   getNonce: () => Promise<number>
   getBalance: () => Promise<string>
+  getCurrentBlock: () => Promise<number>
   sendTx: (nonce: number, gasLimit: BigNumber, amount: BN, txinfo: TxInfo) => Promise<string>
   processEvents: (task: EventTask) => Promise<TxInfo[]>
 }
@@ -51,39 +52,54 @@ export class SenderWeb3Impl implements SenderWeb3 {
       logger.debug({ validatorAddr: this.validator.address, transactionCount }, 'Transaction count obtained')
       return Promise.resolve(transactionCount)
     } catch (e) {
-      throw new Error(`Nonce cannot be obtained`)
+      throw new Error(`Nonce cannot be obtained: ${e}`)
     }
   }
 
   async sendSignedTransaction(signedTx: string): Promise<string> {
-    const provider = (<HttpProvider>this.web3.currentProvider)
+    const method = 'eth_sendRawTransaction'
+    const provider = <HttpProvider>this.web3.currentProvider
+
     return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Send ${method} timeout`))
+      }, 2000)
+
       provider.send({
         jsonrpc: '2.0',
-        method: 'eth_sendRawTransaction',
+        method: method,
         params: [ signedTx ],
         id: Math.floor(Math.random() * 100) + 1
       }, (error: Error | null, result?: JsonRpcResponse) => {
         if (error) {
           reject(error)
         } else {
-          resolve((<JsonRpcResponse>result).result)
+          if (result?.error) {
+            reject(new Error((<any>result.error)['message']))
+          } else {
+            resolve((<JsonRpcResponse>result).result)
+          }
         }
       })
     })
   }
 
   async sendTx(nonce: number, gasLimit: BigNumber, amount: BN, txinfo: TxInfo): Promise<string> {
-    let txConfig: TransactionConfig = {
-      nonce: nonce,
+    const timestamp = txinfo.eventTask.timestamp?
+      txinfo.eventTask.timestamp:
+      Math.floor(Date.now() / 1000)
+
+    const txConfig: TransactionConfig = {
+      nonce,
       chainId: this.chainId,
       to: txinfo.to,
       data: txinfo.data,
       value: toWei(amount),
       gas: gasLimit.toString(),
-      gasPrice: (await this.getPrice(Math.floor(Date.now() / 1000))).toString(10),
+      gasPrice: (await this.getPrice(timestamp)).toString(),
     }
 
+    logger.debug(txConfig, 'Send transaction')
     const signedTx = await this.web3.eth.accounts.signTransaction(txConfig, `0x${this.validator.privateKey}`)
     return this.sendSignedTransaction(<string>signedTx.rawTransaction)
   }
@@ -94,6 +110,10 @@ export class SenderWeb3Impl implements SenderWeb3 {
 
   async processEvents(task: EventTask): Promise<TxInfo[]> {
     return processEvents(task, this.validator)
+  }
+
+  async getCurrentBlock(): Promise<number> {
+    return this.web3.eth.getBlockNumber()
   }
 }
 
@@ -109,16 +129,21 @@ class SendTxError {
 
   static isBlockGasLimitExceededError(e: Error): boolean {
     return (
-      e.message.includes('exceeds block gas limit') || e.message.includes('Exceeds block gas limit') // geth
-    ) // truffle
+      e.message.includes('exceeds block gas limit') || // truffle
+      e.message.includes('Exceeds block gas limit') // geth
+    )
   }
 
   static isTxWasImportedError(e: Error): boolean {
     return e.message.includes('Transaction with the same hash was already imported')
   }
 
-  static isInsufficientFoundError(e: Error): boolean {
+  static isInsufficientFundError(e: Error): boolean {
     return e.message.includes('Insufficient funds')
+  }
+
+  static isTimeoutError(e: Error): boolean {
+    return e.message.includes('timeout')
   }
 }
 
@@ -130,6 +155,7 @@ export enum SendResult {
   insufficientFunds = 'insufficientFunds',
   nonceTooLow = 'nonceTooLow',
   skipped = 'skipped',
+  timeout = 'timeout',
 }
 
 
@@ -153,9 +179,13 @@ export class Sender {
     this.nonceKey = `${this.id}:nonce`
   }
 
-  async updateNonce(nonce: number): Promise<void> {
+  async updateNonce(newNonce: number): Promise<void> {
     if (this.cache) {
-      this.cache.set(this.nonceKey, nonce.toString())
+      const oldNonce = await this.cache.get(this.nonceKey)
+      logger.debug({oldNonce, newNonce}, 'Update cache nonce')
+      if (!oldNonce || Number(oldNonce) < newNonce) {
+        this.cache.set(this.nonceKey, newNonce.toString())
+      }
     }
     return Promise.resolve()
   }
@@ -165,7 +195,7 @@ export class Sender {
     if (this.cache && !forceUpdate) {
       try {
         const nonce = await this.cache.get(this.nonceKey)
-        if (nonce !== undefined) {
+        if (nonce) {
           logger.debug({ nonce }, `Nonce found in the DB, key: ${this.nonceKey}`)
           return Promise.resolve(Number(nonce))
         }
@@ -209,12 +239,17 @@ export class Sender {
     logger.debug('Lock acquired')
 
     let nonce: number
-    try {
-      nonce = await this.readNonce(false)
-      logger.debug(`read nonce: ${nonce}`)
-    } catch (e) {
-      logger.error(`Failed to read nonce.`)
-      return Promise.resolve(SendResult.failed)
+    if (txinfo.eventTask.nonce) {
+      nonce = txinfo.eventTask.nonce
+      logger.debug(`Use retry task nonce: ${nonce}`)
+    } else {
+      try {
+        nonce = await this.readNonce(false)
+        logger.debug(`Read nonce: ${nonce}`)
+      } catch (e) {
+        logger.error(`Failed to read nonce.`)
+        return Promise.resolve(SendResult.failed)
+      }
     }
 
     let result = SendResult.failed
@@ -223,29 +258,19 @@ export class Sender {
       logger.info(`Sending transaction with nonce ${nonce}`)
       const txHash = await this.web3.sendTx(nonce, gasLimit, toBN('0'), txinfo)
 
-      nonce += 1
+      logger.info(`Tx generated ${txHash} for event Tx ${txinfo.transactionReference}`)
 
-      if (receipt.status) {
-        logger.info(
-          { receipt },
-          `Tx generated ${receipt.transactionHash} for event Tx ${txinfo.transactionReference}`
-        )
-
-        let receiptTask: ReceiptTask = {
-          eventTask: txinfo.eventTask,
-          timestamp: Date.now(),
-          nonce: nonce,
-          transactionHash: receipt.transactionHash,
-          blockNumber: receipt.blockNumber,
-        }
-        await sendToQueue(receiptTask)
-        console.log(receiptTask)
-
-        result = SendResult.success
-      } else {
-        // FIXME: what can we do here?
-        logger.error({receipt}, `transaction was reverted by EVM`)
+      let receiptTask: ReceiptTask = {
+        eventTask: txinfo.eventTask,
+        timestamp: Date.now() / 1000,
+        nonce: nonce,
+        transactionHash: txHash,
+        sentBlock: await this.web3.getCurrentBlock()
       }
+      await sendToQueue(receiptTask)
+
+      result = SendResult.success
+      nonce++
 
     } catch (e) {
       logger.error(
@@ -264,7 +289,7 @@ export class Sender {
           result = SendResult.blockGasLimitExceeded
           break
 
-        case SendTxError.isInsufficientFoundError(e):
+        case SendTxError.isInsufficientFundError(e):
           result = SendResult.insufficientFunds
           break
 
@@ -272,6 +297,11 @@ export class Sender {
           logger.info(`tx ${txinfo.transactionReference} nonce is too low. Force update nonce.`)
           nonce = await this.readNonce(true)
           result = SendResult.nonceTooLow
+          break
+
+        case SendTxError.isTimeoutError(e):
+          logger.info(`tx ${txinfo.transactionReference} reaches timeout`)
+          result = SendResult.timeout
           break
 
         default:

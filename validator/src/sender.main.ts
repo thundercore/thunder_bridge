@@ -62,11 +62,8 @@ async function initialize() {
 
               case SendResult.failed:
               case SendResult.nonceTooLow:
-                options.nackMsg(options.msg)
-                break
-
+              case SendResult.timeout:
               case SendResult.insufficientFunds:
-                logger.error(`Insufficient funds.`)
                 options.nackMsg(options.msg)
                 break
 

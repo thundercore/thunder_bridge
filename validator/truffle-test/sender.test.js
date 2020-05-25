@@ -5,7 +5,6 @@ const path = require('path')
 
 const sender = require(path.join(__dirname, '../src/lib/sender'))
 const storage = require(path.join(__dirname, '../src/lib/storage'))
-const queue = require(path.join(__dirname, '../src/lib/queue'))
 const locker = require(path.join(__dirname, '../src/lib/locker'))
 const { expect } = require('chai')
 
@@ -21,12 +20,25 @@ web3.extend({
       name: 'stop',
       call: 'miner_stop'
     }, {
+      name: 'snapshot',
+      call: 'evm_snapshot',
+    }, {
+      name: 'revert',
+      call: 'evm_revert',
+      params: 1
+    }, {
       name: 'mine',
       call: 'evm_mine',
       params: 1
     }
- ]
+  ]
 });
+
+const gasPriceService = {
+  getPrice: async (timestamp) => {
+    return await web3.eth.getGasPrice()
+  }
+}
 
 async function makeOneBlock() {
   const begin = await web3.eth.getBlockNumber()
@@ -35,8 +47,9 @@ async function makeOneBlock() {
   console.log(`make block ${begin} -> ${end}`)
 }
 
+let queue = []
 async function sendToQueue(task) {
-  console.log(`${task} was enqueued`)
+  queue.push(task)
 }
 
 contract("Test single sender", async (accounts) => {
@@ -54,9 +67,10 @@ contract("Test single sender", async (accounts) => {
   let l = null
 
   beforeEach(() => {
-    senderWeb3 = new sender.SenderWeb3Impl('v1', '5777', v1, web3)
+    senderWeb3 = new sender.SenderWeb3Impl('v1', '5777', v1, web3, gasPriceService)
     c = new storage.FakeCache()
     l = new locker.FakeLocker()
+    queue = []
   })
 
   async function makeTransfer() {
@@ -72,14 +86,24 @@ contract("Test single sender", async (accounts) => {
   it('test transfer success', async () => {
     const s = new sender.Sender('v1', senderWeb3, l, c)
     const task = await makeTransfer()
+    const nonce = await web3.eth.getTransactionCount(v1.address)
+    const currentBlock = await web3.eth.getBlockNumber()
 
     // Send task first time with success result
     let ret = await s.run(task, sendToQueue)
     expect(ret).to.eq('success')
+    expect(queue).to.have.length(1)
+
+    const receiptTask = queue.pop()
+    expect(receiptTask.eventTask).to.be.deep.eq(task)
+    expect(receiptTask.nonce).to.eq(nonce)
+    expect(receiptTask.sentBlock).to.eq(currentBlock+1)
+    expect(receiptTask.transactionHash).to.have.length(66)
 
     // Send task second time with skipped result
     ret = await s.run(task, sendToQueue)
     expect(ret).to.eq('skipped')
+    expect(queue).to.have.length(0)
   })
 
   it('test transfer with lower nonce will be failed', async () => {
@@ -94,6 +118,7 @@ contract("Test single sender", async (accounts) => {
     // Expect ret == nonceTooLow and nonce will be updated to nonce
     expect(ret).to.eq(sender.SendResult.nonceTooLow)
     expect(await c.get(s.nonceKey)).to.equal(nonce.toString())
+    expect(queue).to.have.length(0)
   })
 
   it.skip("test tx was imported", async () => {
@@ -101,19 +126,18 @@ contract("Test single sender", async (accounts) => {
     // It's different from geth. We skiped this test before we found a better way to test this case.
     const task = await makeTransfer()
 
-    await web3.miner.stop()
-    const w = new sender.SenderWeb3Impl("v1", '5777', v1, web3);
+    const w = new sender.SenderWeb3Impl("v1", '5777', v1, web3, gasPriceService);
     const s = new sender.Sender("v1", w, l, null);
     const info = await s.EventToTxInfo(task)
 
     const p1 = s.sendTx(info, sendToQueue)
     const p2 = s.sendTx(info, sendToQueue)
     await makeOneBlock()
-    await web3.miner.start()
 
     const r1 = await p1
     const r2 = await p2
     expect(r1).to.be.eq("success")
+    expect(queue).to.have.length(0)
     expect(r2).to.be.eq(sender.SendResult.txImported)
   })
 
@@ -126,6 +150,7 @@ contract("Test single sender", async (accounts) => {
 
     const ret = await s.sendTx(info, sendToQueue)
     expect(ret).to.eq(sender.SendResult.blockGasLimitExceeded)
+    expect(queue).to.have.length(0)
   })
 
   it('test transfer with same nonce will be fail', async () => {
@@ -147,6 +172,8 @@ contract("Test single sender", async (accounts) => {
     expect(ret).to.eq(sender.SendResult.nonceTooLow)
     expect(await c.get(s.nonceKey)).to.eq((nonce + 1).toString())
     // Task is not `acked` in queue
+
+    expect(queue).to.have.length(1)
   })
 })
 
@@ -187,9 +214,9 @@ contract('Test multiple senders', (accounts) => {
   it('test third sender estimateGas will failed', async () => {
     const task = await makeTransfer()
 
-    const v1web3 = new sender.SenderWeb3Impl('v1', '5777', v1, web3)
-    const v2web3 = new sender.SenderWeb3Impl('v2', '5777', v2, web3)
-    const v3web3 = new sender.SenderWeb3Impl('v3', '5777', v3, web3)
+    const v1web3 = new sender.SenderWeb3Impl('v1', '5777', v1, web3, gasPriceService)
+    const v2web3 = new sender.SenderWeb3Impl('v2', '5777', v2, web3, gasPriceService)
+    const v3web3 = new sender.SenderWeb3Impl('v3', '5777', v3, web3, gasPriceService)
 
     const s1 = new sender.Sender('v1', v1web3, l)
     const s2 = new sender.Sender('v2', v2web3, l)
@@ -218,9 +245,9 @@ contract('Test multiple senders', (accounts) => {
   it('test three sender estimateGas race condition', async () => {
     const task = await makeTransfer()
 
-    const v1web3 = new sender.SenderWeb3Impl('v1', '5777', v1, web3)
-    const v2web3 = new sender.SenderWeb3Impl('v2', '5777', v2, web3)
-    const v3web3 = new sender.SenderWeb3Impl('v3', '5777', v3, web3)
+    const v1web3 = new sender.SenderWeb3Impl('v1', '5777', v1, web3, gasPriceService)
+    const v2web3 = new sender.SenderWeb3Impl('v2', '5777', v2, web3, gasPriceService)
+    const v3web3 = new sender.SenderWeb3Impl('v3', '5777', v3, web3, gasPriceService)
 
     const s1 = new sender.Sender('v1', v1web3, l)
     const s2 = new sender.Sender('v2', v2web3, l)
@@ -255,9 +282,9 @@ contract('Test multiple senders', (accounts) => {
   it('test three sender send in same block', async () => {
     const task = await makeTransfer()
 
-    const v1web3 = new sender.SenderWeb3Impl('v1', '5777', v1, web3)
-    const v2web3 = new sender.SenderWeb3Impl('v2', '5777', v2, web3)
-    const v3web3 = new sender.SenderWeb3Impl('v3', '5777', v3, web3)
+    const v1web3 = new sender.SenderWeb3Impl('v1', '5777', v1, web3, gasPriceService)
+    const v2web3 = new sender.SenderWeb3Impl('v2', '5777', v2, web3, gasPriceService)
+    const v3web3 = new sender.SenderWeb3Impl('v3', '5777', v3, web3, gasPriceService)
 
     const s1 = new sender.Sender('v1', v1web3, l)
     const s2 = new sender.Sender('v2', v2web3, l)

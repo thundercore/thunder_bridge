@@ -15,7 +15,7 @@ export interface ReceiptTask {
   nonce: number
   timestamp: number
   transactionHash: string
-  blockNumber: number
+  sentBlock: number
 
   retries?: number
 }

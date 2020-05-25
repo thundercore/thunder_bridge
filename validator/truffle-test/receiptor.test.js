@@ -31,12 +31,12 @@ web3.extend({
       call: 'evm_mine',
       params: 1
     }
- ]
+  ]
 });
 
-async function featureBlock(s=1) {
+async function futureBlock(n=1) {
   const begin = await web3.eth.getBlockNumber()
-  for (var i=0; i<s; i++) {
+  for (var i=0; i<n; i++) {
     await web3.miner.mine(Date.now() + Number(i)*1000)
   }
   const end = await web3.eth.getBlockNumber()
@@ -79,13 +79,13 @@ contract("Test Receiptor", async (accounts) => {
       nonce: nonce,
       timestamp: Date.now(),
       transactionHash: receipt.transactionHash,
-      blockNumber: receipt.blockNumber,
+      sentBlock: receipt.blockNumber,
     }
 
     expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.skipped)
-    await featureBlock(10)
+    await futureBlock(10)
     expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.skipped)
-    await featureBlock(config.BLOCK_CONFIRMATION-10)
+    await futureBlock(config.BLOCK_CONFIRMATION-10)
     expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.success)
   })
 
@@ -105,10 +105,10 @@ contract("Test Receiptor", async (accounts) => {
       nonce: nonce,
       timestamp: Date.now(),
       transactionHash: receipt.transactionHash,
-      blockNumber: receipt.blockNumber,
+      sentBlock: receipt.blockNumber,
     }
 
-    await featureBlock(config.BLOCK_CONFIRMATION)
+    await futureBlock(config.BLOCK_CONFIRMATION)
     expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.null)
   })
 
@@ -126,19 +126,17 @@ contract("Test Receiptor", async (accounts) => {
       eventType: 'erc-erc-affirmation-request',
       event: receipt.events.Transfer,
     }
-    // Make a fake txHash
-    receipt.transactionHash = '0x1234567890123456789012345678901234567890123456789012345678901234'
     const tx = {
       eventTask: eventTask,
       nonce: nonce,
       timestamp: Date.now(),
       transactionHash: receipt.transactionHash,
-      blockNumber: receipt.blockNumber,
+      sentBlock: receipt.blockNumber,
     }
 
     // Because the block of transfer tx was reverted.
     // Need to advence more one block for block confirmation checking
-    await featureBlock(config.BLOCK_CONFIRMATION+1)
+    await futureBlock(config.BLOCK_CONFIRMATION+1)
     expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.null)
   })
 
@@ -161,14 +159,10 @@ contract("Test Receiptor", async (accounts) => {
       nonce: nonce,
       timestamp: Date.now(),
       transactionHash: receipt.transactionHash,
-      blockNumber: receipt.blockNumber,
+      sentBlock: receipt.blockNumber,
     }
 
-    await featureBlock(config.BLOCK_CONFIRMATION)
+    await futureBlock(config.BLOCK_CONFIRMATION)
     expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.timeout)
-  })
-
-  after(async() => {
-    await web3.miner.start()
   })
 })

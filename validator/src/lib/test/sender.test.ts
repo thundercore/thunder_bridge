@@ -11,6 +11,8 @@ import { FakeLocker } from '../locker'
 import { Sender, SenderWeb3Impl, Validator, SendResult } from '../sender'
 import { TxInfo, ReceiptTask, EventTask } from '../types'
 import { addExtraGas } from '../../utils/utils'
+import { EventEmitter } from 'events'
+import sinon from 'sinon'
 
 const sandbox = createSandbox()
 const fakeEvent: EventTask = {
@@ -35,6 +37,8 @@ const fakeEvent: EventTask = {
   },
 }
 
+const transactionHash = '0xb909b8f4074f45f067125348eb1cf71a197149dc03a37446dacd4a925963ff47'
+
 const sendToQueue = (task: ReceiptTask): Promise<void> => {
   return Promise.resolve()
 }
@@ -45,7 +49,7 @@ describe('Test SenderWeb3Impl', () => {
     privateKey: '348ce564d427a3311b6536bbcff9390d69395b06ed6c486954e971d960fe8709',
   }
 
-  it('send tx', async () => {
+  it('test send tx', async () => {
     const nonce = 10
     const gasLimit = new BigNumber(100)
     const amount = toBN('10')
@@ -79,25 +83,14 @@ describe('Test SenderWeb3Impl', () => {
     })
     web3.eth.accounts.signTransaction = signTransaction
 
-    const recepit = {
-      blockHash: '0xdbb365914fd57cfc08657eed1a843a619d51651b233d3b45648ca5658e54f14f',
-      blockNumber: 6527760,
-      contractAddress: null,
-      cumulativeGasUsed: 7643463,
-      from: '0xacb3e9205229d212db914a92c77856b228b0a4e4',
-      gasUsed: 21000,
-      logs: [],
-      logsBloom:
-        '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-      status: true,
-      to: '0x458b8adf2248709cf739149fe4bab0b20101c4a1',
-      transactionHash: '0xb909b8f4074f45f067125348eb1cf71a197149dc03a37446dacd4a925963ff47',
-      transactionIndex: 70,
-    }
-    const sendSignedTransaction = sandbox.stub().resolves(recepit)
-    web3.eth.sendSignedTransaction = sendSignedTransaction
+    const spy = sinon.spy()
+    const emitter = new EventEmitter()
+    emitter.on('transactionHash', spy)
 
-    const ret = await sw.sendTx(nonce, gasLimit, amount, txinfo)
+    web3.eth.sendSignedTransaction = sandbox.stub().returns(spy)
+
+    const p = sw.sendTx(nonce, gasLimit, amount, txinfo)
+    const txHash = await p
 
     // Test signTransaction arguments
     const expectTxConfig: TransactionConfig = {
@@ -111,7 +104,7 @@ describe('Test SenderWeb3Impl', () => {
     }
     expect(signTransaction.lastCall.args[0]).to.be.deep.equal(expectTxConfig)
     expect(signTransaction.lastCall.args[1]).to.be.deep.equal(privateKey)
-    expect(ret).to.be.equal(recepit)
+    expect(txHash).to.be.equal(transactionHash)
   })
 })
 
@@ -169,21 +162,9 @@ describe('Test Sender', () => {
 
     const nonce = 50
     sender.readNonce = sandbox.stub().resolves(nonce)
-    const receipt: TransactionReceipt = {
-      status: true,
-      transactionHash: 'my transaction hash',
-      transactionIndex: 10,
-      blockHash: 'my block hash',
-      blockNumber: 100,
-      from: 'thunder',
-      to: 'core',
-      cumulativeGasUsed: 50,
-      gasUsed: 30,
-      logs: [],
-      logsBloom: 'my logs bloom',
-    }
-    const s = sandbox.stub().resolves(receipt)
+    const s = sandbox.stub().resolves(transactionHash)
     sw.sendTx = s
+    sw.getCurrentBlock = sandbox.stub().resolves(100)
 
     const result = await sender.sendTx(txinfo, sendToQueue)
 
