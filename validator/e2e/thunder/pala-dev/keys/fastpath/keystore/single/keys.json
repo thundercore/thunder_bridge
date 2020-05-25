@@ -1,0 +1,12 @@
+{
+  "stakein": {
+    "EncryptedPrivateKey": null,
+    "AESKeySalt": null,
+    "PrivateKey": "wN7SLZISuPkKmW5NwGQcJNI+6mPOlqDbokaw7Y1SRjk="
+  },
+  "voting": {
+    "EncryptedPrivateKey": null,
+    "AESKeySalt": null,
+    "PrivateKey": "BtB0JE9xbNq4JQ/mZKKPAvFgRI5/r6ZJj6pGl+ISssE="
+  }
+}

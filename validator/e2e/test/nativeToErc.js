@@ -7,7 +7,7 @@ const { generateNewBlock } = require('../utils/utils')
 
 const abisDir = path.join(__dirname, '..', 'contracts/build/contracts')
 
-const homeWeb3 = new Web3(new Web3.providers.HttpProvider('http://parity1:8545'))
+const homeWeb3 = new Web3(new Web3.providers.HttpProvider('http://thunder1:8545'))
 const foreignWeb3 = new Web3(new Web3.providers.HttpProvider('http://parity2:8545'))
 
 const HOME_BRIDGE_ADDRESS = '0x32198D570fffC7033641F8A9094FFDCaAEF42624'

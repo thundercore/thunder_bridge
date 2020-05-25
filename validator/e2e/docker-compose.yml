@@ -1,7 +1,7 @@
 version: '2'
 services:
-  parity1:
-    build: parity
+  thunder1:
+    build: thunder
     ports:
       - "8541:8545"
   parity2:
@@ -21,7 +21,7 @@ services:
       - BRIDGE_MODE=ERC_TO_ERC
       - QUEUE_URL=amqp://rabbit
       - REDIS_URL=redis://redis
-      - HOME_RPC_URL=http://parity1:8545
+      - HOME_RPC_URL=http://thunder1:8545
       - FOREIGN_RPC_URL=http://parity2:8545
       - HOME_START_BLOCK=0
       - FOREIGN_START_BLOCK=0
@@ -43,26 +43,38 @@ services:
       - ALLOW_HTTP=yes
     volumes:
       - ../src:/app/src
+    command:
+      - "true"
   watcher-signature-request:
     extends: bridge
     command: npm run watcher:signature-request
+    depends_on:
+      - deploy-contract
   watcher-collected-signatures:
     extends: bridge
     command: npm run watcher:collected-signatures
+    depends_on:
+      - deploy-contract
   watcher-affirmation-request:
     extends: bridge
     command: npm run watcher:affirmation-request
+    depends_on:
+      - deploy-contract
   sender-home:
     extends: bridge
     command: npm run sender:home
+    depends_on:
+      - deploy-contract
+  sender-foreign:
+    extends: bridge
+    command: npm run sender:foreign
+    depends_on:
+      - deploy-contract
   test:
     extends: bridge
     command: bash
     stdin_open: true
     tty: true
-  sender-foreign:
-    extends: bridge
-    command: npm run sender:foreign
   e2e:
     build:
         context: ../../
@@ -75,7 +87,7 @@ services:
     volumes:
       - ./test:/stuff/test
     depends_on:
-      - parity1
+      - thunder1 
       - parity2
       - rabbit
       - redis
