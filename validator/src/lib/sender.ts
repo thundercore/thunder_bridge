@@ -5,17 +5,18 @@ import { EXTRA_GAS_PERCENTAGE } from '../utils/constants'
 import { EventTask, TxInfo, ReceiptTask } from './types'
 import { Locker } from './locker'
 import { Cache } from './storage'
-import { TransactionConfig, TransactionReceipt } from 'web3-core'
+import { TransactionConfig, HttpProvider } from 'web3-core'
 import { processEvents } from '../events'
 import { addExtraGas } from '../utils/utils'
 import { toBN, toWei } from 'web3-utils'
 import { BigNumber } from 'bignumber.js'
+import { JsonRpcResponse } from 'web3-core-helpers'
 
 export interface SenderWeb3 {
   getPrice: (timestamp: number) => Promise<number>
   getNonce: () => Promise<number>
   getBalance: () => Promise<string>
-  sendTx: (nonce: number, gasLimit: BigNumber, amount: BN, txinfo: TxInfo) => Promise<TransactionReceipt>
+  sendTx: (nonce: number, gasLimit: BigNumber, amount: BN, txinfo: TxInfo) => Promise<string>
   processEvents: (task: EventTask) => Promise<TxInfo[]>
 }
 
@@ -54,9 +55,27 @@ export class SenderWeb3Impl implements SenderWeb3 {
     }
   }
 
-  async sendTx(nonce: number, gasLimit: BigNumber, amount: BN, txinfo: TxInfo): Promise<TransactionReceipt> {
-    const txConfig: TransactionConfig = {
-      nonce,
+  async sendSignedTransaction(signedTx: string): Promise<string> {
+    const provider = (<HttpProvider>this.web3.currentProvider)
+    return new Promise((resolve, reject) => {
+      provider.send({
+        jsonrpc: '2.0',
+        method: 'eth_sendRawTransaction',
+        params: [ signedTx ],
+        id: Math.floor(Math.random() * 100) + 1
+      }, (error: Error | null, result?: JsonRpcResponse) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve((<JsonRpcResponse>result).result)
+        }
+      })
+    })
+  }
+
+  async sendTx(nonce: number, gasLimit: BigNumber, amount: BN, txinfo: TxInfo): Promise<string> {
+    let txConfig: TransactionConfig = {
+      nonce: nonce,
       chainId: this.chainId,
       to: txinfo.to,
       data: txinfo.data,
@@ -66,7 +85,7 @@ export class SenderWeb3Impl implements SenderWeb3 {
     }
 
     const signedTx = await this.web3.eth.accounts.signTransaction(txConfig, `0x${this.validator.privateKey}`)
-    return this.web3.eth.sendSignedTransaction(signedTx.rawTransaction!)
+    return this.sendSignedTransaction(<string>signedTx.rawTransaction)
   }
 
   async getBalance(): Promise<string> {
@@ -202,7 +221,7 @@ export class Sender {
     const gasLimit = addExtraGas(txinfo.gasEstimate, EXTRA_GAS_PERCENTAGE)
     try {
       logger.info(`Sending transaction with nonce ${nonce}`)
-      const receipt = await this.web3.sendTx(nonce, gasLimit, toBN('0'), txinfo)
+      const txHash = await this.web3.sendTx(nonce, gasLimit, toBN('0'), txinfo)
 
       nonce += 1
 
