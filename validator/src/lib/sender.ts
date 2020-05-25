@@ -61,7 +61,7 @@ export class SenderWeb3Impl implements SenderWeb3 {
     const provider = <HttpProvider>this.web3.currentProvider
 
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         reject(new Error(`Send ${method} timeout`))
       }, 2000)
 
@@ -71,6 +71,8 @@ export class SenderWeb3Impl implements SenderWeb3 {
         params: [ signedTx ],
         id: Math.floor(Math.random() * 100) + 1
       }, (error: Error | null, result?: JsonRpcResponse) => {
+        clearTimeout(timer)
+
         if (error) {
           reject(error)
         } else {

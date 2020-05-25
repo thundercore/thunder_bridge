@@ -34,9 +34,13 @@ export enum ReceiptResult {
   null,
   timeout,
   failed,
+  waittingK,
+  waittingReceipt,
 }
 
 type sendToQueue = (task: EventTask) => Promise<void>
+
+class TimeoutError extends Error {}
 
 export class Receiptor {
   web3: ReceiptorWeb3
@@ -56,53 +60,67 @@ export class Receiptor {
     return sendToQueue(newTask)
   }
 
+  async checkBlockAdvencedK(block: number, k: number): Promise<boolean> {
+    const currBlock = await this.web3.getCurrentBlock()
+    logger.debug({block, currBlock, k}, `check if currBlock - block >= k`)
+    // TODO: K is >= or >?
+    return Promise.resolve(currBlock - block >= k)
+  }
+
   async getReceipt(task: ReceiptTask): Promise<TransactionReceipt|null> {
     return new Promise(async (resolve, reject) => {
-      setTimeout(reject, config.GET_RECEIPT_TIMEOUT)
+      const timer = setTimeout(async() => {
+        logger.info({timeout: config.GET_RECEIPT_TIMEOUT},
+           `Getting receipt ${task.transactionHash} reaches timeout.`)
+        reject(new TimeoutError())
+      }, config.GET_RECEIPT_TIMEOUT)
+
       logger.info({timeout: config.GET_RECEIPT_TIMEOUT, tx: task.transactionHash},
         'Try to get receipt.')
       resolve(await this.web3.getTransactionReceipt(task.transactionHash))
+      clearTimeout(timer)
     })
   }
 
   async run(task: ReceiptTask, sendToQueue: sendToQueue): Promise<ReceiptResult> {
-    // TODO: use timestamp for filter
-    const currBlock = await this.web3.getCurrentBlock()
-    // Wait K block for confirmation. Skip if the increasing of block number is less then K.
-    if (currBlock < task.sentBlock + config.BLOCK_CONFIRMATION) {
-      logger.info({blockNumber: task.sentBlock, currentBlockNumber: currBlock, K: config.BLOCK_CONFIRMATION},
-        'task was skipped due to current block number < receipt.blocknumber + k')
-      return Promise.resolve(ReceiptResult.skipped)
-    }
-
-    let result = ReceiptResult.failed
     let receipt: TransactionReceipt|null
+    console.debug(task, `init receipter task`)
     try {
       receipt = await this.getReceipt(task)
     } catch (e) {
-      logger.info({timeout: config.GET_RECEIPT_TIMEOUT},
-         `Getting receipt ${task.transactionHash} reaches timeout.`)
-      await this.resendEvent(task, sendToQueue)
+      logger.info({e}, `Getting receipt failed`)
       return Promise.resolve(ReceiptResult.timeout)
     }
 
-    switch (true) {
-      case receipt === null:
-        logger.error({tx: task.transactionHash}, `get receipt returns null`)
+    let result = ReceiptResult.failed
+    if (receipt === null) {
+      // Getting receipt
+      if (await this.checkBlockAdvencedK(task.sentBlock, config.MAX_WAIT_RECEIPT_BLOCK)) {
+        logger.error({
+          tx: task.transactionHash,
+          sentBlock: task.sentBlock,
+          K: config.MAX_WAIT_RECEIPT_BLOCK
+        }, `exceed maximum wait receipt block`)
         await this.resendEvent(task, sendToQueue)
         result = ReceiptResult.null
-        break
+      } else {
+        result = ReceiptResult.waittingReceipt
+      }
 
-      case receipt && receipt.status:
-        logger.info({receipt}, `get receipt returns success status`)
+    } else if (receipt?.status) {
+      // Get a success receipt
+      logger.info({ receipt }, `get receipt success, wait ${config.BLOCK_CONFIRMATION} block for confirmation`)
+      if (await this.checkBlockAdvencedK(receipt!.blockNumber, config.BLOCK_CONFIRMATION)) {
         result = ReceiptResult.success
-        break
+      } else {
+        result = ReceiptResult.waittingK
+      }
 
-      case receipt && !receipt.status:
-        logger.info({receipt}, `get receipt returns failed status`)
-        await this.resendEvent(task, sendToQueue)
-        result = ReceiptResult.failed
-        break
+    } else if (!receipt?.status) {
+      // Get a failed receipt
+      logger.info({ receipt }, `get receipt returns failed status`)
+      await this.resendEvent(task, sendToQueue)
+      result = ReceiptResult.failed
     }
 
     return Promise.resolve(result)

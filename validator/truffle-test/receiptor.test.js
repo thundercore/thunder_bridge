@@ -60,56 +60,59 @@ contract("Test Receiptor", async (accounts) => {
   }
 
   async function makeTransfer(from=accounts[0]) {
-    return erc20.methods
-      .transfer(foreign.options.address, web3.utils.toWei('0.01'))
-      .send({ from: from })
+    return new Promise((resolve, reject) => {
+      const sendTx = web3.eth.sendTransaction({from:from, to:accounts[1], value:web3.utils.toWei('0.01')})
+      sendTx.on('transactionHash', (hash)=> {
+        resolve(hash)
+      })
+    })
   }
 
-  it('test get receipt success', async () => {
-    const w = new receiptor.ReceiptorWeb3Impl(web3)
-    const r = new receiptor.Receiptor(w)
-    const receipt = await makeTransfer()
-    const nonce = 10
+  async function getCurrentBlock() {
+    return web3.eth.getBlockNumber()
+  }
+
+  async function makeReceiptTask(nonce=10) {
+    const txHash = await makeTransfer()
     const eventTask = {
       eventType: 'erc-erc-affirmation-request',
-      event: receipt.events.Transfer,
+      event: {},
     }
-    const tx = {
+    return {
       eventTask: eventTask,
       nonce: nonce,
       timestamp: Date.now(),
-      transactionHash: receipt.transactionHash,
-      sentBlock: receipt.blockNumber,
+      transactionHash: txHash,
+      sentBlock: await getCurrentBlock()
     }
+  }
 
-    expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.skipped)
-    await futureBlock(10)
-    expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.skipped)
-    await futureBlock(config.BLOCK_CONFIRMATION-10)
-    expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.success)
+  it('test get receipt success', async () => {
+    await web3.miner.stop()
+    const w = new receiptor.ReceiptorWeb3Impl(web3)
+    const r = new receiptor.Receiptor(w)
+    const task = await makeReceiptTask()
+
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.waittingReceipt)
+    await futureBlock(1)
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.waittingK)
+    await futureBlock(config.BLOCK_CONFIRMATION)
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.success)
+
+    await web3.miner.start()
   })
 
   it('test get null receipt', async () => {
     const w = new receiptor.ReceiptorWeb3Impl(web3)
     const r = new receiptor.Receiptor(w)
-    const receipt = await makeTransfer()
-    const nonce = 10
-    const eventTask = {
-      eventType: 'erc-erc-affirmation-request',
-      event: receipt.events.Transfer,
-    }
-    // Make a fake txHash
-    receipt.transactionHash = '0x1234567890123456789012345678901234567890123456789012345678901234'
-    const tx = {
-      eventTask: eventTask,
-      nonce: nonce,
-      timestamp: Date.now(),
-      transactionHash: receipt.transactionHash,
-      sentBlock: receipt.blockNumber,
-    }
+    const task = await makeReceiptTask()
+    task.transactionHash= '0x1234567890123456789012345678901234567890123456789012345678901234'
 
-    await futureBlock(config.BLOCK_CONFIRMATION)
-    expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.null)
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.waittingReceipt)
+    await futureBlock(1)
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.waittingReceipt)
+    await futureBlock(config.MAX_WAIT_RECEIPT_BLOCK)
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.null)
   })
 
   it('test get reverted receipt', async () => {
@@ -117,27 +120,13 @@ contract("Test Receiptor", async (accounts) => {
 
     const w = new receiptor.ReceiptorWeb3Impl(web3)
     const r = new receiptor.Receiptor(w)
-    // Make a transfer and revert it immediately
-    const receipt = await makeTransfer()
+    const task = await makeReceiptTask()
     await web3.miner.revert(snapshotId)
 
-    const nonce = 10
-    const eventTask = {
-      eventType: 'erc-erc-affirmation-request',
-      event: receipt.events.Transfer,
-    }
-    const tx = {
-      eventTask: eventTask,
-      nonce: nonce,
-      timestamp: Date.now(),
-      transactionHash: receipt.transactionHash,
-      sentBlock: receipt.blockNumber,
-    }
-
-    // Because the block of transfer tx was reverted.
+    // Because the block of transfer task was reverted.
     // Need to advence more one block for block confirmation checking
-    await futureBlock(config.BLOCK_CONFIRMATION+1)
-    expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.null)
+    await futureBlock(config.MAX_WAIT_RECEIPT_BLOCK+1)
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.null)
   })
 
   it('test get receipt timeout', async () => {
@@ -145,24 +134,30 @@ contract("Test Receiptor", async (accounts) => {
     let p = new Promise(resolve => setTimeout(resolve, 10000))
     w.getTransactionReceipt = stub().resolves(p)
     const r = new receiptor.Receiptor(w)
-    const receipt = await makeTransfer()
-
-    const nonce = 10
-    const eventTask = {
-      eventType: 'erc-erc-affirmation-request',
-      event: receipt.events.Transfer,
-    }
-    // Make a fake txHash
-    receipt.transactionHash = '0x1234567890123456789012345678901234567890123456789012345678901234'
-    const tx = {
-      eventTask: eventTask,
-      nonce: nonce,
-      timestamp: Date.now(),
-      transactionHash: receipt.transactionHash,
-      sentBlock: receipt.blockNumber,
-    }
+    const task = await makeReceiptTask()
 
     await futureBlock(config.BLOCK_CONFIRMATION)
-    expect(await r.run(tx, sendToQueue)).to.eq(receiptor.ReceiptResult.timeout)
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.timeout)
+  })
+
+  it('test get receipt with chain forked', async () => {
+    await web3.miner.stop()
+    const snapshotId = await web3.miner.snapshot()
+
+    const w = new receiptor.ReceiptorWeb3Impl(web3)
+    const r = new receiptor.Receiptor(w)
+    const task = await makeReceiptTask()
+
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.waittingReceipt)
+    await futureBlock(1)
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.waittingK)
+    await web3.miner.revert(snapshotId)
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.waittingReceipt)
+    await futureBlock(config.MAX_WAIT_RECEIPT_BLOCK)
+    expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.null)
+
+  })
+  afterEach(async () => {
+    await web3.miner.start()
   })
 })
