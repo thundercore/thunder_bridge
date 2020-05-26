@@ -29,13 +29,13 @@ export class ReceiptorWeb3Impl implements ReceiptorWeb3 {
 
 
 export enum ReceiptResult {
-  skipped,
-  success,
-  null,
-  timeout,
-  failed,
-  waittingK,
-  waittingReceipt,
+  skipped = 'skipped',
+  success = 'success',
+  null = 'null',
+  timeout = 'timeout',
+  failed = 'failed',
+  waittingK = 'waitting K block',
+  waittingReceipt = 'waitting tx receipt',
 }
 
 type sendToQueue = (task: EventTask) => Promise<void>
@@ -123,6 +123,7 @@ export class Receiptor {
       result = ReceiptResult.failed
     }
 
+    logger.info(`receiptor.run('${task.transactionHash}') returns: '${result}'`)
     return Promise.resolve(result)
   }
 }

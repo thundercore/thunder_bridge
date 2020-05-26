@@ -119,8 +119,8 @@ export class SenderWeb3Impl implements SenderWeb3 {
   }
 }
 
-class SendTxError {
-  static isNonceTooLowError(e: Error): boolean {
+namespace SendTxError {
+  export function isNonceTooLowError(e: Error): boolean {
     return (
       e.message.includes('Transaction nonce is too low') ||
       e.message.includes('nonce too low') ||
@@ -129,22 +129,22 @@ class SendTxError {
     )
   }
 
-  static isBlockGasLimitExceededError(e: Error): boolean {
+  export function isBlockGasLimitExceededError(e: Error): boolean {
     return (
       e.message.includes('exceeds block gas limit') || // truffle
       e.message.includes('Exceeds block gas limit') // geth
     )
   }
 
-  static isTxWasImportedError(e: Error): boolean {
+  export function isTxWasImportedError(e: Error): boolean {
     return e.message.includes('Transaction with the same hash was already imported')
   }
 
-  static isInsufficientFundError(e: Error): boolean {
+  export function isInsufficientFundError(e: Error): boolean {
     return e.message.includes('Insufficient funds')
   }
 
-  static isTimeoutError(e: Error): boolean {
+  export function isTimeoutError(e: Error): boolean {
     return e.message.includes('timeout')
   }
 }
@@ -280,35 +280,29 @@ export class Sender {
         `Failed to send event Tx ${txinfo.transactionReference}: ${e.message}`,
       )
 
-      switch (true) {
-        case SendTxError.isTxWasImportedError(e):
-          logger.info(`tx ${txinfo.transactionReference} was already imported. (skiped)`)
-          result = SendResult.txImported
-          break
+      if (SendTxError.isTxWasImportedError(e)) {
+        logger.info(`tx ${txinfo.transactionReference} was already imported. (skiped)`)
+        result = SendResult.txImported
 
-        case SendTxError.isBlockGasLimitExceededError(e):
-          logger.info(`tx ${txinfo.transactionReference} block gas limit exceeded.(skiped)`)
-          result = SendResult.blockGasLimitExceeded
-          break
+      } else if (SendTxError.isBlockGasLimitExceededError(e)) {
+        logger.info(`tx ${txinfo.transactionReference} block gas limit exceeded. (skiped)`)
+        result = SendResult.blockGasLimitExceeded
 
-        case SendTxError.isInsufficientFundError(e):
-          result = SendResult.insufficientFunds
-          break
+      } else if (SendTxError.isInsufficientFundError(e)) {
+        result = SendResult.insufficientFunds
 
-        case SendTxError.isNonceTooLowError(e):
-          logger.info(`tx ${txinfo.transactionReference} nonce is too low. Force update nonce.`)
-          nonce = await this.readNonce(true)
-          result = SendResult.nonceTooLow
-          break
+      } else if (SendTxError.isNonceTooLowError(e)) {
+        // TODO: resend task will not update nonce. XXX
+        logger.info(`tx ${txinfo.transactionReference} nonce is too low. Force update nonce.`)
+        nonce = await this.readNonce(true)
+        result = SendResult.nonceTooLow
 
-        case SendTxError.isTimeoutError(e):
-          logger.info(`tx ${txinfo.transactionReference} reaches timeout`)
-          result = SendResult.timeout
-          break
+      } else if (SendTxError.isTimeoutError(e)) {
+        logger.info(`tx ${txinfo.transactionReference} reaches timeout`)
+        result = SendResult.timeout
 
-        default:
-          logger.error(`Unknown error, tx: ${txinfo.transactionReference}`)
-          break
+      } else {
+        logger.error(`Unknown error, tx: ${txinfo.transactionReference}`)
       }
     }
 

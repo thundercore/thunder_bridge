@@ -5,6 +5,23 @@ var web3 = new Web3('http://localhost:7545');
 var deployed = require('../data/deployed.json')
 var erc20Abi = require('../abis/ERC20.abi.json')
 
+web3.extend({
+  property: 'miner',
+  methods: [
+    {
+      name: 'start',
+      call: 'miner_start'
+    }, {
+      name: 'stop',
+      call: 'miner_stop'
+    }, {
+      name: 'mine',
+      call: 'evm_mine',
+      params: 1
+    }
+ ]
+});
+
 connection.on('connect', (conn, e) => {
   if (e !== undefined) {
     console.log(e, 'Connect to amqp broker failed')
@@ -37,6 +54,11 @@ async function main() {
     }
 
   await channelWrapper.sendToQueue(queueName, task, { persistent: true })
+  for (let i=0; i < 20; i++) {
+    setTimeout(async() => {
+      await web3.miner.mine(Date.now())
+    }, 500 * i)
+  }
 }
 
 main()

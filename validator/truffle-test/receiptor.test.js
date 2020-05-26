@@ -157,6 +157,7 @@ contract("Test Receiptor", async (accounts) => {
     expect(await r.run(task, sendToQueue)).to.eq(receiptor.ReceiptResult.null)
 
   })
+
   afterEach(async () => {
     await web3.miner.start()
   })

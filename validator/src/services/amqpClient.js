@@ -58,8 +58,40 @@ function connectSenderToQueue({ queueName, cb }) {
   })
 }
 
+function connectReceiptorQueue({ queueName, cb }) {
+  const channelWrapper = connection.createChannel({
+    json: true
+  })
+
+  const receiptQueue = `${queueName}-receipt`
+  const sendQueue = queueName
+  const sendToQueue = data => channelWrapper.sendToQueue(queueName, data, { persistent: true })
+
+  logger.info(`Connect receiptor to consumer queue: ${receiptQueue} and producer queue: ${sendQueue}`)
+
+  channelWrapper.addSetup(channel => {
+    return Promise.all([
+      channel.assertQueue(sendQueue, { durable: true }),
+      channel.assertQueue(receiptQueue, { durable: true }),
+      channel.prefetch(1),
+      channel.consume(receiptQueue, msg => {
+          cb({
+            msg,
+            channel: channelWrapper,
+            ackMsg: job => channelWrapper.ack(job),
+            retryMsg: job => channelWrapper.nack(job, false, true),
+            rejectMsg: job => channelWrapper.nack(job, false, false),
+            sendToQueue
+          })
+        }
+      )
+    ])
+  })
+}
+
 module.exports = {
   connectWatcherToQueue,
   connectSenderToQueue,
+  connectReceiptorQueue,
   connection
 }

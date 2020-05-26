@@ -1,9 +1,7 @@
 import { SenderWeb3Impl, Sender, SendResult } from "./lib/sender"
 import { loadValidatorFromAWS } from "../config/private-keys.config"
-import { ChannelWrapper } from "amqp-connection-manager"
 import { Message } from "amqplib"
 
-require('dotenv').config()
 import { connectSenderToQueue } from './services/amqpClient'
 import { redis } from './services/redisClient'
 import GasPrice from './services/gasPrice'
