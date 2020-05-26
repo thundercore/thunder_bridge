@@ -20,6 +20,7 @@
 
 // const infuraKey = "fj4jll3k.....";
 //
+const HDWalletProvider = require("@truffle/hdwallet-provider")
 
 module.exports = {
   /**
@@ -40,6 +41,14 @@ module.exports = {
       host: "127.0.0.1",
       port: 7545,
       network_id: "*",
+    },
+    pala_single: {
+      host: "127.0.0.1",
+      port: 7545,
+      network_id: "*",
+      provider: () => {
+          return new HDWalletProvider("0x8e829f695aed89a154550f30262f1529582cc49dc30eff74a6b491359e0230f9", "http://127.0.0.1:7545")
+      },
     }
   },
 

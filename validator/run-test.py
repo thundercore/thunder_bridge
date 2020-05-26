@@ -37,6 +37,16 @@ def dev_chain():
     finally:
         subprocess.check_call(['npm', 'run', 'dev-chain:stop'])
 
+@contextlib.contextmanager
+def pala_chain():
+    tag = 'pala-for-truffle-test'
+    name = 'pala-for-truffle-test'
+    subprocess.check_call(['docker', 'build', '-t', tag, 'e2e/thunder'])
+    try:
+        subprocess.check_call(['docker', 'run', '-d', '--rm', '-p', '7545:8545/tcp', '--name', name, tag])
+        yield
+    finally:
+        subprocess.check_call(['docker', 'stop', name])
 
 def truffle(args):
     print('Copy {} -> {}'.format(
@@ -51,10 +61,18 @@ def truffle(args):
     # `truffle test` will compile contract to /tmp
     subprocess.check_call(['npm', 'run', 'truffle:compile'])
 
+    print('Using network', args.network)
+    chain_funcs = {
+        'ganache': dev_chain,
+        'pala': pala_chain,
+    }
     ret = True
-    with dev_chain():
+    with chain_funcs[args.network]():
         try:
-            subprocess.check_call(['npm', 'run', 'truffle-test'])
+            if args.network == 'pala':
+                subprocess.check_call(['npm', 'run', 'truffle-test:pala'])
+            else:
+                subprocess.check_call(['npm', 'run', 'truffle-test'])
         except subprocess.CalledProcessError:
             print("Failed to run truffle-test.")
             ret = False
@@ -71,6 +89,7 @@ def parse_args():
 
     truffle_parser = subparsers.add_parser('truffle')
     truffle_parser.set_defaults(func=truffle)
+    truffle_parser.add_argument('--network', choices=['pala', 'ganache'], default='ganache')
     return parser.parse_args()
 
 

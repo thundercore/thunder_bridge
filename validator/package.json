@@ -17,6 +17,7 @@
     "dev-chain": "docker run -d -p 7545:8545 --name dev-chain trufflesuite/ganache-cli:latest -m 'wisdom zero output drift choice bright east stuff craft inform invest patient' --callGasLimit 10000000000000 -l 10000000000000 -g 10000000000000000 -e 10000000000000 -i 5777",
     "dev-chain:stop": "docker rm -f dev-chain",
     "truffle-test": "tsc && cp -r ./truffle-test ./data ./built && NODE_ENV=test truffle test built/truffle-test/*.test.js --network develop",
+    "truffle-test:pala": "tsc && cp -r ./truffle-test ./data ./built && NODE_ENV=test truffle test built/truffle-test/*.test.js --network pala_single",
     "truffle:compile": "truffle compile",
     "tsc": "tsc",
     "coverage": "NODE_ENV=test nyc --reporter=text --reporter=html mocha",
@@ -83,6 +84,7 @@
     "simple-statistics": "^6.1.0",
     "sinon": "^6.1.0",
     "truffle": "^5.1.24",
+    "@truffle/hdwallet-provider": "^1.0.35",
     "ts-node": "^8.9.1"
   },
   "engines": {
