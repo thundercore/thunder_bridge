@@ -41,6 +41,9 @@ services:
       - HOME_POLLING_INTERVAL=2000
       - FOREIGN_POLLING_INTERVAL=2000
       - ALLOW_HTTP=yes
+      - BLOCK_CONFIRMATION=13
+      - MAX_WAIT_RECEIPT_BLOCK=2
+      - GET_RECEIPT_TIMEOUT=5000
     volumes:
       - ../src:/app/src
     command:
