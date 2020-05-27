@@ -48,18 +48,21 @@ def pala_chain():
     finally:
         subprocess.check_call(['docker', 'stop', name])
 
+
+def copy(src, dest):
+    print('Copy {} -> {}'.format(src, dest))
+    shutil.copy(src, dest)
+
 def truffle(args):
-    print('Copy {} -> {}'.format(
-        os.path.join(CONTRACT_DIR, 'deploy', 'env.truffle'),
-        os.path.join(CONTRACT_DIR, 'deploy', '.env'),
-    ))
-    shutil.copy(
+    copy(
         os.path.join(CONTRACT_DIR, 'deploy', 'env.truffle'),
         os.path.join(CONTRACT_DIR, 'deploy', '.env'),
     )
 
     # `truffle test` will compile contract to /tmp
     subprocess.check_call(['npm', 'run', 'truffle:compile'])
+
+    copy(os.path.join(PWD, 'env.test'), os.path.join(PWD, '.env'))
 
     print('Using network', args.network)
     chain_funcs = {
