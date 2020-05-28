@@ -4,7 +4,7 @@ const path = require('path')
 const fs = require('fs')
 
 function loadDeployedContract() {
-  const deployedFile = path.join(__dirname, '../data/deployed.json')
+  const deployedFile = path.join(__dirname, '../../data/deployed.json')
   if (fs.existsSync(deployedFile)) {
     const deployed = require(deployedFile)
     process.env.HOME_BRIDGE_ADDRESS = deployed.homeBridge.address

@@ -7,32 +7,11 @@ const config = require(path.join(__dirname, '../config'))
 const receiptor = require(path.join(__dirname, '../src/lib/receiptor'))
 const { expect } = require('chai')
 const { stub } = require('sinon')
-
 const deployed = require(path.join(__dirname, '../../data/deployed.json'))
+const utils = require('./utils')
 
-web3.extend({
-  property: 'miner',
-  methods: [
-    {
-      name: 'start',
-      call: 'miner_start'
-    }, {
-      name: 'stop',
-      call: 'miner_stop'
-    }, {
-      name: 'snapshot',
-      call: 'evm_snapshot',
-    }, {
-      name: 'revert',
-      call: 'evm_revert',
-      params: 1
-    }, {
-      name: 'mine',
-      call: 'evm_mine',
-      params: 1
-    }
-  ]
-});
+const w3 = utils.newWeb3()
+
 
 async function futureBlock(n=1) {
   const begin = await web3.eth.getBlockNumber()

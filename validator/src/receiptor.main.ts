@@ -25,7 +25,7 @@ async function initialize() {
     rpcUrlsManager.foreignUrls.forEach(checkHttps('foreign'))
 
     const web3 = new ReceiptorWeb3Impl(config.web3)
-    const receiptor = new Receiptor(web3)
+    const receiptor = new Receiptor(config.id, web3)
 
     connectReceiptorQueue({
       queueName: config.queue,

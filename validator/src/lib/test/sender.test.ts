@@ -89,7 +89,7 @@ describe('Test SenderWeb3Impl', () => {
 
     web3.eth.sendSignedTransaction = sandbox.stub().returns(spy)
 
-    const p = sw.sendTx(nonce, gasLimit, amount, txinfo)
+    const p = sw.sendTransaction(nonce, gasLimit, amount, txinfo)
     const txHash = await p
 
     // Test signTransaction arguments
@@ -163,7 +163,7 @@ describe('Test Sender', () => {
     const nonce = 50
     sender.readNonce = sandbox.stub().resolves(nonce)
     const s = sandbox.stub().resolves(transactionHash)
-    sw.sendTx = s
+    sw.sendTransaction = s
     sw.getCurrentBlock = sandbox.stub().resolves(100)
 
     const result = await sender.sendTx(txinfo, sendToQueue)
@@ -193,7 +193,7 @@ describe('Test Sender', () => {
 
     const nonce = 50
     sender.readNonce = sandbox.stub().resolves(nonce)
-    sw.sendTx = sandbox.stub().throws(Error('Transaction with the same hash was already imported'))
+    sw.sendTransaction = sandbox.stub().throws(Error('Transaction with the same hash was already imported'))
 
     let result = await sender.sendTx(txinfo, sendToQueue)
     expect(result).eq(SendResult.txImported)
@@ -216,7 +216,7 @@ describe('Test Sender', () => {
     await cache.set(sender.nonceKey, '50')
     web3.eth.getTransactionCount = sandbox.stub().resolves(100)
 
-    sw.sendTx = sandbox.stub().throws(Error('Transaction nonce is too low'))
+    sw.sendTransaction = sandbox.stub().throws(Error('Transaction nonce is too low'))
     const result = await sender.sendTx(txinfo, sendToQueue)
 
     // Result failed
@@ -237,7 +237,7 @@ describe('Test Sender', () => {
 
     sender.readNonce = sandbox.stub().resolves(50)
 
-    sw.sendTx = sandbox.stub().throws(Error('Insufficient funds'))
+    sw.sendTransaction = sandbox.stub().throws(Error('Insufficient funds'))
     const result = await sender.sendTx(txinfo, sendToQueue)
 
     expect(result).eq('insufficientFunds')
@@ -257,7 +257,7 @@ describe('Test Sender', () => {
 
     sender.readNonce = sandbox.stub().resolves(50)
 
-    sw.sendTx = sandbox.stub().throws(Error('exceeds block gas limit'))
+    sw.sendTransaction = sandbox.stub().throws(Error('exceeds block gas limit'))
     const result = await sender.sendTx(txinfo, sendToQueue)
 
     expect(result).eq(SendResult.blockGasLimitExceeded)

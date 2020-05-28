@@ -34,7 +34,8 @@ function connectSenderToQueue({ queueName, cb }) {
   })
 
   const receiptQueue = `${queueName}-receipt`
-  const sendToQueue = data => channelWrapper.sendToQueue(receiptQueue, data, { persistent: true })
+  const pushReceiptorQueue = data => channelWrapper.sendToQueue(receiptQueue, data, { persistent: true })
+  const pushSenderQueue = data => channelWrapper.sendToQueue(queueName, data, { persistent: true })
 
   logger.info(`Connect sender to consumer queue: ${queueName} and producer queue: ${receiptQueue}`)
 
@@ -48,9 +49,9 @@ function connectSenderToQueue({ queueName, cb }) {
             msg,
             channel: channelWrapper,
             ackMsg: job => channelWrapper.ack(job),
-            nackMsg: job => channelWrapper.nack(job, false, true),
-            rejectMsg: job => channelWrapper.nack(job, false, false),
-            sendToQueue
+            nackMsg: job => channelWrapper.nack(job, false, false),
+            pushReceiptorQueue,
+            pushSenderQueue
           })
         }
       )

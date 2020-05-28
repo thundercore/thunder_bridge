@@ -10,6 +10,10 @@ export interface EventTask {
   timestamp?: number
 }
 
+export function isRetryTask(task: EventTask): boolean {
+  return task.retries !== undefined && task.retries > 0
+}
+
 export interface ReceiptTask {
   eventTask: EventTask
   nonce: number

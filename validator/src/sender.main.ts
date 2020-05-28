@@ -17,7 +17,7 @@ if (process.argv.length < 3) {
 
 import config from '../config'
 import { RedisLocker } from "./lib/RedisLocker"
-import { EventTask } from "./lib/types"
+import { EventTask, isRetryTask } from "./lib/types"
 
 
 async function newSender(): Promise<Sender> {
@@ -44,24 +44,35 @@ async function initialize() {
 
     connectSenderToQueue({
       queueName: config.queue,
-      cb: (options: { msg: Message; ackMsg: any; nackMsg: any; rejectMsg: any; sendToQueue: any }) => {
+      cb: (options: { msg: Message; ackMsg: any; nackMsg: any; pushSenderQueue: any, pushReceiptorQueue: any }) => {
         let task = JSON.parse(options.msg.content.toString())
 
         let runSender = async (task: EventTask) => {
           try {
-            let result = await sender.run(task, options.sendToQueue)
+            let result = await sender.run(task, options.pushReceiptorQueue)
             switch (result) {
               case SendResult.success:
               case SendResult.skipped:
               case SendResult.txImported:
-              case SendResult.blockGasLimitExceeded:
                 options.ackMsg(options.msg)
                 break
 
               case SendResult.failed:
-              case SendResult.nonceTooLow:
               case SendResult.timeout:
               case SendResult.insufficientFunds:
+                await options.pushSenderQueue(task)
+                options.nackMsg(options.msg)
+                break
+
+              case SendResult.blockGasLimitExceeded:
+                options.nackMsg(options.msg)
+                break
+
+              case SendResult.nonceTooLow:
+                if (isRetryTask(task)) {
+                  task.nonce = undefined
+                }
+                options.pushSenderQueue(task)
                 options.nackMsg(options.msg)
                 break
 
@@ -70,8 +81,7 @@ async function initialize() {
                 throw Error("No such result type")
             }
           } catch(e) {
-            console.error(e)
-            options.rejectMsg(options.msg)
+            options.nackMsg(options.msg)
             logger.error({error: e, queueTask: task}, 'queue message was rejected due to run error')
           }
         }
@@ -87,7 +97,6 @@ async function initialize() {
       }
     })
   } catch (e) {
-    console.error(e)
     logger.error(e.message)
     process.exit(EXIT_CODES.GENERAL_ERROR)
   }
