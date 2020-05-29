@@ -5,7 +5,6 @@ const path = require('path')
 
 const sender = require(path.join(__dirname, '../src/lib/sender'))
 const storage = require(path.join(__dirname, '../src/lib/storage'))
-const locker = require(path.join(__dirname, '../src/lib/locker'))
 const { expect } = require('chai')
 
 const deployed = require(path.join(__dirname, '../../data/deployed.json'))
@@ -17,32 +16,18 @@ const foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.ad
 const home = new w3.eth.Contract(HomeBridge.abi, deployed.homeBridge.address)
 const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address)
 
+
 contract("Test single sender", (accounts) => {
-
-  const v1 = {
-    address: accounts[1],
-    privateKey: '4bf3b1bb36eb3f53d1ae5e6309510e17fe41df9a26a236de3385872211e0eab4',
-  }
-
   let q;
   beforeEach(async () => {
     q = await utils.newQueue()
   })
 
-  async function makeTransfer() {
-    const receipt = await erc20.methods
-      .transfer(foreign.options.address, w3.utils.toWei('0.01'))
-      .send({ from: accounts[0] })
-    return {
-      eventType: 'erc-erc-affirmation-request',
-      event: receipt.events.Transfer,
-    }
-  }
-
   it('test transfer success', async () => {
-    const s = await utils.newSender(w3, 'v1', v1)
-    const task = await makeTransfer()
-    const nonce = await w3.eth.getTransactionCount(v1.address)
+    const task = await utils.makeTransfer(accounts[0])
+
+    const [s] = await utils.newSenders(w3, 1)
+    const nonce = await s.readNonce(true)
     const currentBlock = await w3.eth.getBlockNumber()
 
     // Send task first time with success result
@@ -63,10 +48,10 @@ contract("Test single sender", (accounts) => {
   })
 
   it('test transfer with lower nonce will be failed', async () => {
-    const task = await makeTransfer()
+    const task = await utils.makeTransfer(accounts[0])
 
     const c = new storage.FakeCache()
-    const s = await utils.newSender(w3, 'v1', v1)
+    const [s] = await utils.newSenders(w3, 1)
     s.cache = c
     // Get and fix nonce to nonce-1.
     const nonce = await s.readNonce(true)
@@ -82,9 +67,9 @@ contract("Test single sender", (accounts) => {
   it.skip("test tx was imported", async () => {
     // FIXME: truffle will return `the tx doesn't have the correct nonce` message.
     // It's different from geth. We skiped this test before we found a better way to test this case.
-    const task = await makeTransfer()
+    const task = await utils.makeTransfer(accounts[0])
 
-    const s = await utils.newSender(w3, 'v1', v1)
+    const [s] = await utils.newSenders(w3, 1)
     const info = await s.EventToTxInfo(task)
 
     const p1 = s.sendTx(info, q.sendToQueue)
@@ -94,14 +79,14 @@ contract("Test single sender", (accounts) => {
     const r1 = await p1
     const r2 = await p2
     expect(r1).to.be.eq("success")
-    expect(q.queue).to.have.length(0)
+    expect(q.queue).to.have.length(1)
     expect(r2).to.be.eq(sender.SendResult.txImported)
   })
 
   it('test gas limit exceeded', async () => {
     // TODO: maybe run another chain?
-    const task = await makeTransfer()
-    const s = await utils.newSender(w3, 'v1', v1)
+    const task = await utils.makeTransfer(accounts[0])
+    const [s] = await utils.newSenders(w3, 1)
     const info = await s.EventToTxInfo(task)
     info.gasEstimate = 100000000000000
 
@@ -111,10 +96,10 @@ contract("Test single sender", (accounts) => {
   })
 
   it('test transfer with same nonce will be fail', async () => {
-    const task = await makeTransfer()
+    const task = await utils.makeTransfer(accounts[0])
 
     const c = new storage.FakeCache()
-    const s = await utils.newSender(w3, 'v1', v1)
+    const [s] = await utils.newSenders(w3, 1)
     s.cache = c
     // Fix nonce to same value
     const nonce = await s.readNonce(true)
@@ -125,7 +110,7 @@ contract("Test single sender", (accounts) => {
     expect(ret).to.eq('success')
 
     // Second task with same nonce will be fail.
-    const newtask = await makeTransfer()
+    const newtask = await utils.makeTransfer(accounts[0])
     await c.set(s.nonceKey, nonce)
     ret = await s.run(newtask, q.sendToQueue)
     expect(ret).to.eq(sender.SendResult.nonceTooLow)
@@ -137,48 +122,15 @@ contract("Test single sender", (accounts) => {
 })
 
 contract('Test multiple senders', (accounts) => {
-  let l = null
-
-  const v1 = {
-    address: accounts[1],
-    privateKey: '4bf3b1bb36eb3f53d1ae5e6309510e17fe41df9a26a236de3385872211e0eab4',
-  }
-  const v2 = {
-    address: accounts[2],
-    privateKey: '62911097680a3251a49e89d7b6f200b909acb13f8aba98ec4a0a77a71ab4f4e6',
-  }
-  const v3 = {
-    address: accounts[3],
-    privateKey: '7469990333fa18a8fed66b945970b3af09de3d6a5863535cf102b3938a7ff41a',
-  }
-
-  beforeEach(() => {
-    l = new locker.FakeLocker()
-  })
-
-  async function makeTransfer() {
-    const receipt = await erc20.methods
-      .transfer(foreign.options.address, w3.utils.toWei('0.01'))
-      .send({ from: accounts[0] })
-    return {
-      eventType: 'erc-erc-affirmation-request',
-      event: receipt.events.Transfer,
-    }
-  }
-
   it('test third sender estimateGas will failed', async () => {
-    const task = await makeTransfer()
+    const task = await utils.makeTransfer(accounts[0])
 
     await w3.miner.stop()
 
-    const s1 = await utils.newSender(w3, 'v1', v1)
-    const s2 = await utils.newSender(w3, 'v2', v2)
-    const s3 = await utils.newSender(w3, 'v3', v3)
+    const [s1, s2, s3] = await utils.newSenders(w3, 3)
+    const [q1, q2] = await utils.newQueues(2)
 
-    const q1 = await utils.newQueue()
-    const q2 = await utils.newQueue()
-
-    // v1 and v2 vote first
+    // s1 and s2 vote first
     // EventToTxInfo will run estimateGas.
     const info1 = await s1.EventToTxInfo(task)
     const r1 = await s1.sendTx(info1, q1.sendToQueue)
@@ -205,16 +157,13 @@ contract('Test multiple senders', (accounts) => {
   })
 
   it('test three sender estimateGas race condition', async () => {
-    const task = await makeTransfer()
+    const task = await utils.makeTransfer(accounts[0])
     await w3.miner.stop()
 
-    const s1 = await utils.newSender(w3, 'v1', v1)
-    const s2 = await utils.newSender(w3, 'v2', v2)
+    const [s1, s2] = await utils.newSenders(w3, 2)
+    const [q1, q2] = await utils.newQueues(2)
 
-    const q1 = await utils.newQueue()
-    const q2 = await utils.newQueue()
-
-    // v1 and v2 vote first
+    // s1 and s1 vote first
     const info1 = await s1.EventToTxInfo(task)
     const info2 = await s2.EventToTxInfo(task)
     expect(info1.gasEstimate).to.eq(info2.gasEstimate)
@@ -244,20 +193,15 @@ contract('Test multiple senders', (accounts) => {
   })
 
   it('test three sender send in same block', async () => {
-    const task = await makeTransfer()
+    const task = await utils.makeTransfer(accounts[0])
     await w3.miner.stop()
 
-    const s1 = await utils.newSender(w3, 'v1', v1)
-    const s2 = await utils.newSender(w3, 'v2', v2)
-    const s3 = await utils.newSender(w3, 'v3', v3)
+    const [s1, s2, s3] = await utils.newSenders(w3, 3)
+    const [q1, q2, q3] = await utils.newQueues(3)
 
     const info1 = await s1.EventToTxInfo(task)
     const info2 = await s2.EventToTxInfo(task)
     const info3 = await s3.EventToTxInfo(task)
-
-    const q1 = await utils.newQueue()
-    const q2 = await utils.newQueue()
-    const q3 = await utils.newQueue()
 
     const r1 = await s1.sendTx(info1, q1.sendToQueue)
     const r2 = await s2.sendTx(info2, q2.sendToQueue)

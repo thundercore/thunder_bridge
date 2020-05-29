@@ -110,7 +110,7 @@ export class Receiptor {
         result = ReceiptResult.waittingReceipt
       }
 
-    } else if (receipt?.status) {
+    } else if (receipt!.status) {
       // Get a success receipt
       this.logger.info({ receipt }, `get receipt success, wait ${config.BLOCK_CONFIRMATION} block for confirmation`)
       if (await this.checkBlockAdvencedK(receipt!.blockNumber, config.BLOCK_CONFIRMATION)) {
@@ -119,7 +119,7 @@ export class Receiptor {
         result = ReceiptResult.waittingK
       }
 
-    } else if (!receipt?.status) {
+    } else if (!receipt!.status) {
       // Get a failed receipt
       this.logger.info({ receipt }, `get receipt returns failed status`)
       await this.resendEvent(task, sendToQueue)

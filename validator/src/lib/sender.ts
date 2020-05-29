@@ -117,6 +117,7 @@ export class SenderWeb3Impl implements SenderWeb3 {
       chainId: this.chainId,
       to: this.validator.address,
       value: toWei(toBN('0')),
+      gas: 21000 * 2,
       gasPrice: (await this.getPrice(Math.floor(Date.now() / 1000))).toString(),
     }
 
@@ -179,7 +180,7 @@ namespace SendTxError {
 
   export function isTxWasImportedError(e: Error): boolean {
     return e.message.includes('Transaction with the same hash was already imported') ||
-      e.message.includes('known transaction') // Pala
+      e.message.includes('Known transaction') // Pala
   }
 
   export function isInsufficientFundError(e: Error): boolean {
@@ -275,7 +276,7 @@ export class Sender {
     const txInfo = await this.EventToTxInfo(task)
     if (txInfo === null) {
       if (isRetryTask(task)) {
-        const txHash = this.web3.sendToSelf(task.nonce!)
+        const txHash = await this.web3.sendToSelf(task.nonce!)
         this.logger.info({txHash, nonce: task.nonce}, 'retry task is ignored, send a transaction to fill nonce.')
       }
       result = SendResult.skipped
@@ -293,8 +294,8 @@ export class Sender {
     this.logger.debug('Lock acquired')
 
     let nonce: number
-    if (txinfo.eventTask.nonce) {
-      nonce = txinfo.eventTask.nonce
+    if (isRetryTask(txinfo.eventTask)) {
+      nonce = txinfo.eventTask.nonce!
       this.logger.debug(`Use retry task nonce: ${nonce}`)
     } else {
       try {

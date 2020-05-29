@@ -11,7 +11,7 @@ export interface EventTask {
 }
 
 export function isRetryTask(task: EventTask): boolean {
-  return task.retries !== undefined && task.retries > 0
+  return !!task.retries && task.retries > 0
 }
 
 export interface ReceiptTask {
