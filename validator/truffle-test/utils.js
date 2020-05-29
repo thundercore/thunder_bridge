@@ -25,7 +25,7 @@ async function futureBlock(w3, n=1) {
 async function makeTransfer(account) {
   const receipt = await erc20.methods
     .transfer(foreign.options.address, w3.utils.toWei('0.01'))
-    .send({ from: account })
+    .send({ from: account, gas: 100000 })
   return {
     eventType: 'erc-erc-affirmation-request',
     event: receipt.events.Transfer,
@@ -108,7 +108,12 @@ async function newReceiptor(w3, id) {
   return new receiptor.Receiptor(id, w)
 }
 
-async function makeOneBlock(w3, exceptFail=false) {
+async function makeOneBlock(w3, dummy, exceptFail=false) {
+  const id = await w3.eth.net.getId()
+  if (id === 19) {
+    await w3.eth.sendTransaction({ from: dummy, to: dummy })
+    return
+  }
   const begin = await w3.eth.getBlockNumber()
 
   let err;

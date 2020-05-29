@@ -18,13 +18,14 @@ const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.add
 
 
 contract("Test single sender", (accounts) => {
-  let q;
+
+  let q = []
   beforeEach(async () => {
     q = await utils.newQueue()
   })
 
   it('test transfer success', async () => {
-    const task = await utils.makeTransfer(accounts[0])
+    const task = await utils.makeTransfer(accounts[9])
 
     const [s] = await utils.newSenders(w3, 1)
     const nonce = await s.readNonce(true)
@@ -38,8 +39,9 @@ contract("Test single sender", (accounts) => {
     const receiptTask = q.queue.pop()
     expect(receiptTask.eventTask).to.be.deep.eq(task)
     expect(receiptTask.nonce).to.eq(nonce)
-    expect(receiptTask.sentBlock).to.eq(currentBlock+1)
+    expect(receiptTask.sentBlock).to.gte(currentBlock)
     expect(receiptTask.transactionHash).to.have.length(66)
+    await utils.makeOneBlock(w3, accounts[8])
 
     // Send task second time with skipped result
     ret = await s.run(task, q.sendToQueue)
@@ -48,7 +50,7 @@ contract("Test single sender", (accounts) => {
   })
 
   it('test transfer with lower nonce will be failed', async () => {
-    const task = await utils.makeTransfer(accounts[0])
+    const task = await utils.makeTransfer(accounts[9])
 
     const c = new storage.FakeCache()
     const [s] = await utils.newSenders(w3, 1)
@@ -64,28 +66,33 @@ contract("Test single sender", (accounts) => {
     expect(q.queue).to.have.length(0)
   })
 
-  it.skip("test tx was imported", async () => {
+  it("test tx was imported", async () => {
     // FIXME: truffle will return `the tx doesn't have the correct nonce` message.
     // It's different from geth. We skiped this test before we found a better way to test this case.
-    const task = await utils.makeTransfer(accounts[0])
+    const task1 = await utils.makeTransfer(accounts[9])
+    const task2 = await utils.makeTransfer(accounts[9])
 
-    const [s] = await utils.newSenders(w3, 1)
-    const info = await s.EventToTxInfo(task)
+    const [s] = await utils.newSender(w3, 'v1', 1)
+    const info1 = await s.EventToTxInfo(task1)
+    const info2 = await s.EventToTxInfo(task2)
 
-    const p1 = s.sendTx(info, q.sendToQueue)
-    const p2 = s.sendTx(info, q.sendToQueue)
-    await utils.makeOneBlock(w3)
+    const nonce = await s.readNonce(true)
+    info2.eventTask.nonce = nonce + 1
+    const p1 = s.sendTx(info2, q.sendToQueue)
+    const p2 = s.sendTx(info2, q.sendToQueue)
+    await utils.makeOneBlock(w3, accounts[8])
 
+    await s.sendTx(info1, q.sendToQueue)
     const r1 = await p1
     const r2 = await p2
     expect(r1).to.be.eq("success")
-    expect(q.queue).to.have.length(1)
+    expect(q.queue).to.have.length(2)
     expect(r2).to.be.eq(sender.SendResult.txImported)
   })
 
   it('test gas limit exceeded', async () => {
     // TODO: maybe run another chain?
-    const task = await utils.makeTransfer(accounts[0])
+    const task = await utils.makeTransfer(accounts[9])
     const [s] = await utils.newSenders(w3, 1)
     const info = await s.EventToTxInfo(task)
     info.gasEstimate = 100000000000000
@@ -96,7 +103,7 @@ contract("Test single sender", (accounts) => {
   })
 
   it('test transfer with same nonce will be fail', async () => {
-    const task = await utils.makeTransfer(accounts[0])
+    const task = await utils.makeTransfer(accounts[9])
 
     const c = new storage.FakeCache()
     const [s] = await utils.newSenders(w3, 1)
@@ -110,7 +117,7 @@ contract("Test single sender", (accounts) => {
     expect(ret).to.eq('success')
 
     // Second task with same nonce will be fail.
-    const newtask = await utils.makeTransfer(accounts[0])
+    const newtask = await utils.makeTransfer(accounts[9])
     await c.set(s.nonceKey, nonce)
     ret = await s.run(newtask, q.sendToQueue)
     expect(ret).to.eq(sender.SendResult.nonceTooLow)
@@ -122,10 +129,27 @@ contract("Test single sender", (accounts) => {
 })
 
 contract('Test multiple senders', (accounts) => {
-  it('test third sender estimateGas will failed', async () => {
-    const task = await utils.makeTransfer(accounts[0])
 
-    await w3.miner.stop()
+  async function minerStart() {
+      const id = await w3.eth.net.getId()
+      if (id === 19) {
+          return
+      }
+      return w3.miner.start()
+  }
+
+  async function minerStop() {
+      const id = await w3.eth.net.getId()
+      if (id === 19) {
+          return
+      }
+      return w3.miner.stop()
+  }
+
+  it('test third sender estimateGas will failed', async () => {
+    const task = await utils.makeTransfer(accounts[9])
+
+    await minerStop()
 
     const [s1, s2, s3] = await utils.newSenders(w3, 3)
     const [q1, q2] = await utils.newQueues(2)
@@ -135,14 +159,14 @@ contract('Test multiple senders', (accounts) => {
     const info1 = await s1.EventToTxInfo(task)
     const r1 = await s1.sendTx(info1, q1.sendToQueue)
     expect(r1).to.eq('success')
-    await utils.makeOneBlock(w3)
+    await utils.makeOneBlock(w3, accounts[8])
     const receipt1 = await utils.getReceiptFromSenderQueue(w3, q1.queue)
     expect(receipt1.status).to.be.true
 
     const info2 = await s2.EventToTxInfo(task)
     const r2 = await s2.sendTx(info2, q2.sendToQueue)
     expect(r2).to.eq('success')
-    await utils.makeOneBlock(w3)
+    await utils.makeOneBlock(w3, accounts[8])
 
     // We expect gasR2 > gasR1 due to enough affirmations.
     expect(info2.gasEstimate).to.gt(info1.gasEstimate)
@@ -157,8 +181,8 @@ contract('Test multiple senders', (accounts) => {
   })
 
   it('test three sender estimateGas race condition', async () => {
-    const task = await utils.makeTransfer(accounts[0])
-    await w3.miner.stop()
+    const task = await utils.makeTransfer(accounts[9])
+    await minerStop()
 
     const [s1, s2] = await utils.newSenders(w3, 2)
     const [q1, q2] = await utils.newQueues(2)
@@ -169,14 +193,14 @@ contract('Test multiple senders', (accounts) => {
     expect(info1.gasEstimate).to.eq(info2.gasEstimate)
 
     const r1 = await s1.sendTx(info1, q1.sendToQueue)
-    await utils.makeOneBlock(w3)
+    await utils.makeOneBlock(w3, accounts[8])
     expect(r1).to.eq('success')
 
     // v2 will be fail because gas limit too low.
     const r2 = await s2.sendTx(info2, q2.sendToQueue)
     expect(r2).to.eq('success')
 
-    await utils.makeOneBlock(w3, expectFail=true)
+    await utils.makeOneBlock(w3, accounts[8], expectFail=true)
 
     const s2Receipt = await utils.getReceiptFromSenderQueue(w3, q2.queue)
     expect(s2Receipt.status).to.be.false
@@ -185,7 +209,7 @@ contract('Test multiple senders', (accounts) => {
     const newR2 = await s2.sendTx(newInfo2, q2.sendToQueue)
     expect(newR2).to.eq('success')
 
-    await utils.makeOneBlock(w3)
+    await utils.makeOneBlock(w3, accounts[8])
 
     const nweReceipt = await utils.getReceiptFromSenderQueue(w3, q2.queue)
     expect(nweReceipt.status).to.be.true
@@ -193,8 +217,8 @@ contract('Test multiple senders', (accounts) => {
   })
 
   it('test three sender send in same block', async () => {
-    const task = await utils.makeTransfer(accounts[0])
-    await w3.miner.stop()
+    const task = await utils.makeTransfer(accounts[9])
+    await minerStop()
 
     const [s1, s2, s3] = await utils.newSenders(w3, 3)
     const [q1, q2, q3] = await utils.newQueues(3)
@@ -211,7 +235,7 @@ contract('Test multiple senders', (accounts) => {
     expect(r2).to.eq('success')
     expect(r3).to.eq('success')
 
-    await utils.makeOneBlock(w3, expectFail=true)
+    await utils.makeOneBlock(w3, accounts[8],expectFail=true)
 
     const receipt1 = await utils.getReceiptFromSenderQueue(w3, q1.queue)
     const receipt2 = await utils.getReceiptFromSenderQueue(w3, q2.queue)
@@ -223,6 +247,6 @@ contract('Test multiple senders', (accounts) => {
   })
 
   afterEach(async() =>{
-    await w3.miner.start()
+    await minerStart()
   })
 })
