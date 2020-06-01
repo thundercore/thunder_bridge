@@ -108,25 +108,26 @@ async function newReceiptor(w3, id) {
   return new receiptor.Receiptor(id, w)
 }
 
-async function makeOneBlock(w3, dummy, exceptFail=false) {
+async function makeOneBlock(w3, dummy, expectFail=false) {
   const id = await w3.eth.net.getId()
   if (id === 19) {
     await w3.eth.sendTransaction({ from: dummy, to: dummy })
     return
   }
+
   const begin = await w3.eth.getBlockNumber()
 
   let err;
   try {
     await w3.miner.mine(Date.now())
   } catch(e) {
-    if (!exceptFail) {
+    if (!expectFail) {
       throw e
     }
     err = e
   }
 
-  if (exceptFail) {
+  if (expectFail) {
     expect(err).to.be.not.null
   }
 

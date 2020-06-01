@@ -27,7 +27,7 @@ const makeTransfer = async (account) => {
 contract('test resend task', (accounts) => {
 
   it('task resend with same nonce', async () => {
-    const task = await makeTransfer(accounts[0])
+    const task = await makeTransfer(accounts[9])
 
     await w3.miner.stop()
     const [s] = await utils.newSenders(w3, 1)
@@ -47,7 +47,7 @@ contract('test resend task', (accounts) => {
   })
 
   it('task resend will fill nonce if task was skipped', async () => {
-    const task = await makeTransfer(accounts[0])
+    const task = await makeTransfer(accounts[9])
 
     await w3.miner.stop()
     const [s] = await utils.newSenders(w3, 1)
@@ -75,7 +75,7 @@ contract('test resend task', (accounts) => {
 
   it('task resend with higher gas price', async () => {
     // FIXME: test with timestamp
-    const task = await makeTransfer(accounts[0])
+    const task = await makeTransfer(accounts[9])
 
     await w3.miner.stop()
     const [s] = await utils.newSenders(w3, 1)
@@ -121,10 +121,10 @@ contract('test resend task', (accounts) => {
   // ganache will raise `the tx doesn't have the correct nonce`
   // error if tx has wrong nonce.
   it.skip('task resend task out of order', async () => {
-    const tA = await makeTransfer(accounts[0])
-    const tB = await makeTransfer(accounts[0])
-    const tC = await makeTransfer(accounts[0])
-    const tD = await makeTransfer(accounts[0])
+    const tA = await makeTransfer(accounts[9])
+    const tB = await makeTransfer(accounts[9])
+    const tC = await makeTransfer(accounts[9])
+    const tD = await makeTransfer(accounts[9])
 
     await w3.miner.stop()
     const [s] = await utils.newSenders(w3, 1)

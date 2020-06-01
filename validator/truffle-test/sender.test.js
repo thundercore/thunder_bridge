@@ -41,7 +41,6 @@ contract("Test single sender", (accounts) => {
     expect(q.queue).to.have.length(1)
 
     const receiptTask = q.queue.pop()
-    console.log("receiptTask:", receiptTask)
     expect(receiptTask.eventTask).to.be.deep.eq(task)
     expect(receiptTask.nonce).to.eq(nonce)
     expect(receiptTask.sentBlock).to.gte(currentBlock)
@@ -77,7 +76,7 @@ contract("Test single sender", (accounts) => {
     const task1 = await makeTransfer(accounts[9])
     const task2 = await makeTransfer(accounts[9])
 
-    const [s] = await utils.newSender(w3, 'v1', 1)
+    const [s] = await utils.newSenders(w3, 1)
     const info1 = await s.EventToTxInfo(task1)
     const info2 = await s.EventToTxInfo(task2)
 

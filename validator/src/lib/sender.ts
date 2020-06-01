@@ -268,11 +268,11 @@ export class Sender {
     return Promise.resolve(txInfos[0])
   }
 
-  async newReceiptTask(task: EventTask, txHash: string, nonce?: number): Promise<ReceiptTask> {
+  async newReceiptTask(task: EventTask, txHash: string, nonce: number): Promise<ReceiptTask> {
     const receiptTask: ReceiptTask = {
       eventTask: task,
       timestamp: Date.now() / 1000,
-      nonce: nonce? nonce : task.nonce!,
+      nonce: nonce,
       transactionHash: txHash,
       sentBlock: await this.web3.getCurrentBlock()
     }
@@ -287,7 +287,7 @@ export class Sender {
     if (txInfo === null) {
       if (isRetryTask(task)) {
         const txHash = await this.web3.sendToSelf(task.nonce!)
-        const receiptTask = await this.newReceiptTask(task, txHash)
+        const receiptTask = await this.newReceiptTask(task, txHash, task.nonce!)
         await sendToQueue(receiptTask)
         this.logger.info({txHash, nonce: task.nonce}, 'retry task is ignored, send a transaction to fill nonce.')
       }

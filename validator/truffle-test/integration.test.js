@@ -26,13 +26,14 @@ const makeTransfer = async (account) => {
 contract("Test complexity case", (accounts) => {
 
   const l = new locker.FakeLocker()
+  const dummy = accounts[8]
 
   async function getCurrentBlock() {
     return w3.eth.getBlockNumber()
   }
 
   it('test fill nonce if resent task was skipped', async () => {
-    const task = await makeTransfer(accounts[0])
+    const task = await makeTransfer(accounts[9])
 
     await w3.miner.stop()
 
@@ -43,19 +44,19 @@ contract("Test complexity case", (accounts) => {
 
     const r1 = await s1.run(task, receiptorQ1.sendToQueue)
     expect(r1).to.eq('success')
-    await utils.makeOneBlock(w3)
+    await utils.makeOneBlock(w3, dummy)
 
     const r2 = await s2.run(task, receiptorQ2.sendToQueue)
     expect(r2).to.eq('success')
     const t3 = await s3.EventToTxInfo(task)
-    await utils.makeOneBlock(w3)
+    await utils.makeOneBlock(w3, dummy)
 
     const snapshotId = await w3.miner.snapshot()
 
     const r3 = await s3.sendTx(t3, receiptorQ3.sendToQueue)
     expect(r3).to.eq('success')
     // s3 will failed due to enough affirmation
-    await utils.makeOneBlock(w3, expectFail=true)
+    await utils.makeOneBlock(w3, dummy, expectFail=true)
 
     await w3.miner.revert(snapshotId)
 
@@ -78,7 +79,7 @@ contract("Test complexity case", (accounts) => {
 
     // Sender.run will send a transaction to self in order to fill nonce while retry-task.
     const result = await s3.run(resentTask, receiptorQ3.sendToQueue)
-    await utils.makeOneBlock(w3)
+    await utils.makeOneBlock(w3, dummy)
 
     // resent task will be skipped due to enough affirmation
     expect(result).to.be.eq('skipped')
