@@ -15,30 +15,24 @@ const w3 = utils.newWeb3()
 
 const deployed = require(path.join(__dirname, '../../data/deployed.json'))
 
+const foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address);
+const home = new w3.eth.Contract(HomeBridge.abi, deployed.homeBridge.address);
+const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address);
+
+const makeTransfer = async (account) => {
+    return await utils.makeTransfer(w3, erc20, account, foreign.options.address)
+}
 
 contract("Test complexity case", (accounts) => {
-  const foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address);
-  const home = new w3.eth.Contract(HomeBridge.abi, deployed.homeBridge.address);
-  const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address);
 
   const l = new locker.FakeLocker()
-
-  async function makeTransfer() {
-    const receipt = await erc20.methods
-      .transfer(foreign.options.address, w3.utils.toWei('0.01'))
-      .send({ from: accounts[0] })
-    return {
-      eventType: 'erc-erc-affirmation-request',
-      event: receipt.events.Transfer,
-    }
-  }
 
   async function getCurrentBlock() {
     return w3.eth.getBlockNumber()
   }
 
   it('test fill nonce if resent task was skipped', async () => {
-    const task = await makeTransfer()
+    const task = await makeTransfer(accounts[0])
 
     await w3.miner.stop()
 

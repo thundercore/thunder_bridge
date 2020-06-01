@@ -11,7 +11,6 @@ import { addExtraGas } from '../utils/utils'
 import { toBN, toWei } from 'web3-utils'
 import { BigNumber } from 'bignumber.js'
 import { JsonRpcResponse } from 'web3-core-helpers'
-import { rejects } from 'assert'
 
 
 export interface SenderWeb3 {
@@ -269,6 +268,17 @@ export class Sender {
     return Promise.resolve(txInfos[0])
   }
 
+  async newReceiptTask(task: EventTask, txHash: string, nonce?: number): Promise<ReceiptTask> {
+    const receiptTask: ReceiptTask = {
+      eventTask: task,
+      timestamp: Date.now() / 1000,
+      nonce: nonce? nonce : task.nonce!,
+      transactionHash: txHash,
+      sentBlock: await this.web3.getCurrentBlock()
+    }
+    return Promise.resolve(receiptTask)
+  }
+
   async run(task: EventTask, sendToQueue: sendToQueue): Promise<SendResult> {
     let result: SendResult
 
@@ -277,6 +287,8 @@ export class Sender {
     if (txInfo === null) {
       if (isRetryTask(task)) {
         const txHash = await this.web3.sendToSelf(task.nonce!)
+        const receiptTask = await this.newReceiptTask(task, txHash)
+        await sendToQueue(receiptTask)
         this.logger.info({txHash, nonce: task.nonce}, 'retry task is ignored, send a transaction to fill nonce.')
       }
       result = SendResult.skipped
@@ -311,13 +323,8 @@ export class Sender {
     const gasLimit = addExtraGas(txinfo.gasEstimate, EXTRA_GAS_PERCENTAGE)
 
     const enqueueReceiptTask = async (txHash: string) => {
-      const receiptTask: ReceiptTask = {
-        eventTask: txinfo.eventTask,
-        timestamp: Date.now() / 1000,
-        nonce: nonce,
-        transactionHash: txHash,
-        sentBlock: await this.web3.getCurrentBlock()
-      }
+      const receiptTask = await this.newReceiptTask(txinfo.eventTask, txHash, nonce)
+      this.logger.debug({receiptTask}, 'enqueue receipt task')
       await sendToQueue(receiptTask)
     }
 
@@ -333,18 +340,16 @@ export class Sender {
 
     } catch (e) {
       let txHash: string = ''
-      if (e instanceof SubmitTxError) {
-        txHash = e.txHash
-      }
-
       this.logger.error(
         { txHash, eventTransactionHash: txinfo.transactionReference, error: e.message },
         `Failed to send event Tx ${txinfo.transactionReference}: ${e.message}`,
       )
 
       if (SendTxError.isTxWasImportedError(e)) {
-        this.logger.info(`tx ${txinfo.transactionReference} was already imported.`)
-        // await enqueueReceiptTask(txHash)
+        if (e instanceof SubmitTxError) {
+          await enqueueReceiptTask(e.txHash)
+        }
+        this.logger.info({txHash, transactionHash: txinfo.transactionReference}, `tx was already imported.`)
         result = SendResult.txImported
 
       } else if (SendTxError.isBlockGasLimitExceededError(e)) {

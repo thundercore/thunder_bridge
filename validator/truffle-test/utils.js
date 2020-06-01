@@ -22,10 +22,10 @@ async function futureBlock(w3, n=1) {
   console.log(`make block ${begin} -> ${end}`)
 }
 
-async function makeTransfer(account) {
+async function makeTransfer(w3, erc20, from, to) {
   const receipt = await erc20.methods
-    .transfer(foreign.options.address, w3.utils.toWei('0.01'))
-    .send({ from: account, gas: 100000 })
+    .transfer(to, w3.utils.toWei('0.01'))
+    .send({ from: from })
   return {
     eventType: 'erc-erc-affirmation-request',
     event: receipt.events.Transfer,

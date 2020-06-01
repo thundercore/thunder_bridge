@@ -17,6 +17,10 @@ const home = new w3.eth.Contract(HomeBridge.abi, deployed.homeBridge.address)
 const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address)
 
 
+const makeTransfer = async (account) => {
+    return await utils.makeTransfer(w3, erc20, account, foreign.options.address)
+}
+
 contract("Test single sender", (accounts) => {
 
   let q = []
@@ -25,7 +29,7 @@ contract("Test single sender", (accounts) => {
   })
 
   it('test transfer success', async () => {
-    const task = await utils.makeTransfer(accounts[9])
+    const task = await makeTransfer(accounts[9])
 
     const [s] = await utils.newSenders(w3, 1)
     const nonce = await s.readNonce(true)
@@ -37,6 +41,7 @@ contract("Test single sender", (accounts) => {
     expect(q.queue).to.have.length(1)
 
     const receiptTask = q.queue.pop()
+    console.log("receiptTask:", receiptTask)
     expect(receiptTask.eventTask).to.be.deep.eq(task)
     expect(receiptTask.nonce).to.eq(nonce)
     expect(receiptTask.sentBlock).to.gte(currentBlock)
@@ -50,7 +55,7 @@ contract("Test single sender", (accounts) => {
   })
 
   it('test transfer with lower nonce will be failed', async () => {
-    const task = await utils.makeTransfer(accounts[9])
+    const task = await makeTransfer(accounts[9])
 
     const c = new storage.FakeCache()
     const [s] = await utils.newSenders(w3, 1)
@@ -69,8 +74,8 @@ contract("Test single sender", (accounts) => {
   it("test tx was imported", async () => {
     // FIXME: truffle will return `the tx doesn't have the correct nonce` message.
     // It's different from geth. We skiped this test before we found a better way to test this case.
-    const task1 = await utils.makeTransfer(accounts[9])
-    const task2 = await utils.makeTransfer(accounts[9])
+    const task1 = await makeTransfer(accounts[9])
+    const task2 = await makeTransfer(accounts[9])
 
     const [s] = await utils.newSender(w3, 'v1', 1)
     const info1 = await s.EventToTxInfo(task1)
@@ -92,7 +97,7 @@ contract("Test single sender", (accounts) => {
 
   it('test gas limit exceeded', async () => {
     // TODO: maybe run another chain?
-    const task = await utils.makeTransfer(accounts[9])
+    const task = await makeTransfer(accounts[9])
     const [s] = await utils.newSenders(w3, 1)
     const info = await s.EventToTxInfo(task)
     info.gasEstimate = 100000000000000
@@ -103,7 +108,7 @@ contract("Test single sender", (accounts) => {
   })
 
   it('test transfer with same nonce will be fail', async () => {
-    const task = await utils.makeTransfer(accounts[9])
+    const task = await makeTransfer(accounts[9])
 
     const c = new storage.FakeCache()
     const [s] = await utils.newSenders(w3, 1)
@@ -117,7 +122,7 @@ contract("Test single sender", (accounts) => {
     expect(ret).to.eq('success')
 
     // Second task with same nonce will be fail.
-    const newtask = await utils.makeTransfer(accounts[9])
+    const newtask = await makeTransfer(accounts[9])
     await c.set(s.nonceKey, nonce)
     ret = await s.run(newtask, q.sendToQueue)
     expect(ret).to.eq(sender.SendResult.nonceTooLow)
@@ -147,7 +152,7 @@ contract('Test multiple senders', (accounts) => {
   }
 
   it('test third sender estimateGas will failed', async () => {
-    const task = await utils.makeTransfer(accounts[9])
+    const task = await makeTransfer(accounts[9])
 
     await minerStop()
 
@@ -181,7 +186,7 @@ contract('Test multiple senders', (accounts) => {
   })
 
   it('test three sender estimateGas race condition', async () => {
-    const task = await utils.makeTransfer(accounts[9])
+    const task = await makeTransfer(accounts[9])
     await minerStop()
 
     const [s1, s2] = await utils.newSenders(w3, 2)
@@ -217,7 +222,7 @@ contract('Test multiple senders', (accounts) => {
   })
 
   it('test three sender send in same block', async () => {
-    const task = await utils.makeTransfer(accounts[9])
+    const task = await makeTransfer(accounts[9])
     await minerStop()
 
     const [s1, s2, s3] = await utils.newSenders(w3, 3)
