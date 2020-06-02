@@ -179,7 +179,7 @@ namespace SendTxError {
 
   export function isTxWasImportedError(e: Error): boolean {
     return e.message.includes('Transaction with the same hash was already imported') ||
-      e.message.includes('Known transaction') // Pala
+      e.message.includes('known transaction') // Pala
   }
 
   export function isInsufficientFundError(e: Error): boolean {

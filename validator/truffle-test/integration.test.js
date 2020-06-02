@@ -28,6 +28,11 @@ contract("Test complexity case", (accounts) => {
   const l = new locker.FakeLocker()
   const dummy = accounts[8]
 
+  let chainOpW3 = null
+  beforeEach(async () => {
+    chainOpW3 = await utils.ChainOpWeb3(w3)
+  })
+
   async function getCurrentBlock() {
     return w3.eth.getBlockNumber()
   }
@@ -35,7 +40,7 @@ contract("Test complexity case", (accounts) => {
   it('test fill nonce if resent task was skipped', async () => {
     const task = await makeTransfer(accounts[9])
 
-    await w3.miner.stop()
+    await chainOpW3.minerStop()
 
     const [s1, s2, s3] = await utils.newSenders(w3, 3)
     const [receiptorQ1, receiptorQ2, receiptorQ3] = await utils.newQueues(3)
@@ -44,23 +49,23 @@ contract("Test complexity case", (accounts) => {
 
     const r1 = await s1.run(task, receiptorQ1.sendToQueue)
     expect(r1).to.eq('success')
-    await utils.makeOneBlock(w3, dummy)
+    await chainOpW3.makeOneBlock(dummy)
 
     const r2 = await s2.run(task, receiptorQ2.sendToQueue)
     expect(r2).to.eq('success')
     const t3 = await s3.EventToTxInfo(task)
-    await utils.makeOneBlock(w3, dummy)
+    await chainOpW3.makeOneBlock(dummy)
 
-    const snapshotId = await w3.miner.snapshot()
+    const snapshotId = await chainOpW3.snapshot()
 
     const r3 = await s3.sendTx(t3, receiptorQ3.sendToQueue)
     expect(r3).to.eq('success')
     // s3 will failed due to enough affirmation
-    await utils.makeOneBlock(w3, dummy, expectFail=true)
+    await chainOpW3.makeOneBlock(dummy, true)
 
-    await w3.miner.revert(snapshotId)
+    await chainOpW3.revert(snapshotId)
 
-    await utils.futureBlock(w3, config.BLOCK_CONFIRMATION)
+    await chainOpW3.futureBlock(config.BLOCK_CONFIRMATION)
 
     const rr1 = await receiptor1.run(receiptorQ1.queue.pop(), senderQ1.sendToQueue)
     const rr2 = await receiptor2.run(receiptorQ2.queue.pop(), senderQ2.sendToQueue)
@@ -79,7 +84,7 @@ contract("Test complexity case", (accounts) => {
 
     // Sender.run will send a transaction to self in order to fill nonce while retry-task.
     const result = await s3.run(resentTask, receiptorQ3.sendToQueue)
-    await utils.makeOneBlock(w3, dummy)
+    await chainOpW3.makeOneBlock(dummy)
 
     // resent task will be skipped due to enough affirmation
     expect(result).to.be.eq('skipped')
@@ -90,6 +95,6 @@ contract("Test complexity case", (accounts) => {
   })
 
   afterEach(async () => {
-    await w3.miner.start()
+    await chainOpW3.minerStart()
   })
 })

@@ -8,8 +8,12 @@ const utils = require('./utils')
 
 const w3 = utils.newWeb3()
 
+contract('Test Receiptor', async (accounts) => {
+  let chainOpW3 = null
+  beforeEach(async () => {
+    chainOpW3 = await utils.ChainOpWeb3(w3)
+  })
 
-contract("Test Receiptor", async (accounts) => {
   async function makeTransfer(from=accounts[0]) {
     return new Promise((resolve, _) => {
       const sendTx = w3.eth.sendTransaction({from:from, to:accounts[1], value:w3.utils.toWei('0.01')})
@@ -39,19 +43,19 @@ contract("Test Receiptor", async (accounts) => {
   }
 
   it('test get receipt success', async () => {
-    await w3.miner.stop()
+    await chainOpW3.minerStop()
 
     const [r] = await utils.newReceiptors(w3, 1)
     const task = await makeReceiptTask()
     const q = await utils.newQueue()
 
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.waittingReceipt)
-    await utils.futureBlock(w3, 1)
+    await chainOpW3.futureBlock(1)
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.waittingK)
-    await utils.futureBlock(w3, config.BLOCK_CONFIRMATION)
+    await chainOpW3.futureBlock(config.BLOCK_CONFIRMATION)
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.success)
 
-    await w3.miner.start()
+    await chainOpW3.minerStart()
   })
 
   it('test get null receipt', async () => {
@@ -61,9 +65,9 @@ contract("Test Receiptor", async (accounts) => {
     task.transactionHash= '0x1234567890123456789012345678901234567890123456789012345678901234'
 
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.waittingReceipt)
-    await utils.futureBlock(w3, 1)
+    await chainOpW3.futureBlock(1)
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.waittingReceipt)
-    await utils.futureBlock(w3, config.MAX_WAIT_RECEIPT_BLOCK)
+    await chainOpW3.futureBlock(config.MAX_WAIT_RECEIPT_BLOCK)
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.null)
 
     // Test queue items
@@ -74,17 +78,17 @@ contract("Test Receiptor", async (accounts) => {
   })
 
   it('test get reverted receipt', async () => {
-    const snapshotId = await w3.miner.snapshot()
+    const snapshotId = await chainOpW3.snapshot()
 
     const [r] = await utils.newReceiptors(w3, 1)
     const task = await makeReceiptTask()
     const q = await utils.newQueue()
 
-    await w3.miner.revert(snapshotId)
+    await chainOpW3.revert(snapshotId)
 
     // Because the block of transfer task was reverted.
     // Need to advence more one block for confirmation checking
-    await utils.futureBlock(w3, config.MAX_WAIT_RECEIPT_BLOCK+1)
+    await chainOpW3.futureBlock(config.MAX_WAIT_RECEIPT_BLOCK+1)
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.null)
 
     // Test queue items
@@ -103,29 +107,29 @@ contract("Test Receiptor", async (accounts) => {
     const q = await utils.newQueue()
 
     const task = await makeReceiptTask()
-    await utils.futureBlock(w3, config.BLOCK_CONFIRMATION)
+    await chainOpW3.futureBlock(config.BLOCK_CONFIRMATION)
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.timeout)
   })
 
   it('test get receipt with chain forked', async () => {
-    await w3.miner.stop()
-    const snapshotId = await w3.miner.snapshot()
+    await chainOpW3.minerStop()
+    const snapshotId = await chainOpW3.snapshot()
 
     const [r] = await utils.newReceiptors(w3, 1)
     const task = await makeReceiptTask()
     const q = await utils.newQueue()
 
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.waittingReceipt)
-    await utils.futureBlock(w3, 1)
+    await chainOpW3.futureBlock(1)
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.waittingK)
-    await w3.miner.revert(snapshotId)
+    await chainOpW3.revert(snapshotId)
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.waittingReceipt)
-    await utils.futureBlock(w3, config.MAX_WAIT_RECEIPT_BLOCK)
+    await chainOpW3.futureBlock(config.MAX_WAIT_RECEIPT_BLOCK)
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.null)
 
   })
 
   afterEach(async () => {
-    await w3.miner.start()
+    await chainOpW3.minerStart()
   })
 })

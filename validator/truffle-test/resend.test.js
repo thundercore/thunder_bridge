@@ -26,30 +26,37 @@ const makeTransfer = async (account) => {
 
 contract('test resend task', (accounts) => {
 
+  const dummy = accounts[8]
+
+  let chainOpW3 = null
+  beforeEach(async () => {
+    chainOpW3 = await utils.ChainOpWeb3(w3)
+  })
+
   it('task resend with same nonce', async () => {
     const task = await makeTransfer(accounts[9])
 
-    await w3.miner.stop()
+    await chainOpW3.minerStop()
     const [s] = await utils.newSenders(w3, 1)
     const q = await utils.newQueue()
 
     // Send a transaction to occupy nonce
     const nonce = await s.readNonce()
     s.web3.sendToSelf(nonce)
-    await utils.makeOneBlock(w3)
+    await chainOpW3.makeOneBlock(dummy)
 
     // Send task with same nonce will raise nonce too low error
     task.nonce = nonce
     task.retries = 1
     let r = await s.run(task, q.sendToQueue)
     expect(r).to.be.eq(sender.SendResult.nonceTooLow)
-    await utils.makeOneBlock(w3)
+    await chainOpW3.makeOneBlock(dummy)
   })
 
   it('task resend will fill nonce if task was skipped', async () => {
     const task = await makeTransfer(accounts[9])
 
-    await w3.miner.stop()
+    await chainOpW3.minerStop()
     const [s] = await utils.newSenders(w3, 1)
     const q = await utils.newQueue()
     const nonce = await s.readNonce(true)
@@ -60,7 +67,7 @@ contract('test resend task', (accounts) => {
     s.EventToTxInfo = stub().resolves(null)
     let r = await s.run(task, q.sendToQueue)
     expect(r).to.be.eq(sender.SendResult.skipped)
-    await utils.makeOneBlock(w3)
+    await chainOpW3.makeOneBlock(dummy)
 
     // Expect nonce was updated
     const newNonce = await s.readNonce(true)
@@ -77,7 +84,7 @@ contract('test resend task', (accounts) => {
     // FIXME: test with timestamp
     const task = await makeTransfer(accounts[9])
 
-    await w3.miner.stop()
+    await chainOpW3.minerStop()
     const [s] = await utils.newSenders(w3, 1)
     const q = await utils.newQueue()
     const nonce = await s.readNonce(true)
@@ -89,12 +96,12 @@ contract('test resend task', (accounts) => {
     getPrice.onCall(0).resolves(firstPrice)
     getPrice.onCall(1).resolves(secondPrice)
 
-    const snapshotId = await w3.miner.snapshot()
+    const snapshotId = await chainOpW3.snapshot()
 
     let r = await s.run(task, q.sendToQueue)
     expect(r).to.be.eq(sender.SendResult.success)
 
-    await utils.makeOneBlock(w3)
+    await chainOpW3.makeOneBlock(dummy)
 
     tx = q.queue.pop().transactionHash
     const oldReceipt = await w3.eth.getTransactionReceipt(tx)
@@ -102,14 +109,14 @@ contract('test resend task', (accounts) => {
     expect(oldReceipt.status).to.be.true
     expect(Number(oldTx.gasPrice)).to.eq(firstPrice)
 
-    await w3.miner.revert(snapshotId)
+    await chainOpW3.revert(snapshotId)
 
     task.nonce = nonce
     task.retries = 100
     r = await s.run(task, q.sendToQueue)
     expect(r).to.be.eq(sender.SendResult.success)
 
-    await utils.makeOneBlock(w3)
+    await chainOpW3.makeOneBlock(dummy)
 
     tx = q.queue.pop().transactionHash
     const newReceipt = await w3.eth.getTransactionReceipt(tx)
@@ -126,7 +133,7 @@ contract('test resend task', (accounts) => {
     const tC = await makeTransfer(accounts[9])
     const tD = await makeTransfer(accounts[9])
 
-    await w3.miner.stop()
+    await chainOpW3.minerStop()
     const [s] = await utils.newSenders(w3, 1)
     const q = await utils.newQueue()
     const nonce = await s.readNonce(true)
@@ -138,13 +145,13 @@ contract('test resend task', (accounts) => {
     tA.retries = tB.retries = tC.retries = tD.retries = 100
 
     const rc = await s.run(tC, q.sendToQueue)
-    await utils.makeOneBlock(w3)
+    await chainOpW3.makeOneBlock(dummy)
     const rb = await s.run(tB, q.sendToQueue)
-    await utils.makeOneBlock(w3)
+    await chainOpW3.makeOneBlock(dummy)
     const rd = await s.run(tD, q.sendToQueue)
-    await utils.makeOneBlock(w3)
+    await chainOpW3.makeOneBlock(dummy)
     const ra = await s.run(tA, q.sendToQueue)
-    await utils.makeOneBlock(w3)
+    await chainOpW3.makeOneBlock(dummy)
 
     expect(q.queue).to.have.length(4)
     [ra, rb, rc, rd].forEach(r => {
@@ -158,7 +165,7 @@ contract('test resend task', (accounts) => {
   })
 
   afterEach(async() =>{
-    await w3.miner.start()
+    await chainOpW3.minerStart()
     sandbox.restore()
   })
 })
