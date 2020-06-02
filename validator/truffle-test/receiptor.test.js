@@ -15,8 +15,9 @@ contract('Test Receiptor', async (accounts) => {
   })
 
   async function makeTransfer(from=accounts[0]) {
+    const nonce = await w3.eth.getTransactionCount(from)
     return new Promise((resolve, _) => {
-      const sendTx = w3.eth.sendTransaction({from:from, to:accounts[1], value:w3.utils.toWei('0.01')})
+      const sendTx = w3.eth.sendTransaction({from:from, to:accounts[1], value:w3.utils.toWei('0.01'), nonce})
       sendTx.on('transactionHash', (hash)=> {
         resolve(hash)
       })

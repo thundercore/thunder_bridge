@@ -23,7 +23,8 @@ async function futureBlock(w3, n = 1) {
 }
 
 async function makeTransfer(w3, erc20, from, to) {
-  const receipt = await erc20.methods.transfer(to, w3.utils.toWei('0.01')).send({ from, gas: 100000 })
+  const nonce = w3.eth.getTransactionCount(from)
+  const receipt = await erc20.methods.transfer(to, w3.utils.toWei('0.01')).send({ from, gas: 100000, nonce})
   return {
     eventType: 'erc-erc-affirmation-request',
     event: receipt.events.Transfer,
@@ -56,6 +57,11 @@ function newWeb3() {
       {
         name: 'mine',
         call: 'evm_mine',
+        params: 1,
+      },
+      {
+        name: 'setHead',
+        call: 'dev_setHead',
         params: 1,
       },
     ],
@@ -132,16 +138,52 @@ class ChainOpPala {
 
   async revert(id) {
     // dev set head
+    // await this.w3.currentProvider.engine.stop()
+    const before = await this.w3.eth.getBlockNumber()
+    try {
+      await this.w3.miner.setHead(id)
+    } catch (e) {
+      console.log("ignore", e)
+    }
+
+    let count = 0
+    while (true) {
+      try {
+        const current = await this.w3.eth.getBlockNumber()
+        console.log("before", before, id)
+        console.log("current", current, id)
+        break
+      } catch (e) {
+        count += 1
+        if (count > 10) {
+          console.log("=============")
+          console.log("revert get block error=", e)
+        }
+      }
+
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve()
+        }, 1000)
+      })
+    }
+    // await this.w3.currentProvider.engine.start()
+    console.log("OH YA!!!!!!!!!!!!!")
   }
 
   async makeOneBlock(dummy, expectail = false) {
-    await this.w3.eth.sendTransaction({ from: dummy, to: dummy })
+    console.log("make one block #1")
+    const nonce = await this.w3.eth.getTransactionCount(dummy)
+    await this.w3.eth.sendTransaction({ from: dummy, to: dummy, nonce: nonce })
+    console.log("make one block #2")
   }
 
   async futureBlock(n = 1) {
     const begin = await this.w3.eth.getBlockNumber()
     let current = begin
+    console.log("hihi qqq", current)
     while (current < begin + n) {
+      console.log("hihi", current)
       await new Promise((resolve) => {
         setTimeout(() => {
           resolve()

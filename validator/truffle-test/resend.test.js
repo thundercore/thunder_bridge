@@ -30,7 +30,9 @@ contract('test resend task', (accounts) => {
 
   let chainOpW3 = null
   beforeEach(async () => {
+    console.log("before each  test resend task")
     chainOpW3 = await utils.ChainOpWeb3(w3)
+    console.log("after test resend task")
   })
 
   it('task resend with same nonce', async () => {
@@ -111,18 +113,24 @@ contract('test resend task', (accounts) => {
 
     await chainOpW3.revert(snapshotId)
 
+    console.log("@@@@@@@@@@@1")
     task.nonce = nonce
     task.retries = 100
     r = await s.run(task, q.sendToQueue)
+    console.log("@@@@@@@@@@@2")
     expect(r).to.be.eq(sender.SendResult.success)
 
     await chainOpW3.makeOneBlock(dummy)
+    console.log("@@@@@@@@@@@3")
 
     tx = q.queue.pop().transactionHash
+    console.log("@@@@@@@@@@@4")
     const newReceipt = await w3.eth.getTransactionReceipt(tx)
     const newTx = await w3.eth.getTransaction(tx)
+    console.log("@@@@@@@@@@@5")
     expect(newReceipt.status).to.be.true
     expect(Number(newTx.gasPrice)).to.eq(secondPrice)
+    console.log("@@@@@@@@@@@6")
   })
 
   // ganache will raise `the tx doesn't have the correct nonce`

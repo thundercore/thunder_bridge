@@ -202,7 +202,7 @@ contract('Test multiple senders', (accounts) => {
     const newR2 = await s2.sendTx(newInfo2, q2.sendToQueue)
     expect(newR2).to.eq('success')
 
-    await chainOpW3.makeOneBlock(w3, accounts[8])
+    await chainOpW3.makeOneBlock(accounts[8])
 
     const nweReceipt = await utils.getReceiptFromSenderQueue(w3, q2.queue)
     expect(nweReceipt.status).to.be.true
@@ -228,7 +228,7 @@ contract('Test multiple senders', (accounts) => {
     expect(r2).to.eq('success')
     expect(r3).to.eq('success')
 
-    await chainOpW3.makeOneBlock(accounts[8],true)
+    await chainOpW3.makeOneBlock(accounts[8], true)
 
     const receipt1 = await utils.getReceiptFromSenderQueue(w3, q1.queue)
     const receipt2 = await utils.getReceiptFromSenderQueue(w3, q2.queue)

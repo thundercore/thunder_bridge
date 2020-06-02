@@ -67,9 +67,13 @@ contract("Test complexity case", (accounts) => {
 
     await chainOpW3.futureBlock(config.BLOCK_CONFIRMATION)
 
+    console.log("GGGGGGGGGGGGGGGGGGG1")
     const rr1 = await receiptor1.run(receiptorQ1.queue.pop(), senderQ1.sendToQueue)
+    console.log("GGGGGGGGGGGGGGGGGGG2")
     const rr2 = await receiptor2.run(receiptorQ2.queue.pop(), senderQ2.sendToQueue)
+    console.log("GGGGGGGGGGGGGGGGGGG3")
     const rr3 = await receiptor3.run(receiptorQ3.queue.pop(), senderQ3.sendToQueue)
+    console.log("GGGGGGGGGGGGGGGGGGG4")
 
     expect(rr1).to.equal("success")
     expect(rr2).to.equal("success")
