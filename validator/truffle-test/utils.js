@@ -23,8 +23,8 @@ async function futureBlock(w3, n = 1) {
 }
 
 async function makeTransfer(w3, erc20, from, to) {
-  const nonce = w3.eth.getTransactionCount(from)
-  const receipt = await erc20.methods.transfer(to, w3.utils.toWei('0.01')).send({ from, gas: 100000, nonce})
+  const nonce = await w3.eth.getTransactionCount(from)
+  const receipt = await erc20.methods.transfer(to, w3.utils.toWei('0.01')).send({ from, gas: 100000, nonce })
   return {
     eventType: 'erc-erc-affirmation-request',
     event: receipt.events.Transfer,
