@@ -1,11 +1,8 @@
 const ForeignBridge = artifacts.require('ForeignBridgeErcToErc')
-const HomeBridge = artifacts.require('HomeBridgeErcToErc')
 const ERC677BridgeToken = artifacts.require('ERC677BridgeToken')
 const path = require('path')
 
 const sender = require(path.join(__dirname, '../src/lib/sender'))
-const storage = require(path.join(__dirname, '../src/lib/storage'))
-const locker = require(path.join(__dirname, '../src/lib/locker'))
 const { expect } = require('chai')
 const { createSandbox, stub } = require('sinon')
 
@@ -15,7 +12,6 @@ const utils = require('./utils')
 const w3 = utils.newWeb3()
 
 const foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address)
-const home = new w3.eth.Contract(HomeBridge.abi, deployed.homeBridge.address)
 const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address)
 
 const sandbox = createSandbox()

@@ -74,8 +74,3 @@ services:
   receiptor-foreign:
     extends: validator
     command: npm run receiptor:foreign
-  e2e:
-    build: .
-    image: e2e
-    stdin_open: true
-    tty: true

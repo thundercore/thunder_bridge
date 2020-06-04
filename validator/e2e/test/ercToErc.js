@@ -5,27 +5,26 @@ const promiseRetry = require('promise-retry')
 const { user } = require('../constants.json')
 const { generateNewBlock } = require('../utils/utils')
 
-const abisDir = path.join(__dirname, '..', 'contracts/build/contracts')
+const homeWeb3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8541'))
+const foreignWeb3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8542'))
 
-const homeWeb3 = new Web3(new Web3.providers.HttpProvider('http://thunder1:8545'))
-const foreignWeb3 = new Web3(new Web3.providers.HttpProvider('http://parity2:8545'))
-
-const HOME_BRIDGE_ADDRESS = '0x32198D570fffC7033641F8A9094FFDCaAEF42624'
-const FOREIGN_BRIDGE_ADDRESS = '0x5118AC62AE912Dd5B51EEfF7338c4fcb0248Ba8c'
+const deployed = require('../data/deployed.json')
+const FOREIGN_BRIDGE_ADDRESS = deployed.foreignBridge.address
+const HOME_BRIDGE_ADDRESS = deployed.homeBridge.address
 
 const { toBN } = foreignWeb3.utils
 
 homeWeb3.eth.accounts.wallet.add(user.privateKey)
 foreignWeb3.eth.accounts.wallet.add(user.privateKey)
 
-const tokenAbi = require(path.join(abisDir, 'ERC677BridgeToken.json')).abi
+const tokenAbi = require('../abis/ERC677BridgeToken.json').abi
 const erc20Token = new foreignWeb3.eth.Contract(
   tokenAbi,
-  '0xdbeE25CbE97e4A5CC6c499875774dc7067E9426B'
+  deployed.erc20Token.address,
 )
 const erc677Token = new homeWeb3.eth.Contract(
   tokenAbi,
-  '0xE0CCE6C39cA0cB5699e8a607c4B9eC6248C85F9f'
+  deployed.homeBridge.erc677.address
 )
 
 describe('erc to erc', () => {
@@ -35,7 +34,7 @@ describe('erc to erc', () => {
 
     // send tokens to foreign bridge
     await erc20Token.methods
-      .transfer(FOREIGN_BRIDGE_ADDRESS, homeWeb3.utils.toWei('0.01'))
+      .transfer(FOREIGN_BRIDGE_ADDRESS, homeWeb3.utils.toWei('0.1'))
       .send({
         from: user.address,
         gas: '1000000'
@@ -63,17 +62,22 @@ describe('erc to erc', () => {
     const balance = await erc677Token.methods.balanceOf(user.address).call()
     assert(!toBN(balance).isZero(), 'Account should have tokens')
 
-    // send transaction to home bridge
-    const depositTx = await erc677Token.methods
-      .transferAndCall(HOME_BRIDGE_ADDRESS, homeWeb3.utils.toWei('0.01'), '0x')
-      .send({
-        from: user.address,
-        gas: '1000000'
-      })
-      .catch(e => {
-        console.error(e)
-      })
-
+    let status = false
+    let depositTx;
+    while (!status) {
+      // send transaction to home bridge
+      depositTx = await erc677Token.methods
+        .transferAndCall(HOME_BRIDGE_ADDRESS, homeWeb3.utils.toWei('0.01'), '0x')
+        .send({
+          from: user.address,
+          gas: '10000000'
+        })
+        .catch(e => {
+          console.error(e)
+        })
+      status = depositTx.status
+      console.log(depositTx.transactionHash, status)
+    }
     // Send a trivial transaction to generate a new block since the watcher
     // is configured to wait 1 confirmation block
     await generateNewBlock(homeWeb3, user.address)

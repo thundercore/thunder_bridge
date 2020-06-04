@@ -1,0 +1,12 @@
+version: '2'
+services:
+  e2e:
+    build: .
+    image: e2e
+    network_mode: host
+    stdin_open: true
+    tty: true
+    volumes:
+      - ../data:/stuff/data
+      - ../abis:/stuff/abis
+      - ./test:/stuff/test

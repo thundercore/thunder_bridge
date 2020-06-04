@@ -24,7 +24,7 @@ deploy-e2e: build-deployer
 
 e2e-test: deploy-e2e
 	cd $(E2E_DIR) && docker-compose build validator && docker-compose up -d
-	cd $(E2E_DIR) && docker-compose run e2e npm start
+	cd $(E2E_DIR) && docker-compose -f docker-compose-e2e.yaml run e2e
 
 stress: deploy-e2e
 	cd $(E2E_DIR) && docker-compose build validator && docker-compose up -d

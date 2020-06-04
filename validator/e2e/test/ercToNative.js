@@ -5,23 +5,22 @@ const promiseRetry = require('promise-retry')
 const { user } = require('../constants.json')
 const { generateNewBlock } = require('../utils/utils')
 
-const abisDir = path.join(__dirname, '..', 'contracts/build/contracts')
+const homeWeb3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8541'))
+const foreignWeb3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8542'))
 
-const homeWeb3 = new Web3(new Web3.providers.HttpProvider('http://thunder1:8545'))
-const foreignWeb3 = new Web3(new Web3.providers.HttpProvider('http://parity2:8545'))
-
-const HOME_BRIDGE_ADDRESS = '0x488Af810997eD1730cB3a3918cD83b3216E6eAda'
-const FOREIGN_BRIDGE_ADDRESS = '0x488Af810997eD1730cB3a3918cD83b3216E6eAda'
+const deployed = require('../data/deployed.json')
+const FOREIGN_BRIDGE_ADDRESS = deployed.foreignBridge.address
+const HOME_BRIDGE_ADDRESS = deployed.homeBridge.address
 
 const { toBN } = foreignWeb3.utils
 
 homeWeb3.eth.accounts.wallet.add(user.privateKey)
 foreignWeb3.eth.accounts.wallet.add(user.privateKey)
 
-const tokenAbi = require(path.join(abisDir, 'ERC677BridgeToken.json')).abi
+const tokenAbi = require('../abis/ERC677BridgeToken.json').abi
 const erc20Token = new foreignWeb3.eth.Contract(
   tokenAbi,
-  '0x3C665A31199694Bf723fD08844AD290207B5797f'
+  deployed.erc20Token.address,
 )
 
 // Skip test because thunder only deploy `erc-to-erc` bridge.

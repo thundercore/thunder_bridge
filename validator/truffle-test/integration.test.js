@@ -4,9 +4,6 @@ const ERC677BridgeToken = artifacts.require('ERC677BridgeToken')
 const path = require('path')
 
 const config = require(path.join(__dirname, '../config'))
-const sender = require(path.join(__dirname, '../src/lib/sender'))
-const receiptor = require(path.join(__dirname, '../src/lib/receiptor'))
-const locker = require(path.join(__dirname, '../src/lib/locker'))
 const utils = require('./utils')
 const { expect } = require('chai')
 const { stub } = require('sinon')
@@ -16,7 +13,6 @@ const w3 = utils.newWeb3()
 const deployed = require(path.join(__dirname, '../../data/deployed.json'))
 
 const foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address);
-const home = new w3.eth.Contract(HomeBridge.abi, deployed.homeBridge.address);
 const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address);
 
 const makeTransfer = async (account) => {
@@ -25,17 +21,12 @@ const makeTransfer = async (account) => {
 
 contract("Test complexity case", (accounts) => {
 
-  const l = new locker.FakeLocker()
   const dummy = accounts[8]
 
   let chainOpW3 = null
   beforeEach(async () => {
     chainOpW3 = await utils.ChainOpWeb3(w3)
   })
-
-  async function getCurrentBlock() {
-    return w3.eth.getBlockNumber()
-  }
 
   it('test fill nonce if resent task was skipped', async () => {
     const task = await makeTransfer(accounts[9])
