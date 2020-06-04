@@ -48,43 +48,47 @@ async function initialize() {
         let task = JSON.parse(options.msg.content.toString())
 
         let runSender = async (task: EventTask) => {
+          let result: SendResult;
           try {
-            let result = await sender.run(task, options.pushReceiptorQueue)
-            switch (result) {
-              case SendResult.success:
-              case SendResult.skipped:
-              case SendResult.txImported:
-                options.ackMsg(options.msg)
-                break
-
-              case SendResult.failed:
-              case SendResult.timeout:
-              case SendResult.insufficientFunds:
-                await options.pushSenderQueue(task)
-                options.nackMsg(options.msg)
-                break
-
-              case SendResult.blockGasLimitExceeded:
-                options.nackMsg(options.msg)
-                break
-
-              case SendResult.nonceTooLow:
-                if (isRetryTask(task)) {
-                  task.nonce = undefined
-                }
-                options.pushSenderQueue(task)
-                options.nackMsg(options.msg)
-                break
-
-              default:
-                options.nackMsg(options.msg)
-                throw Error("No such result type")
-            }
+            result = await sender.run(task, options.pushReceiptorQueue)
           } catch(e) {
+            logger.error({error: e, queueTask: task}, 'queue message was re-enqueue due to error')
+            await options.pushSenderQueue(task)
             options.nackMsg(options.msg)
-            logger.error({error: e, queueTask: task}, 'queue message was rejected due to run error')
+            throw e
           }
-        }
+
+          switch (result) {
+            case SendResult.success:
+            case SendResult.skipped:
+            case SendResult.txImported:
+              options.ackMsg(options.msg)
+              break
+
+            case SendResult.failed:
+            case SendResult.timeout:
+            case SendResult.insufficientFunds:
+              await options.pushSenderQueue(task)
+              options.nackMsg(options.msg)
+              break
+
+            case SendResult.blockGasLimitExceeded:
+              options.nackMsg(options.msg)
+              break
+
+            case SendResult.nonceTooLow:
+              if (isRetryTask(task)) {
+                task.nonce = undefined
+              }
+              options.pushSenderQueue(task)
+              options.nackMsg(options.msg)
+              break
+
+            default:
+              options.nackMsg(options.msg)
+              throw Error("No such result type")
+          } // end of switch
+        } // end of runSender
 
         if (config.maxProcessingTime) {
           return watchdog(() => runSender(task), config.maxProcessingTime, () => {
@@ -92,14 +96,14 @@ async function initialize() {
             process.exit(EXIT_CODES.MAX_TIME_REACHED)
           })
         }
-
         return runSender(task)
-      }
-    })
+      } // end of cb
+    }) // end of connectSenderToQueue
+
   } catch (e) {
     logger.fatal(e, 'sender.main catched exception')
     process.exit(EXIT_CODES.GENERAL_ERROR)
-  }
+  } // end of try-catch
 }
 
 initialize()

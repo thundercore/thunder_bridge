@@ -1,11 +1,11 @@
 version: '2'
 services:
   home-chain:
-    build: parity
+    build: thunder
     ports:
       - "8541:8545"
   foreign-chain:
-    build: parity
+    build: thunder
     ports:
       - "8542:8545"
   redis:

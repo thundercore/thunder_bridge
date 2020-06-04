@@ -22,10 +22,11 @@ deploy-e2e: build-deployer
 		thunder_bridge_deployer
 
 
-e2e-test: deploy-e2e
+deploy-service: deploy-e2e
 	cd $(E2E_DIR) && docker-compose build validator && docker-compose up -d
+
+e2e-test: deploy-service
 	cd $(E2E_DIR) && docker-compose -f docker-compose-e2e.yaml run e2e
 
-stress: deploy-e2e
-	cd $(E2E_DIR) && docker-compose build validator && docker-compose up -d
+stress: deploy-service
 	cd $(E2E_DIR) && docker-compose -f docker-compose-stress.yaml up -d

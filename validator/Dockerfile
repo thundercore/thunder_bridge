@@ -10,4 +10,5 @@ COPY package-lock.json .
 RUN npm install
 
 COPY . .
+RUN npm run tsc
 CMD ["docker-message"]

@@ -43,31 +43,26 @@ async function initialize() {
       cb: loopRunner
     })
   } catch (e) {
-    logger.error(e)
+    logger.fatal(e, 'initailize raised unknown error.')
     process.exit(EXIT_CODES.GENERAL_ERROR)
   }
 }
 
 async function loopRunner(options: { sendToQueue: { (task: EventTask): Promise<void>; } }) {
-  try {
-    if (connection.isConnected() && redis.status === 'ready') {
-      if (config.maxProcessingTime) {
-        await watchdog(() => watcher.run(options.sendToQueue), config.maxProcessingTime, () => {
-          logger.fatal('Max processing time reached')
-          process.exit(EXIT_CODES.MAX_TIME_REACHED)
-        })
-      } else {
-        await watcher.run(options.sendToQueue)
-      }
+  if (connection.isConnected() && redis.status === 'ready') {
+    if (config.maxProcessingTime) {
+      await watchdog(() => watcher.run(options.sendToQueue), config.maxProcessingTime, () => {
+        logger.fatal('Max processing time reached')
+        process.exit(EXIT_CODES.MAX_TIME_REACHED)
+      })
+    } else {
+      await watcher.run(options.sendToQueue)
     }
-  } catch (e) {
-    logger.error(e)
   }
 
   setTimeout(() => {
     loopRunner(options)
   }, config.pollingInterval)
-
 }
 
 initialize()

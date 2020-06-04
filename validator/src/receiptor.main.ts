@@ -33,33 +33,35 @@ async function initialize() {
         let task = JSON.parse(options.msg.content.toString())
 
         let getReceipt = async (task: ReceiptTask) => {
+          let result: ReceiptResult;
           try {
-            let result = await receiptor.run(task, options.sendToQueue)
-            switch (result) {
-              case ReceiptResult.success:
-                options.ackMsg(options.msg)
-                break
-
-              case ReceiptResult.timeout:
-              case ReceiptResult.waittingK:
-              case ReceiptResult.waittingReceipt:
-                options.retryMsg(options.msg)
-                break
-
-              case ReceiptResult.null:
-              case ReceiptResult.failed:
-                options.rejectMsg(options.msg)
-                break
-
-              default:
-                throw Error("No such result type")
-            }
+            result = await receiptor.run(task, options.sendToQueue)
           } catch(e) {
-            console.error(e)
-            options.rejectMsg(options.msg)
-            logger.error({error: e, queueTask: task}, 'queue message was rejected due to catched error')
+            options.retryMsg(options.msg)
+            logger.error({error: e, queueTask: task}, 'unknown error catched. retry queue message.')
+            throw e
           }
-        }
+
+          switch (result) {
+            case ReceiptResult.success:
+              options.ackMsg(options.msg)
+              break
+
+            case ReceiptResult.timeout:
+            case ReceiptResult.waittingK:
+            case ReceiptResult.waittingReceipt:
+              options.retryMsg(options.msg)
+              break
+
+            case ReceiptResult.null:
+            case ReceiptResult.failed:
+              options.rejectMsg(options.msg)
+              break
+
+            default:
+              throw Error("No such result type")
+          }
+        } // end of getReceipt
 
         if (config.maxProcessingTime) {
           return watchdog(() => getReceipt(task), config.maxProcessingTime, () => {
@@ -72,8 +74,7 @@ async function initialize() {
       }
     })
   } catch (e) {
-    console.error(e)
-    logger.error(e.message)
+    logger.fatal(e.message)
     process.exit(EXIT_CODES.GENERAL_ERROR)
   }
 }
