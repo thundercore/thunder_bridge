@@ -24,6 +24,7 @@ module.exports = {
     'plugin:prettier/recommended',
   ],
   rules: {
+    'no-await-in-loop': ['off'],
     'lines-between-class-members': ['off'],
     'prefer-destructuring': ['off'],
     'import/extensions': [

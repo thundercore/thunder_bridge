@@ -47,7 +47,11 @@ module.exports = {
       port: 7545,
       network_id: "*",
       provider: () => {
-          return new HDWalletProvider("wisdom zero output drift choice bright east stuff craft inform invest patient", "http://127.0.0.1:7545")
+        const p = new HDWalletProvider("wisdom zero output drift choice bright east stuff craft inform invest patient", "http://127.0.0.1:7545")
+
+        // stop polling block number in background, we don't need this in test
+        p.engine.stop()
+        return p
       },
     }
   },

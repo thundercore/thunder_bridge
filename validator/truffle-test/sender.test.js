@@ -71,9 +71,14 @@ contract("Test single sender", (accounts) => {
     expect(q.queue).to.have.length(0)
   })
 
-  it("test tx was imported", async () => {
+  it("test tx was imported", async function() {
     // FIXME: truffle will return `the tx doesn't have the correct nonce` message.
     // It's different from geth. We skiped this test before we found a better way to test this case.
+    // Only run this test on pala
+    const id = await w3.eth.net.getId()
+    if (id !== 19) {
+        this.skip()
+    }
     const task1 = await makeTransfer(accounts[9])
     const task2 = await makeTransfer(accounts[9])
 
@@ -202,7 +207,7 @@ contract('Test multiple senders', (accounts) => {
     const newR2 = await s2.sendTx(newInfo2, q2.sendToQueue)
     expect(newR2).to.eq('success')
 
-    await chainOpW3.makeOneBlock(w3, accounts[8])
+    await chainOpW3.makeOneBlock(accounts[8])
 
     const nweReceipt = await utils.getReceiptFromSenderQueue(w3, q2.queue)
     expect(nweReceipt.status).to.be.true
@@ -228,7 +233,7 @@ contract('Test multiple senders', (accounts) => {
     expect(r2).to.eq('success')
     expect(r3).to.eq('success')
 
-    await chainOpW3.makeOneBlock(accounts[8],true)
+    await chainOpW3.makeOneBlock(accounts[8], true)
 
     const receipt1 = await utils.getReceiptFromSenderQueue(w3, q1.queue)
     const receipt2 = await utils.getReceiptFromSenderQueue(w3, q2.queue)

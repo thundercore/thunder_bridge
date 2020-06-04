@@ -23,7 +23,8 @@ async function futureBlock(w3, n = 1) {
 }
 
 async function makeTransfer(w3, erc20, from, to) {
-  const receipt = await erc20.methods.transfer(to, w3.utils.toWei('0.01')).send({ from, gas: 100000 })
+  const nonce = await w3.eth.getTransactionCount(from)
+  const receipt = await erc20.methods.transfer(to, w3.utils.toWei('0.01')).send({ from, gas: 100000, nonce })
   return {
     eventType: 'erc-erc-affirmation-request',
     event: receipt.events.Transfer,
@@ -58,12 +59,16 @@ function newWeb3() {
         call: 'evm_mine',
         params: 1,
       },
+      {
+        name: 'setHead',
+        call: 'dev_setHead',
+        params: 1,
+      },
     ],
   })
 
   return w3
 }
-
 
 class ChainOpGanache {
   constructor(w3) {
@@ -117,6 +122,14 @@ class ChainOpGanache {
   }
 }
 
+async function sleep(t) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve()
+    }, t)
+  })
+}
+
 class ChainOpPala {
   constructor(w3) {
     this.w3 = w3
@@ -132,21 +145,31 @@ class ChainOpPala {
 
   async revert(id) {
     // dev set head
+    try {
+      await this.w3.miner.setHead(id)
+    } catch (e) {}
+
+    await sleep(3000)
+    while (true) {
+      try {
+        await this.w3.eth.getBlockNumber()
+        break
+      } catch (e) {
+        await sleep(1000)
+      }
+    }
   }
 
   async makeOneBlock(dummy, expectail = false) {
-    await this.w3.eth.sendTransaction({ from: dummy, to: dummy })
+    const nonce = await this.w3.eth.getTransactionCount(dummy)
+    await this.w3.eth.sendTransaction({ from: dummy, to: dummy, nonce: nonce })
   }
 
   async futureBlock(n = 1) {
     const begin = await this.w3.eth.getBlockNumber()
     let current = begin
     while (current < begin + n) {
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve()
-        }, 1000)
-      })
+      await sleep(1000)
       current = await this.w3.eth.getBlockNumber()
     }
   }

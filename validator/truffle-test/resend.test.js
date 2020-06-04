@@ -21,11 +21,10 @@ const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.add
 const sandbox = createSandbox()
 
 const makeTransfer = async (account) => {
-    return await utils.makeTransfer(w3, erc20, account, foreign.options.address)
+  return await utils.makeTransfer(w3, erc20, account, foreign.options.address)
 }
 
 contract('test resend task', (accounts) => {
-
   const dummy = accounts[8]
 
   let chainOpW3 = null
@@ -48,7 +47,7 @@ contract('test resend task', (accounts) => {
     // Send task with same nonce will raise nonce too low error
     task.nonce = nonce
     task.retries = 1
-    let r = await s.run(task, q.sendToQueue)
+    const r = await s.run(task, q.sendToQueue)
     expect(r).to.be.eq(sender.SendResult.nonceTooLow)
     await chainOpW3.makeOneBlock(dummy)
   })
@@ -65,7 +64,7 @@ contract('test resend task', (accounts) => {
     task.nonce = nonce
     task.retries = 100
     s.EventToTxInfo = stub().resolves(null)
-    let r = await s.run(task, q.sendToQueue)
+    const r = await s.run(task, q.sendToQueue)
     expect(r).to.be.eq(sender.SendResult.skipped)
     await chainOpW3.makeOneBlock(dummy)
 
@@ -127,7 +126,12 @@ contract('test resend task', (accounts) => {
 
   // ganache will raise `the tx doesn't have the correct nonce`
   // error if tx has wrong nonce.
-  it.skip('task resend task out of order', async () => {
+  it('task resend task out of order', async function () {
+    // only run this test when testing on pala
+    const id = await w3.eth.net.getId()
+    if (id !== 19) {
+      this.skip()
+    }
     const tA = await makeTransfer(accounts[9])
     const tB = await makeTransfer(accounts[9])
     const tC = await makeTransfer(accounts[9])
@@ -139,9 +143,9 @@ contract('test resend task', (accounts) => {
     const nonce = await s.readNonce(true)
 
     tA.nonce = nonce
-    tB.nonce = nonce+1
-    tC.nonce = nonce+2
-    tD.nonce = nonce+3
+    tB.nonce = nonce + 1
+    tC.nonce = nonce + 2
+    tD.nonce = nonce + 3
     tA.retries = tB.retries = tC.retries = tD.retries = 100
 
     const rc = await s.run(tC, q.sendToQueue)
@@ -153,18 +157,20 @@ contract('test resend task', (accounts) => {
     const ra = await s.run(tA, q.sendToQueue)
     await chainOpW3.makeOneBlock(dummy)
 
-    expect(q.queue).to.have.length(4)
-    [ra, rb, rc, rd].forEach(r => {
-      expect(r).to.be.eq(success)
-    });
+    expect(q.queue).to.have.lengthOf(4)
 
-    q.queue.forEach(async(r) => {
+    const results = [ra, rb, rc, rd]
+    results.forEach((r) => {
+      expect(r).to.equal('success')
+    })
+
+    q.queue.forEach(async (r) => {
       const receipt = await w3.eth.getTransactionReceipt(r.transactionHash)
       expect(receipt.status).to.be.true
     })
   })
 
-  afterEach(async() =>{
+  afterEach(async () => {
     await chainOpW3.minerStart()
     sandbox.restore()
   })

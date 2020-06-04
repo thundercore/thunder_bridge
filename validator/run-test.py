@@ -43,10 +43,11 @@ def pala_chain():
     name = 'pala-for-truffle-test'
     subprocess.check_call(['docker', 'build', '-t', tag, 'e2e/thunder'])
     try:
-        subprocess.check_call(['docker', 'run', '-d', '--rm', '-p', '7545:8545/tcp', '--name', name, tag])
+        subprocess.check_call(['docker', 'run', '-d', '--restart=always', '-p', '7545:8545/tcp', '--name', name, tag])
         yield
     finally:
         subprocess.check_call(['docker', 'stop', name])
+        subprocess.check_call(['docker', 'rm', name])
 
 
 def copy(src, dest):
