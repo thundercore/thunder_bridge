@@ -1,36 +1,35 @@
 version: '2'
 services:
-  thunder1:
-    build: thunder
+  home-chain:
+    build: parity
     ports:
       - "8541:8545"
-  parity2:
+  foreign-chain:
     build: parity
     ports:
       - "8542:8545"
   redis:
     image: "redis:4"
+    ports:
+     - "6379:6379"
   rabbit:
     image: "rabbitmq:3-management"
     ports:
       - "15672:15672"
-  bridge:
+      - "5672:5672"
+  validator:
     build: ..
+    image: validator
+    network_mode: host
     environment:
       - NODE_ENV=test
       - BRIDGE_MODE=ERC_TO_ERC
-      - QUEUE_URL=amqp://rabbit
-      - REDIS_URL=redis://redis
-      - HOME_RPC_URL=http://thunder1:8545
-      - FOREIGN_RPC_URL=http://parity2:8545
+      - QUEUE_URL=amqp://127.0.0.1:5672
+      - REDIS_URL=redis://127.0.0.1:6379
+      - HOME_RPC_URL=http://127.0.0.1:8541
+      - FOREIGN_RPC_URL=http://127.0.0.1:8542
       - HOME_START_BLOCK=0
       - FOREIGN_START_BLOCK=0
-      - HOME_BRIDGE_ADDRESS=0x32198D570fffC7033641F8A9094FFDCaAEF42624
-      - FOREIGN_BRIDGE_ADDRESS=0x5118AC62AE912Dd5B51EEfF7338c4fcb0248Ba8c
-      - ERC20_TOKEN_ADDRESS=0xdbeE25CbE97e4A5CC6c499875774dc7067E9426B
-      - BRIDGEABLE_TOKEN_ADDRESS=0xE0CCE6C39cA0cB5699e8a607c4B9eC6248C85F9f
-      - VALIDATOR_ADDRESS=0xaaB52d66283F7A1D5978bcFcB55721ACB467384b
-      - VALIDATOR_ADDRESS_PRIVATE_KEY=8e829f695aed89a154550f30262f1529582cc49dc30eff74a6b491359e0230f9
       - REDIS_LOCK_TTL=1000
       - HOME_GAS_PRICE_ORACLE_URL=https://gasprice.poa.network/
       - HOME_GAS_PRICE_FALLBACK=1000000000
@@ -44,53 +43,39 @@ services:
       - BLOCK_CONFIRMATION=13
       - MAX_WAIT_RECEIPT_BLOCK=2
       - GET_RECEIPT_TIMEOUT=5000
+      - LOAD_DEPLOYED_CONTRACT=yes
     volumes:
       - ../src:/app/src
-    command:
-      - "true"
+      - ../scripts:/app/scripts
   watcher-signature-request:
-    extends: bridge
+    extends: validator
     command: npm run watcher:signature-request
-    depends_on:
-      - deploy-contract
   watcher-collected-signatures:
-    extends: bridge
+    extends: validator
     command: npm run watcher:collected-signatures
-    depends_on:
-      - deploy-contract
   watcher-affirmation-request:
-    extends: bridge
+    extends: validator
     command: npm run watcher:affirmation-request
-    depends_on:
-      - deploy-contract
   sender-home:
-    extends: bridge
+    extends: validator
     command: npm run sender:home
-    depends_on:
-      - deploy-contract
+    environment:
+      - VALIDATOR_ADDRESS=0x0b663c33A72819d2371Ad7939A4C29dc31C0881b
+      - VALIDATOR_ADDRESS_PRIVATE_KEY=4bf3b1bb36eb3f53d1ae5e6309510e17fe41df9a26a236de3385872211e0eab4
   sender-foreign:
-    extends: bridge
+    extends: validator
     command: npm run sender:foreign
-    depends_on:
-      - deploy-contract
-  test:
-    extends: bridge
-    command: bash
+    environment:
+      - VALIDATOR_ADDRESS=0x0b663c33A72819d2371Ad7939A4C29dc31C0881b
+      - VALIDATOR_ADDRESS_PRIVATE_KEY=4bf3b1bb36eb3f53d1ae5e6309510e17fe41df9a26a236de3385872211e0eab4
+  receiptor-home:
+    extends: validator
+    command: npm run receiptor:home
+  receiptor-foreign:
+    extends: validator
+    command: npm run receiptor:foreign
+  e2e:
+    build: .
+    image: e2e
     stdin_open: true
     tty: true
-  e2e:
-    build:
-        context: ../../
-        dockerfile: ./validator/e2e/Dockerfile
-    command:
-      - "true"
-  deploy-contract:
-    extends: e2e
-    command: npm run deploy
-    volumes:
-      - ./test:/stuff/test
-    depends_on:
-      - thunder1 
-      - parity2
-      - rabbit
-      - redis

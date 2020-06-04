@@ -97,7 +97,7 @@ async function initialize() {
       }
     })
   } catch (e) {
-    logger.error(e.message)
+    logger.fatal(e, 'sender.main catched exception')
     process.exit(EXIT_CODES.GENERAL_ERROR)
   }
 }

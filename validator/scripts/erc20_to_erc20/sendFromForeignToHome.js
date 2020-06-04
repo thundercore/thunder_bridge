@@ -10,11 +10,13 @@ const { sendTx, sendRawTx } = require('../../src/tx/sendTx')
 const {
   USER_ADDRESS,
   USER_ADDRESS_PRIVATE_KEY,
-  FOREIGN_BRIDGE_ADDRESS,
   FOREIGN_MIN_AMOUNT_PER_TX,
   FOREIGN_TEST_TX_GAS_PRICE,
   HOME_CUSTOM_RECIPIENT
 } = process.env
+
+const deployed = require('../../data/deployed.json')
+const FOREIGN_BRIDGE_ADDRESS = deployed.foreignBridge.address
 
 const NUMBER_OF_DEPOSITS_TO_SEND = process.argv[2] || process.env.NUMBER_OF_DEPOSITS_TO_SEND || 1
 
@@ -44,6 +46,8 @@ async function main() {
     nonce = Web3Utils.hexToNumber(nonce)
     let actualSent = 0
     for (let i = 0; i < Number(NUMBER_OF_DEPOSITS_TO_SEND); i++) {
+      let balance = await poa20.methods.balanceOf(USER_ADDRESS).call()
+      console.log(`user: ${USER_ADDRESS}, balance: ${balance}`)
       let gasLimit = await poa20.methods
         .transfer(FOREIGN_BRIDGE_ADDRESS, Web3Utils.toWei(FOREIGN_MIN_AMOUNT_PER_TX))
         .estimateGas({ from: USER_ADDRESS })
@@ -54,7 +58,7 @@ async function main() {
         data += `000000000000000000000000${HOME_CUSTOM_RECIPIENT.slice(2)}`
         gasLimit += 50000
       }
-      const txHash = await sendTx({
+      const txConfig = {
         chain: 'foreign',
         privateKey: USER_ADDRESS_PRIVATE_KEY,
         data,
@@ -65,7 +69,8 @@ async function main() {
         to: ERC20_TOKEN_ADDRESS,
         web3: web3Foreign,
         chainId: foreignChaindId
-      })
+      }
+      const txHash = await sendTx(txConfig)
       if (txHash !== undefined) {
         nonce++
         actualSent++

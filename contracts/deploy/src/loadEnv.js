@@ -67,7 +67,6 @@ if (BRIDGE_MODE === 'NATIVE_TO_ERC') {
 if (BRIDGE_MODE === 'ERC_TO_ERC') {
   validations = {
     ...validations,
-    ERC20_TOKEN_ADDRESS: addressValidator(),
     BRIDGEABLE_TOKEN_NAME: envalid.str(),
     BRIDGEABLE_TOKEN_SYMBOL: envalid.str(),
     BRIDGEABLE_TOKEN_DECIMALS: envalid.num()

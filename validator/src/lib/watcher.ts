@@ -235,6 +235,7 @@ export class EventWatcher {
             eventType: this.id,
             event,
           }
+          logger.debug({task}, 'enqueue EventTask')
           await sendToQueue(task)
         })
       }

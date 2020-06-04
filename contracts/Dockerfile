@@ -1,20 +1,30 @@
-FROM node:8
+FROM node:10 AS contract
 
-WORKDIR /app
+RUN mkdir /contracts
+WORKDIR /contracts
+
 COPY package.json .
 COPY package-lock.json .
-RUN npm install
 
-COPY ./deploy/package.json ./deploy/
-COPY ./deploy/package-lock.json ./deploy/
-RUN cd ./deploy && npm install && cd ..
+RUN npm install
 
 COPY . .
 
-RUN npm run compile
-RUN ./flatten.sh
+RUN npm run compile && ./flatten.sh
 
-WORKDIR /app/deploy
+FROM node:10
 
-ENTRYPOINT ["npm", "run"]
-CMD ["docker-message"]
+RUN mkdir -p /contracts/deploy
+WORKDIR /contracts/deploy
+
+COPY deploy/package.json .
+COPY deploy/package-lock.json .
+
+RUN npm install --unsafe-perm
+
+COPY --from=contract /contracts/build/ /contracts/build/
+COPY --from=contract /contracts/flats/ /contracts/flats/
+
+COPY deploy .
+
+CMD [ "npm", "run", "deploy" ]

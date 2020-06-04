@@ -56,7 +56,7 @@ def copy(src, dest):
 
 def truffle(args):
     copy(
-        os.path.join(CONTRACT_DIR, 'deploy', 'env.truffle'),
+        os.path.join(CONTRACT_DIR, 'deploy', 'env.local'),
         os.path.join(CONTRACT_DIR, 'deploy', '.env'),
     )
 
