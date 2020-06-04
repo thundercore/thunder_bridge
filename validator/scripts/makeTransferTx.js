@@ -1,64 +1,18 @@
-const connection = require('amqp-connection-manager').connect('amqp://127.0.0.1:5672')
 const Web3 = require('web3')
 
-var web3 = new Web3('http://localhost:7545');
-var deployed = require('../data/deployed.json')
+var web3 = new Web3('https://testnet-rpc.thundercore.com/');
+var deployed = require('../../data-testnet/deployed.json')
 var erc20Abi = require('../abis/ERC20.abi.json')
-
-web3.extend({
-  property: 'miner',
-  methods: [
-    {
-      name: 'start',
-      call: 'miner_start'
-    }, {
-      name: 'stop',
-      call: 'miner_stop'
-    }, {
-      name: 'mine',
-      call: 'evm_mine',
-      params: 1
-    }
- ]
-});
-
-connection.on('connect', (conn, e) => {
-  if (e !== undefined) {
-    console.log(e, 'Connect to amqp broker failed')
-  } else {
-    console.log('Connected to amqp Broker')
-  }
-})
-
-connection.on('disconnect', (e) => {
-  console.log(e, 'Disconnected from amqp Broker')
-})
 
 
 async function main() {
-  const queueName = "foreign"
-  const channelWrapper = connection.createChannel({
-    json: true,
-    setup(channel) {
-      return Promise.all([channel.assertQueue(queueName, { durable: true })])
-    }
-  })
-
+  web3.eth.accounts.wallet.add('0x2c3b2a410d5153214e97c814a300f8e7beb31485d0843f5b28826bab1918a61f')
   let erc20 = new web3.eth.Contract(erc20Abi, deployed.erc20Token.address)
   console.log(erc20.address)
-  const r = await erc20.methods.transfer(deployed.foreignBridge.address, web3.utils.toWei('0.01')).send({from: '0x6Da72903E0BD3F4D79734dFC459a31093A2B8327'})
+  const r = await erc20.methods
+  .transfer(deployed.foreignBridge.address, web3.utils.toWei('0.01'))
+  .send({from: '0x9039dD6D7189CE1F9cF8b098d18358e4e41B19BD', gas: 100000})
   console.log(r)
-  let task = {
-      eventType: 'erc-erc-affirmation-request',
-      event: r.events.Transfer,
-    }
-
-  await channelWrapper.sendToQueue(queueName, task, { persistent: true })
-  for (let i=0; i < 20; i++) {
-    setTimeout(async() => {
-      await web3.miner.mine(Date.now())
-    }, 500 * i)
-  }
 }
 
 main()

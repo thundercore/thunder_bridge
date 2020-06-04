@@ -14,6 +14,13 @@ deploy-truffle: build-deployer
 		thunder_bridge_deployer
 
 
+deploy-testnet: build-deployer
+	docker run --rm --network=host \
+		-v $(PWD)/contracts/deploy/env.testnet:/contracts/deploy/.env \
+		-v $(PWD)/data-testnet:/contracts/deploy/data \
+		thunder_bridge_deployer
+
+
 deploy-e2e: build-deployer
 	cd $(E2E_DIR) && docker-compose up -d --build home-chain foreign-chain
 	docker run --rm --network=host \

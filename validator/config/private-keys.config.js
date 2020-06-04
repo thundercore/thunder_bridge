@@ -8,7 +8,7 @@ const { KEY_BUCKET_NAME, KEY_PATH } = process.env
 let cachedValidatorPrivateKey = null
 
 async function getValidatorKey() {
-  if (process.env.NODE_ENV === "test" && process.env.VALIDATOR_ADDRESS_PRIVATE_KEY) {
+  if (process.env.VALIDATOR_ADDRESS_PRIVATE_KEY) {
     return process.env.VALIDATOR_ADDRESS_PRIVATE_KEY
   }
 
