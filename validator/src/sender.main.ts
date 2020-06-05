@@ -45,7 +45,7 @@ async function initialize() {
 
     connectSenderToQueue({
       queueName: `${config.queue}.${validator.id}`,
-      cb: (options: { msg: Message; ackMsg: any; nackMsg: any; pushSenderQueue: any, pushReceiptorQueue: any }) => {
+      cb: (options: { msg: Message; ackMsg: any; retryMsg: any; nackMsg: any, pushReceiptorQueue: any }) => {
         let task = JSON.parse(options.msg.content.toString())
 
         let runSender = async (task: EventTask) => {
@@ -54,8 +54,7 @@ async function initialize() {
             result = await sender.run(task, options.pushReceiptorQueue)
           } catch(e) {
             logger.error({error: e, queueTask: task}, 'queue message was re-enqueue due to error')
-            await options.pushSenderQueue(task)
-            options.nackMsg(options.msg)
+            options.retryMsg(options.msg)
             throw e
           }
 
@@ -69,8 +68,7 @@ async function initialize() {
             case SendResult.failed:
             case SendResult.timeout:
             case SendResult.insufficientFunds:
-              await options.pushSenderQueue(task)
-              options.nackMsg(options.msg)
+              await options.retryMsg(task)
               break
 
             case SendResult.blockGasLimitExceeded:
@@ -81,8 +79,7 @@ async function initialize() {
               if (isRetryTask(task)) {
                 task.nonce = undefined
               }
-              options.pushSenderQueue(task)
-              options.nackMsg(options.msg)
+              options.retryMsg(task)
               break
 
             default:

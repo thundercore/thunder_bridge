@@ -43,6 +43,7 @@ let validations = {
   BLOCK_CONFIRMATION: envalid.num(),
   MAX_WAIT_RECEIPT_BLOCK: envalid.num(),
   GET_RECEIPT_TIMEOUT: envalid.num(),
+  QUEUE_RETRY_DELAY: envalid.num({default: 2000}),
 }
 
 const env = envalid.cleanEnv(process.env, validations, {})
