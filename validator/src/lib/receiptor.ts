@@ -87,7 +87,6 @@ export class Receiptor {
 
   async run(task: ReceiptTask, sendToQueue: sendToQueue): Promise<ReceiptResult> {
     let receipt: TransactionReceipt | null
-    console.debug(task, `init receipter task`)
     try {
       receipt = await this.getReceipt(task)
     } catch (e) {

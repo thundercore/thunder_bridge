@@ -285,11 +285,13 @@ export class Sender {
     this.logger.info(`Process ${task.eventType} event '${task.event.transactionHash}'`)
     const txInfo = await this.EventToTxInfo(task)
     if (txInfo === null) {
-      if (isRetryTask(task)) {
+      // If current nonce < retryTask.nonce, we need to fill this nonce
+      // even if the task was skipped by estimateGas.
+      if (isRetryTask(task) && (await this.readNonce(true)) < task.nonce!) {
         const txHash = await this.web3.sendToSelf(task.nonce!)
         const receiptTask = await this.newReceiptTask(task, txHash, task.nonce!)
         await sendToQueue(receiptTask)
-        this.logger.info({txHash, nonce: task.nonce}, 'retry task is ignored, send a transaction to fill nonce.')
+        this.logger.info({txHash, nonce: task.nonce}, 'retry task was ignored, send a transaction to fill nonce.')
       }
       result = SendResult.skipped
     } else {
