@@ -14,6 +14,7 @@ if (process.argv.length < 3) {
 
 import config from '../config'
 import { ReceiptTask } from "./lib/types"
+import { loadValidatorFromAWS } from "../config/private-keys.config"
 
 
 async function initialize() {
@@ -24,11 +25,12 @@ async function initialize() {
     rpcUrlsManager.homeUrls.forEach(checkHttps('home'))
     rpcUrlsManager.foreignUrls.forEach(checkHttps('foreign'))
 
+    const validator = await loadValidatorFromAWS()
     const web3 = new ReceiptorWeb3Impl(config.web3)
-    const receiptor = new Receiptor(config.id, web3)
+    const receiptor = new Receiptor(`${config.id}.${validator.id}`, web3)
 
     connectReceiptorQueue({
-      queueName: config.queue,
+      queueName: `${config.queue}.${validator.id}`,
       cb: (options: { msg: Message; ackMsg: any; retryMsg: any; rejectMsg: any; sendToQueue: any }) => {
         let task = JSON.parse(options.msg.content.toString())
 

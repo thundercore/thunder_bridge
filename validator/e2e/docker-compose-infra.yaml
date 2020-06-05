@@ -1,0 +1,19 @@
+version: '2'
+services:
+  home-chain:
+    build: parity
+    ports:
+      - "8541:8545"
+  foreign-chain:
+    build: parity
+    ports:
+      - "8542:8545"
+  redis:
+    image: "redis:4"
+    ports:
+     - "6379:6379"
+  rabbit:
+    image: "rabbitmq:3-management"
+    ports:
+      - "15672:15672"
+      - "5672:5672"

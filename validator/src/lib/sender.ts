@@ -39,22 +39,22 @@ class SubmitTxError extends Error {
 }
 
 export class SenderWeb3Impl implements SenderWeb3 {
-  id: string
+  name: string
   chainId: number
   validator: Validator
   web3: Web3
   gasPriceService: any
   logger: any
 
-  constructor(id: string, chainId: number, validator: Validator, web3: Web3, gasPriceService: any) {
-    this.id = id
+  constructor(name: string, chainId: number, validator: Validator, web3: Web3, gasPriceService: any) {
+    this.name = name
     this.chainId = chainId
     this.validator = validator
     this.web3 = web3
     this.gasPriceService = gasPriceService
 
     this.logger = rootLogger.child({
-      senderId: id
+      senderId: name
     })
   }
 
@@ -206,7 +206,7 @@ export enum SendResult {
 type sendToQueue = (task: ReceiptTask) => Promise<void>;
 
 export class Sender {
-  id: string
+  name: string
   web3: SenderWeb3
   locker: Locker
   cache?: Cache
@@ -215,17 +215,17 @@ export class Sender {
 
   logger: any
 
-  constructor(id: string, web3: SenderWeb3, locker: Locker, cache?: Cache) {
-    this.id = id
+  constructor(name: string, web3: SenderWeb3, locker: Locker, cache?: Cache) {
+    this.name = name
     this.web3 = web3
     this.locker = locker
     this.cache = cache
 
-    this.noncelock = `lock:${this.id}:nonce`
-    this.nonceKey = `${this.id}:nonce`
+    this.noncelock = `lock:${this.name}:nonce`
+    this.nonceKey = `${this.name}:nonce`
 
     this.logger = rootLogger.child({
-      senderId: id
+      senderId: name
     })
   }
 

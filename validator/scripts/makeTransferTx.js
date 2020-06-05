@@ -1,6 +1,6 @@
 const Web3 = require('web3')
 
-var web3 = new Web3('https://testnet-rpc.thundercore.com/');
+var web3 = new Web3('http://127.0.0.1:8542/');
 var deployed = require('../../data-testnet/deployed.json')
 var erc20Abi = require('../abis/ERC20.abi.json')
 

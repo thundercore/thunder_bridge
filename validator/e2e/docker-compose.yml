@@ -1,22 +1,5 @@
 version: '2'
 services:
-  home-chain:
-    build: thunder
-    ports:
-      - "8541:8545"
-  foreign-chain:
-    build: thunder
-    ports:
-      - "8542:8545"
-  redis:
-    image: "redis:4"
-    ports:
-     - "6379:6379"
-  rabbit:
-    image: "rabbitmq:3-management"
-    ports:
-      - "15672:15672"
-      - "5672:5672"
   validator:
     build: ..
     image: validator
@@ -47,6 +30,8 @@ services:
     volumes:
       - ../src:/app/src
       - ../scripts:/app/scripts
+    env_file:
+      - ./validator.env
   watcher-signature-request:
     extends: validator
     command: npm run watcher:signature-request
@@ -59,15 +44,9 @@ services:
   sender-home:
     extends: validator
     command: npm run sender:home
-    environment:
-      - VALIDATOR_ADDRESS=0x0b663c33A72819d2371Ad7939A4C29dc31C0881b
-      - VALIDATOR_ADDRESS_PRIVATE_KEY=4bf3b1bb36eb3f53d1ae5e6309510e17fe41df9a26a236de3385872211e0eab4
   sender-foreign:
     extends: validator
     command: npm run sender:foreign
-    environment:
-      - VALIDATOR_ADDRESS=0x0b663c33A72819d2371Ad7939A4C29dc31C0881b
-      - VALIDATOR_ADDRESS_PRIVATE_KEY=4bf3b1bb36eb3f53d1ae5e6309510e17fe41df9a26a236de3385872211e0eab4
   receiptor-home:
     extends: validator
     command: npm run receiptor:home

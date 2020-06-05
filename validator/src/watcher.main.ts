@@ -11,6 +11,7 @@ import { redis } from './services/redisClient'
 import { checkHTTPS, watchdog } from './utils/utils'
 import { EXIT_CODES } from './utils/constants'
 import { EventTask } from './lib/types'
+import { loadValidatorFromAWS } from '../config/private-keys.config'
 
 if (process.argv.length < 3) {
   logger.error('Please check the number of arguments, config file was not provided')
@@ -33,13 +34,14 @@ let watcher = NewWatcher()
 
 async function initialize() {
   try {
+    const validator = await loadValidatorFromAWS()
     const checkHttps = checkHTTPS(config.ALLOW_HTTP, logger)
 
     rpcUrlsManager.homeUrls.forEach(checkHttps('home'))
     rpcUrlsManager.foreignUrls.forEach(checkHttps('foreign'))
 
     connectWatcherToQueue({
-      queueName: config.queue,
+      queueName: `${config.queue}.${validator.id}`,
       cb: loopRunner
     })
   } catch (e) {

@@ -46,7 +46,7 @@ async function deployToken() {
   console.log('[Foreign] ERC20 Token: ', erc677token.options.address)
 
   if (NODE_ENV === 'test' && USER_ADDRESS) {
-    console.log(`[Foreign] minting 1000 tokens to ${USER_ADDRESS} for test`)
+    console.log(`[Foreign] minting 100 tokens to ${USER_ADDRESS} for test`)
     await mintAddress(erc677token, USER_ADDRESS, foreignNonce)
     foreignNonce++
   } else {

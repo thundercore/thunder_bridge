@@ -20,15 +20,15 @@ import { RedisLocker } from "./lib/RedisLocker"
 import { EventTask, isRetryTask } from "./lib/types"
 
 
-async function newSender(): Promise<Sender> {
-    let validator = await loadValidatorFromAWS()
-    let chainId = await config.web3.eth.net.getId()
+async function newSender(validator: {id: string, address: string, privateKey: string}): Promise<Sender> {
+    const chainId = await config.web3.eth.net.getId()
     GasPrice.start(config.id)
-    let web3 = new SenderWeb3Impl(
-        config.id, chainId, validator, config.web3, GasPrice
+    const name = `${config.name}.${validator.id}`
+    const web3 = new SenderWeb3Impl(
+        name, chainId, validator, config.web3, GasPrice
     )
     let redlock = new RedisLocker(config.REDIS_LOCK_TTL)
-    return new Sender(config.id, web3, redlock, redis)
+    return new Sender(name, web3, redlock, redis)
 }
 
 
@@ -40,10 +40,11 @@ async function initialize() {
     rpcUrlsManager.homeUrls.forEach(checkHttps('home'))
     rpcUrlsManager.foreignUrls.forEach(checkHttps('foreign'))
 
-    const sender = await newSender()
+    const validator = await loadValidatorFromAWS()
+    const sender = await newSender(validator)
 
     connectSenderToQueue({
-      queueName: config.queue,
+      queueName: `${config.queue}.${validator.id}`,
       cb: (options: { msg: Message; ackMsg: any; nackMsg: any; pushSenderQueue: any, pushReceiptorQueue: any }) => {
         let task = JSON.parse(options.msg.content.toString())
 

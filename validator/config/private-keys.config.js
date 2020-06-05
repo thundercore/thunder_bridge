@@ -40,8 +40,9 @@ async function loadValidatorFromAWS() {
     throw new Error("Failed to fetch validator address by private key")
   }
   return {
+    id: validatorAddress.substring(0, 8),
     address: validatorAddress,
-    privateKey: privateKey
+    privateKey: privateKey,
   }
 }
 
