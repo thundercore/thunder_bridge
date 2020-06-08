@@ -51,10 +51,10 @@ export class Receiptor {
     })
   }
 
-  async resendEvent(task: ReceiptTask, sendToQueue: sendToQueue): Promise<void> {
+  async resendEvent(task: ReceiptTask, nonce: number|undefined, sendToQueue: sendToQueue): Promise<void> {
     const newTask: EventTask = {
       ...task.eventTask,
-      nonce: task.nonce,
+      nonce: nonce,
       retries: task.retries ? task.retries + 1 : 1,
       timestamp: task.timestamp,
     }
@@ -106,7 +106,7 @@ export class Receiptor {
           },
           `exceed maximum wait receipt block`,
         )
-        await this.resendEvent(task, sendToQueue)
+        await this.resendEvent(task, task.nonce, sendToQueue)
         result = ReceiptResult.null
       } else {
         result = ReceiptResult.waittingReceipt
@@ -122,7 +122,8 @@ export class Receiptor {
     } else if (!receipt!.status) {
       // Get a failed receipt
       this.logger.info({ receipt }, `get receipt returns failed status`)
-      await this.resendEvent(task, sendToQueue)
+      // We have got the receipt, resend task with undefined nonce.
+      await this.resendEvent(task, undefined, sendToQueue)
       result = ReceiptResult.failed
     }
 
