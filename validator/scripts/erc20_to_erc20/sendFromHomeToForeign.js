@@ -53,18 +53,23 @@ async function main() {
     })
     nonce = Web3Utils.hexToNumber(nonce)
     let actualSent = 0
+    const transferValue = Web3Utils.toWei(HOME_MIN_AMOUNT_PER_TX)
     for (let i = 0; i < Number(NUMBER_OF_WITHDRAWALS_TO_SEND); i++) {
-      if (i % 10 === 0) {
-        await sleep(100)
+      let balance = Number(await erc677.methods.balanceOf(USER_ADDRESS).call())
+      while (balance < Number(transferValue)) {
+        console.log(`user: ${USER_ADDRESS} balance: ${balance} < ${transferValue}, sleep 1...`)
+        await sleep(1000)
+        balance = Number(await erc677.methods.balanceOf(USER_ADDRESS).call())
       }
-      const balance = await erc677.methods.balanceOf(USER_ADDRESS).call()
+
       console.log(`Balance of ${USER_ADDRESS}: ${balance}`)
       let gasLimit = await erc677.methods
-        .transferAndCall(HOME_BRIDGE_ADDRESS, Web3Utils.toWei(HOME_MIN_AMOUNT_PER_TX), '0x')
+        .transferAndCall(HOME_BRIDGE_ADDRESS, transferValue, '0x')
         .estimateGas({ from: USER_ADDRESS })
       gasLimit *= 2
+      console.log(`user: ${USER_ADDRESS}, gasLimit: ${gasLimit}`)
       let data = await erc677.methods
-        .transferAndCall(HOME_BRIDGE_ADDRESS, Web3Utils.toWei(HOME_MIN_AMOUNT_PER_TX), '0x')
+        .transferAndCall(HOME_BRIDGE_ADDRESS, transferValue, '0x')
         .encodeABI({ from: USER_ADDRESS })
       if (FOREIGN_CUSTOM_RECIPIENT) {
         data += `000000000000000000000000${FOREIGN_CUSTOM_RECIPIENT.slice(2)}`
@@ -103,15 +108,13 @@ async function main() {
     console.log(e)
   }
 
-  // wait for last tx
-  for (let i = 0; i < 15; i++) {
+  let receipt;
+  while(!receipt) {
     await sleep(1000)
     const c = toCheck[toCheck.length - 1]
-    const receipt = await web3Home.eth.getTransactionReceipt(c.transactionHash)
-    if (receipt) {
-      break
-    }
+    receipt = await web3Home.eth.getTransactionReceipt(c.transactionHash)
   }
+
 
   const expect = {}
   let numToCheck = 0
@@ -127,15 +130,32 @@ async function main() {
   console.log('numToCheck=', numToCheck)
 
   let done = 0
+  let retries = 0
   while (done < numToCheck) {
     await sleep(5000)
     let foreignToBlock = await web3Foreign.eth.getBlockNumber()
     foreignToBlock = Math.min(foreignToBlock, foreignStartBlock + 10)
     const count = await checkRelayedMessage(foreignStartBlock, foreignToBlock, expect)
-    done += count
+    if (count === 0) {
+      retries += 1
+    } else {
+      done += count
+      retries = 0
+    }
     foreignStartBlock = foreignToBlock
-    console.log('done=', done, 'to check', toCheck.length)
+    console.log(`done=${done}, total=${numToCheck}`)
+
+    if (retries > 20) {
+      console.log("remaining transactions:")
+      for (let i = 0; i < toCheck.length; i++) {
+        const c = toCheck[i];
+        if (expect[c.transactionHash] && expect[c.transactionHash].result !== 'success') {
+          console.log(c)
+        }
+      }
+      process.exit(17)
+    }
+
   }
-  console.log('oh ya')
 }
 main()

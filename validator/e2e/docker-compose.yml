@@ -27,6 +27,7 @@ services:
       - MAX_WAIT_RECEIPT_BLOCK=2
       - GET_RECEIPT_TIMEOUT=5000
       - LOAD_DEPLOYED_CONTRACT=yes
+      - EXTRA_GAS_PERCENTAGE=0
     volumes:
       - ../src:/app/src
       - ../scripts:/app/scripts

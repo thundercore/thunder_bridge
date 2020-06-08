@@ -1,7 +1,6 @@
 import BN from 'bn.js'
 import Web3 from 'web3'
 import rootLogger = require("../services/logger")
-import { EXTRA_GAS_PERCENTAGE } from '../utils/constants'
 import { EventTask, TxInfo, ReceiptTask, isRetryTask } from './types'
 import { Locker } from './locker'
 import { Cache } from './storage'
@@ -11,6 +10,7 @@ import { addExtraGas } from '../utils/utils'
 import { toBN, toWei } from 'web3-utils'
 import { BigNumber } from 'bignumber.js'
 import { JsonRpcResponse } from 'web3-core-helpers'
+import config from '../../config'
 
 
 export interface SenderWeb3 {
@@ -294,21 +294,26 @@ export class Sender {
         this.logger.info({txHash, nonce: task.nonce}, 'retry task was ignored, send a transaction to fill nonce.')
       }
       result = SendResult.skipped
+
     } else {
-      result = await this.sendTx(txInfo, sendToQueue)
+      const lock = await this.locker.lock(this.noncelock)
+      try {
+        this.logger.debug(`Acquiring lock: ${this.noncelock}`)
+        result = await this.sendTx(txInfo, sendToQueue)
+      } finally {
+        this.logger.debug('Releasing lock')
+        await lock.unlock()
+      }
     }
 
-    this.logger.debug({tx: task.event.transactionHash, result}, "run task finished")
+    this.logger.debug({EventTx: task.event.transactionHash, result}, "run task finished")
     return Promise.resolve(result)
   }
 
   async sendTx(txinfo: TxInfo, sendToQueue: sendToQueue): Promise<SendResult> {
-    this.logger.debug(`Acquiring lock: ${this.noncelock}`)
-    const lock = await this.locker.lock(this.noncelock)
-    this.logger.debug('Lock acquired')
 
     let nonce: number
-    if (isRetryTask(txinfo.eventTask)) {
+    if (isRetryTask(txinfo.eventTask) && txinfo.eventTask.nonce) {
       nonce = txinfo.eventTask.nonce!
       this.logger.debug(`Use retry task nonce: ${nonce}`)
     } else {
@@ -322,7 +327,7 @@ export class Sender {
     }
 
     let result = SendResult.failed
-    const gasLimit = addExtraGas(txinfo.gasEstimate, EXTRA_GAS_PERCENTAGE)
+    const gasLimit = addExtraGas(txinfo.gasEstimate, config.EXTRA_GAS_PERCENTAGE)
 
     const enqueueReceiptTask = async (txHash: string) => {
       const receiptTask = await this.newReceiptTask(txinfo.eventTask, txHash, nonce)
@@ -334,7 +339,7 @@ export class Sender {
       this.logger.info(`Sending transaction with nonce ${nonce}`)
       const txHash = await this.web3.sendTransaction(nonce, gasLimit, toBN('0'), txinfo)
 
-      this.logger.info(`Tx generated ${txHash} for event Tx ${txinfo.transactionReference}`)
+      this.logger.info(`sendTransaction(${txinfo.transactionReference}) returns receiptTx: ${txHash}`)
 
       await enqueueReceiptTask(txHash)
       result = SendResult.success
@@ -344,7 +349,7 @@ export class Sender {
       let txHash: string = ''
       this.logger.error(
         { txHash, eventTransactionHash: txinfo.transactionReference, error: e.message },
-        `Failed to send event Tx ${txinfo.transactionReference}: ${e.message}`,
+        `Failed to send eventTx ${txinfo.transactionReference}: ${e.message}`,
       )
 
       if (SendTxError.isTxWasImportedError(e)) {
@@ -371,15 +376,12 @@ export class Sender {
         result = SendResult.timeout
 
       } else {
-        this.logger.error(`Unknown error, tx: ${txinfo.transactionReference}`)
+        this.logger.error(`Unknown error, EventTx: ${txinfo.transactionReference}`)
       }
     }
 
     this.logger.debug(`Updating nonce ${nonce}`)
     await this.updateNonce(nonce)
-
-    this.logger.debug('Releasing lock')
-    await lock.unlock()
 
     this.logger.info(`Finished sendTx with result: ${result}`)
 

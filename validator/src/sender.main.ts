@@ -54,7 +54,7 @@ async function initialize() {
             result = await sender.run(task, options.pushReceiptorQueue)
           } catch(e) {
             logger.error({error: e, queueTask: task}, 'queue message was re-enqueue due to error')
-            await options.pushReceiptorQueue(task)
+            await options.pushSenderQueue(task)
             await options.nackMsg(options.msg)
             throw e
           }
@@ -69,7 +69,7 @@ async function initialize() {
             case SendResult.failed:
             case SendResult.timeout:
             case SendResult.insufficientFunds:
-              await options.pushReceiptorQueue(task)
+              await options.pushSenderQueue(task)
               await options.nackMsg(options.msg)
               break
 
@@ -81,11 +81,12 @@ async function initialize() {
               if (isRetryTask(task)) {
                 task.nonce = undefined
               }
-              await options.pushReceiptorQueue(task)
+              await options.pushSenderQueue(task)
               await options.nackMsg(options.msg)
               break
 
             default:
+              await options.pushSenderQueue(task)
               options.nackMsg(options.msg)
               throw Error("No such result type")
           } // end of switch

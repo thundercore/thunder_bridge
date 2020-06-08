@@ -4,7 +4,6 @@ import { createSandbox, stub } from 'sinon'
 import { TransactionConfig, TransactionReceipt } from 'web3-core'
 import { toBN, toWei } from 'web3-utils'
 import { BigNumber } from 'bignumber.js'
-import { EXTRA_GAS_PERCENTAGE } from '../../utils/constants'
 
 import { FakeCache } from '../storage'
 import { FakeLocker } from '../locker'
@@ -13,6 +12,8 @@ import { TxInfo, ReceiptTask, EventTask } from '../types'
 import { addExtraGas } from '../../utils/utils'
 import { EventEmitter } from 'events'
 import sinon from 'sinon'
+
+const EXTRA_GAS_PERCENTAGE = 1
 
 const sandbox = createSandbox()
 const fakeEvent: EventTask = {
