@@ -36,7 +36,6 @@ function connectSenderToQueue({ queueName, cb }) {
 
   const receiptQueue = `${queueName}-receipt`
   const retryQueue = `${queueName}-retry`
-  const pushReceiptorQueue = data => channelWrapper.sendToQueue(receiptQueue, data, { persistent: true })
 
   logger.info(`Connect sender to consumer queue: ${queueName} and producer queue: ${receiptQueue}`)
 
@@ -66,6 +65,8 @@ function connectSenderToQueue({ queueName, cb }) {
     ]);
   })
 
+  const pushReceiptorQueue = data => channelWrapper.sendToQueue(receiptQueue, data, { persistent: true })
+  const pushSenderQueue = data => channelWrapper.sendToQueue(retryQueue, data, { persistent: true })
   channelWrapper.addSetup(channel => {
     return Promise.all([
       channel.prefetch(1),
@@ -74,12 +75,8 @@ function connectSenderToQueue({ queueName, cb }) {
             msg,
             channel: channelWrapper,
             ackMsg: job => channelWrapper.ack(job),
-            retryMsg: job => {
-              let task = JSON.parse(job.content.toString())
-              channelWrapper.sendToQueue(retryQueue, task)
-              channelWrapper.nack(job, false, false)
-            },
             nackMsg: job => channelWrapper.nack(job, false, false),
+            pushSenderQueue,
             pushReceiptorQueue,
           })
         }
