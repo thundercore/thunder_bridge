@@ -215,37 +215,54 @@ export class EventWatcher {
 
   async run(sendToQueue: (task: EventTask) => Promise<void>) {
     try {
-      const lastBlockToProcess = await this.getLastBlockToProcess()
-      const lastProcessedBlock = this.status.lastProcessedBlock
-
-      if (lastBlockToProcess.lte(lastProcessedBlock)) {
-        logger.debug('All blocks already processed')
-        return
+      let eventCount = 0
+      for (let i = 0; i < 10; i++) {
+        const c = await this.do(sendToQueue)
+        if (c === -1) {
+          break
+        }
+        eventCount += c
+        if (eventCount > 100) {
+          break
+        }
       }
-
-      const fromBlock = lastProcessedBlock.add(ONE)
-      const toBlock = lastBlockToProcess
-
-      const events = await this.web3.getEvents(this.event, fromBlock, toBlock, this.eventFilter)
-      logger.info(`Found ${events.length} ${this.event} events: ${JSON.stringify(events)}`)
-
-      if (events.length) {
-        events.map(async (event) => {
-          const task: EventTask = {
-            eventType: this.id,
-            event,
-          }
-          logger.debug({task}, 'enqueue EventTask')
-          await sendToQueue(task)
-        })
-      }
-
-      logger.debug({ lastProcessedBlock: lastBlockToProcess.toString() }, 'Updating last processed block')
-      await this.status.updateLastProcessedBlock(lastBlockToProcess)
     } catch (e) {
       logger.error(e)
     }
-
     logger.debug('Finished')
+  }
+
+  async do(sendToQueue: (task: EventTask) => Promise<void>): Promise<number> {
+    const lastBlockToProcess = await this.getLastBlockToProcess()
+    const lastProcessedBlock = this.status.lastProcessedBlock
+
+    if (lastBlockToProcess.lte(lastProcessedBlock)) {
+      logger.debug('All blocks already processed')
+      return -1
+    }
+
+    const batchSize = toBN(100)
+    const fromBlock = lastProcessedBlock.add(ONE)
+    let toBlock = lastBlockToProcess
+    if (toBlock.gt(fromBlock.add(batchSize))) {
+      toBlock = fromBlock.add(batchSize)
+    }
+
+    const events = await this.web3.getEvents(this.event, fromBlock, toBlock, this.eventFilter)
+    logger.info(`Found ${events.length} ${this.event} events: ${JSON.stringify(events)}`)
+
+    if (events.length) {
+      events.map(async (event) => {
+        const task: EventTask = {
+          eventType: this.id,
+          event,
+        }
+        logger.debug({ task }, 'enqueue EventTask')
+        await sendToQueue(task)
+      })
+    }
+    logger.debug({ lastProcessedBlock: toBlock.toString() }, 'Updating last processed block')
+    await this.status.updateLastProcessedBlock(toBlock)
+    return events.length
   }
 }
