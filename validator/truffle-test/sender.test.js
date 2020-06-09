@@ -17,7 +17,7 @@ const home = new w3.eth.Contract(HomeBridge.abi, deployed.homeBridge.address)
 const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address)
 
 const makeTransfer = async (account) => {
-  return await utils.makeTransfer(w3, erc20, account, foreign.options.address)
+  return utils.makeTransfer(w3, erc20, account, foreign.options.address)
 }
 
 contract("Test single sender", (accounts) => {

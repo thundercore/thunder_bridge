@@ -28,7 +28,7 @@ contract('test resend task', (accounts) => {
     chainOpW3 = await utils.ChainOpWeb3(w3)
   })
 
-  it('task resend with same nonce', async () => {
+  it('task resend with an occupied nonce', async () => {
     const task = await makeTransfer(accounts[9])
 
     await chainOpW3.minerStop()
@@ -40,11 +40,12 @@ contract('test resend task', (accounts) => {
     s.web3.sendToSelf(nonce)
     await chainOpW3.makeOneBlock(dummy)
 
-    // Send task with same nonce will raise nonce too low error
+    sandbox.stub(s, 'EventToTxInfo').resolves(null)
     task.nonce = nonce
     task.retries = 1
+    // Send task with same nonce will be skipped due to currNonce > nonce
     const r = await s.run(task, q.sendToQueue)
-    expect(r).to.be.eq(sender.SendResult.nonceTooLow)
+    expect(r).to.be.eq(sender.SendResult.skipped)
     await chainOpW3.makeOneBlock(dummy)
   })
 

@@ -79,7 +79,8 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
       blockNumber = await this.web3.eth.getBlockNumber()
       logger.debug({ blockNumber }, 'Block number obtained')
     } catch (e) {
-      throw new Error(`Block Number cannot be obtained`)
+      logger.error({e}, 'Block Number cannot be obtained')
+      throw e
     }
     return toBN(blockNumber)
   }
@@ -214,20 +215,16 @@ export class EventWatcher {
   }
 
   async run(sendToQueue: (task: EventTask) => Promise<void>) {
-    try {
-      let eventCount = 0
-      for (let i = 0; i < 10; i++) {
-        const c = await this.do(sendToQueue)
-        if (c === -1) {
-          break
-        }
-        eventCount += c
-        if (eventCount > 100) {
-          break
-        }
+    let eventCount = 0
+    for (let i = 0; i < 10; i++) {
+      const c = await this.do(sendToQueue)
+      if (c === -1) {
+        break
       }
-    } catch (e) {
-      logger.error(e)
+      eventCount += c
+      if (eventCount > 100) {
+        break
+      }
     }
     logger.debug('Finished')
   }

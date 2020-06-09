@@ -13,18 +13,10 @@ const gasPriceService = {
   },
 }
 
-async function futureBlock(w3, n = 1) {
-  const begin = await web3.eth.getBlockNumber()
-  for (let i = 0; i < n; i++) {
-    await w3.miner.mine(Date.now() + Number(i) * 1000)
-  }
-  const end = await w3.eth.getBlockNumber()
-  console.log(`make block ${begin} -> ${end}`)
-}
-
 async function makeTransfer(w3, erc20, from, to) {
   const nonce = await w3.eth.getTransactionCount(from)
-  const receipt = await erc20.methods.transfer(to, w3.utils.toWei('0.01')).send({ from, gas: 100000, nonce })
+  console.log('makeTransfer', {from, to, nonce})
+  const receipt = await erc20.methods.transfer(to, w3.utils.toWei('0.01')).send({ from, gas: 1000000, nonce })
   return {
     eventType: 'erc-erc-affirmation-request',
     event: receipt.events.Transfer,
@@ -57,7 +49,6 @@ function newWeb3() {
       {
         name: 'mine',
         call: 'evm_mine',
-        params: 1,
       },
       {
         name: 'setHead',
@@ -96,7 +87,7 @@ class ChainOpGanache {
 
     let err
     try {
-      await this.w3.miner.mine(Date.now())
+      await this.w3.miner.mine()
     } catch (e) {
       if (!expectFail) {
         throw e
@@ -115,7 +106,7 @@ class ChainOpGanache {
   async futureBlock(n = 1) {
     const begin = await this.w3.eth.getBlockNumber()
     for (let i = 0; i < n; i++) {
-      await this.w3.miner.mine(Date.now() + Number(i) * 1000)
+      await this.w3.miner.mine()
     }
     const end = await this.w3.eth.getBlockNumber()
     console.log(`make block ${begin} -> ${end}`)
