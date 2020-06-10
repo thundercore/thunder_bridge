@@ -1,7 +1,7 @@
 import BN from 'bn.js'
 import Web3 from 'web3'
 import rootLogger = require("../services/logger")
-import { EventTask, TxInfo, ReceiptTask, isRetryTask } from './types'
+import { EventTask, TxInfo, ReceiptTask, isRetryTask, enqueueReceiptor } from './types'
 import { Locker } from './locker'
 import { Cache } from './storage'
 import { TransactionConfig, HttpProvider, SignedTransaction } from 'web3-core'
@@ -203,8 +203,6 @@ export enum SendResult {
 }
 
 
-type sendToQueue = (task: ReceiptTask) => Promise<void>;
-
 export class Sender {
   name: string
   web3: SenderWeb3
@@ -279,7 +277,7 @@ export class Sender {
     return Promise.resolve(receiptTask)
   }
 
-  async run(task: EventTask, sendToQueue: sendToQueue): Promise<SendResult> {
+  async run(task: EventTask, enqueueReceiptor: enqueueReceiptor): Promise<SendResult> {
     let result: SendResult
 
     this.logger.info(`Process ${task.eventType} event '${task.event.transactionHash}'`)
@@ -290,7 +288,7 @@ export class Sender {
       if (isRetryTask(task) && task.nonce !== undefined && (await this.readNonce(true)) <= task.nonce!) {
         const txHash = await this.web3.sendToSelf(task.nonce!)
         const receiptTask = await this.newReceiptTask(task, txHash, task.nonce!)
-        await sendToQueue(receiptTask)
+        await enqueueReceiptor(receiptTask)
         this.logger.info({txHash, nonce: task.nonce}, 'retry task was ignored, send a transaction to fill nonce.')
       }
       result = SendResult.skipped
@@ -299,7 +297,7 @@ export class Sender {
       const lock = await this.locker.lock(this.noncelock)
       try {
         this.logger.debug(`Acquiring lock: ${this.noncelock}`)
-        result = await this.sendTx(txInfo, sendToQueue)
+        result = await this.sendTx(txInfo, enqueueReceiptor)
       } finally {
         this.logger.debug('Releasing lock')
         await lock.unlock()
@@ -310,7 +308,7 @@ export class Sender {
     return Promise.resolve(result)
   }
 
-  async sendTx(txinfo: TxInfo, sendToQueue: sendToQueue): Promise<SendResult> {
+  async sendTx(txinfo: TxInfo, enqueueReceiptor: enqueueReceiptor): Promise<SendResult> {
 
     let nonce: number
     if (isRetryTask(txinfo.eventTask) && txinfo.eventTask.nonce) {
@@ -332,7 +330,7 @@ export class Sender {
     const enqueueReceiptTask = async (txHash: string) => {
       const receiptTask = await this.newReceiptTask(txinfo.eventTask, txHash, nonce)
       this.logger.debug({receiptTask}, 'enqueue receipt task')
-      await sendToQueue(receiptTask)
+      await enqueueReceiptor(receiptTask)
     }
 
     try {

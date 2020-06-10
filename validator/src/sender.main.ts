@@ -17,7 +17,7 @@ if (process.argv.length < 3) {
 
 import config from '../config'
 import { RedisLocker } from "./lib/RedisLocker"
-import { EventTask, isRetryTask } from "./lib/types"
+import { EventTask, isRetryTask, enqueueSender, enqueueReceiptor } from "./lib/types"
 
 
 async function newSender(validator: {id: string, address: string, privateKey: string}): Promise<Sender> {
@@ -32,6 +32,14 @@ async function newSender(validator: {id: string, address: string, privateKey: st
 }
 
 
+interface senderToQueueOption {
+  msg: Message,
+  ackMsg: (msg: Message) => Promise<void>,
+  nackMsg: (msg: Message) => Promise<void>,
+  enqueueSender: enqueueSender,
+  enqueueReceiptor: enqueueReceiptor,
+}
+
 async function initialize() {
   try {
 
@@ -45,16 +53,16 @@ async function initialize() {
 
     connectSenderToQueue({
       queueName: `${config.queue}.${validator.id}`,
-      cb: (options: { msg: Message; ackMsg: any, nackMsg: any, pushSenderQueue: any, pushReceiptorQueue: any }) => {
+      cb: (options: senderToQueueOption) => {
         let task = JSON.parse(options.msg.content.toString())
 
         let runSender = async (task: EventTask) => {
           let result: SendResult;
           try {
-            result = await sender.run(task, options.pushReceiptorQueue)
+            result = await sender.run(task, options.enqueueReceiptor)
           } catch(e) {
             logger.error({error: e, queueTask: task}, 'queue message was re-enqueue due to error')
-            await options.pushSenderQueue(task)
+            await options.enqueueSender(task)
             await options.nackMsg(options.msg)
             throw e
           }
@@ -69,7 +77,7 @@ async function initialize() {
             case SendResult.failed:
             case SendResult.timeout:
             case SendResult.insufficientFunds:
-              await options.pushSenderQueue(task)
+              await options.enqueueSender(task)
               await options.nackMsg(options.msg)
               break
 
@@ -81,12 +89,12 @@ async function initialize() {
               if (isRetryTask(task)) {
                 task.nonce = undefined
               }
-              await options.pushSenderQueue(task)
+              await options.enqueueSender(task)
               await options.nackMsg(options.msg)
               break
 
             default:
-              await options.pushSenderQueue(task)
+              await options.enqueueSender(task)
               options.nackMsg(options.msg)
               throw Error("No such result type")
           } // end of switch

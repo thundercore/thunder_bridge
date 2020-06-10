@@ -24,9 +24,9 @@ function connectWatcherToQueue({ queueName, cb }) {
   })
 
   logger.info(`Connect watcher to producer queue: ${queueName}`)
-  const sendToQueue = data => channelWrapper.sendToQueue(queueName, data, { persistent: true })
+  const enqueueSender = data => channelWrapper.sendToQueue(queueName, data, { persistent: true })
 
-  cb({ sendToQueue, channel: channelWrapper })
+  cb({ enqueueSender, channel: channelWrapper })
 }
 
 function connectSenderToQueue({ queueName, cb }) {
@@ -65,8 +65,8 @@ function connectSenderToQueue({ queueName, cb }) {
     ]);
   })
 
-  const pushReceiptorQueue = data => channelWrapper.sendToQueue(receiptQueue, data, { persistent: true })
-  const pushSenderQueue = data => channelWrapper.sendToQueue(retryQueue, data, { persistent: true })
+  const enqueueReceiptor = data => channelWrapper.sendToQueue(receiptQueue, data, { persistent: true })
+  const enqueueSender = data => channelWrapper.sendToQueue(retryQueue, data, { persistent: true })
   channelWrapper.addSetup(channel => {
     return Promise.all([
       channel.prefetch(1),
@@ -76,8 +76,8 @@ function connectSenderToQueue({ queueName, cb }) {
             channel: channelWrapper,
             ackMsg: job => channelWrapper.ack(job),
             nackMsg: job => channelWrapper.nack(job, false, false),
-            pushSenderQueue,
-            pushReceiptorQueue,
+            enqueueSender,
+            enqueueReceiptor,
           })
         }
       )
@@ -93,7 +93,6 @@ function connectReceiptorQueue({ queueName, cb }) {
   const receiptQueue = `${queueName}-receipt`
   const retryQueue = `${queueName}-receipt-retry`
   const sendQueue = queueName
-  const sendToQueue = data => channelWrapper.sendToQueue(queueName, data, { persistent: true })
 
   logger.info(`Connect receiptor to consumer queue: ${receiptQueue} and producer queue: ${sendQueue}`)
 
@@ -123,6 +122,7 @@ function connectReceiptorQueue({ queueName, cb }) {
     ]);
   })
 
+  const enqueueSender = data => channelWrapper.sendToQueue(queueName, data, { persistent: true })
   channelWrapper.addSetup(channel => {
     return Promise.all([
       channel.prefetch(1),
@@ -137,7 +137,7 @@ function connectReceiptorQueue({ queueName, cb }) {
               channelWrapper.nack(job, false, false)
             },
             rejectMsg: job => channelWrapper.nack(job, false, false),
-            sendToQueue
+            enqueueSender
           })
         }
       )

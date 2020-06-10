@@ -13,13 +13,20 @@ if (process.argv.length < 3) {
 }
 
 import config from '../config'
-import { ReceiptTask } from "./lib/types"
+import { ReceiptTask, enqueueSender } from "./lib/types"
 import { loadValidatorFromAWS } from "../config/private-keys.config"
 
 
+interface receiptorToQueueOptions {
+  msg: Message,
+  ackMsg: (msg: Message) => Promise<void>,
+  retryMsg: (msg: Message) => Promise<void>,
+  rejectMsg: (msg: Message) => Promise<void>,
+  enqueueSender: enqueueSender,
+}
+
 async function initialize() {
   try {
-
     const checkHttps = checkHTTPS(config.ALLOW_HTTP, logger)
 
     rpcUrlsManager.homeUrls.forEach(checkHttps('home'))
@@ -32,13 +39,13 @@ async function initialize() {
 
     connectReceiptorQueue({
       queueName: `${config.queue}.${validator.id}`,
-      cb: (options: { msg: Message; ackMsg: any; retryMsg: any; rejectMsg: any; sendToQueue: any }) => {
+      cb: (options: receiptorToQueueOptions ) => {
         let task = JSON.parse(options.msg.content.toString())
 
         let getReceipt = async (task: ReceiptTask) => {
           let result: ReceiptResult;
           try {
-            result = await receiptor.run(task, options.sendToQueue)
+            result = await receiptor.run(task, options.enqueueSender)
           } catch(e) {
             options.retryMsg(options.msg)
             logger.error({error: e, queueTask: task}, 'unknown error catched. retry queue message.')

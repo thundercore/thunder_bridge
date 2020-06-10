@@ -1,6 +1,6 @@
 import Web3 from 'web3'
 import { TransactionReceipt } from 'web3-core'
-import { ReceiptTask, EventTask } from './types'
+import { ReceiptTask, EventTask, enqueueSender} from './types'
 
 import config = require('../../config')
 import rootLogger = require('../services/logger')
@@ -53,8 +53,6 @@ export enum ReceiptResult {
   waittingReceipt = 'waitting tx receipt',
 }
 
-type sendToQueue = (task: EventTask) => Promise<void>
-
 class TimeoutError extends Error {}
 
 export class Receiptor {
@@ -68,7 +66,11 @@ export class Receiptor {
     })
   }
 
-  async resendEvent(task: ReceiptTask, nonce: number|undefined, sendToQueue: sendToQueue): Promise<void> {
+  async resendEvent(
+    task: ReceiptTask,
+    nonce: number|undefined,
+    enqueueSender: enqueueSender): Promise<void> {
+
     const newTask: EventTask = {
       ...task.eventTask,
       nonce: nonce,
@@ -76,7 +78,7 @@ export class Receiptor {
       timestamp: task.timestamp,
     }
     this.logger.debug({ ...newTask }, 'resend event task')
-    return sendToQueue(newTask)
+    return enqueueSender(newTask)
   }
 
   async checkBlockAdvencedK(block: number, k: number): Promise<boolean> {
@@ -102,7 +104,7 @@ export class Receiptor {
     })
   }
 
-  async run(task: ReceiptTask, sendToQueue: sendToQueue): Promise<ReceiptResult> {
+  async run(task: ReceiptTask, enqueueSender: enqueueSender): Promise<ReceiptResult> {
     let receipt: TransactionReceipt | null
     try {
       receipt = await this.getReceipt(task)
@@ -123,7 +125,7 @@ export class Receiptor {
           },
           `exceed maximum wait receipt block`,
         )
-        await this.resendEvent(task, task.nonce, sendToQueue)
+        await this.resendEvent(task, task.nonce, enqueueSender)
         result = ReceiptResult.null
       } else {
         result = ReceiptResult.waittingReceipt
@@ -141,7 +143,7 @@ export class Receiptor {
       // Get a failed receipt
       this.logger.info({ receipt }, `get receipt returns failed status`)
       // We have got the receipt, resend task with undefined nonce.
-      await this.resendEvent(task, undefined, sendToQueue)
+      await this.resendEvent(task, undefined, enqueueSender)
       result = ReceiptResult.failed
     }
 

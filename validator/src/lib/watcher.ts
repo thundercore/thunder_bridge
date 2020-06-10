@@ -6,12 +6,13 @@ import { PastLogsOptions } from 'web3-core'
 import { toBN } from 'web3-utils'
 
 import logger = require('../services/logger')
-import { EventTask } from './types'
+import { EventTask, enqueueSender } from './types'
 
 const ONE = toBN(1)
 
 export interface ProcessState {
   lastProcessedBlock: BN
+  loadLastProcessedBlock: () => Promise<void>
   updateLastProcessedBlock: (lastBlockNumber: BN) => Promise<string | void>
 }
 
@@ -39,20 +40,21 @@ export class ProcessStateImpl implements ProcessState {
     this.lastProcessedBlock = toBN(0)
   }
 
-  async getLastProcessedBlock() {
+  async loadLastProcessedBlock() {
     const result = await this.redis.get(this.lastBlockRedisKey)
     logger.debug(
       {
         fromRedis: result,
-        fromConfig: this.lastProcessedBlock ? this.lastProcessedBlock.toString() : '',
+        fromConfig: this.startBlock,
       },
       'Last Processed block obtained',
     )
+
     let startBlock = this.startBlock
     if (this.startBlock.lte(toBN(0))) {
       startBlock = toBN(0)
     }
-    this.lastProcessedBlock = result ? toBN(result) : startBlock
+    this.lastProcessedBlock = result? BN.max(toBN(result!), startBlock): startBlock
   }
 
   async updateLastProcessedBlock(lastBlockNumber: BN) {
@@ -214,10 +216,10 @@ export class EventWatcher {
     return lastBlockNumber.sub(requiredBlockConfirmations)
   }
 
-  async run(sendToQueue: (task: EventTask) => Promise<void>) {
+  async run(enqueueSender: enqueueSender) {
     let eventCount = 0
     for (let i = 0; i < 10; i++) {
-      const c = await this.do(sendToQueue)
+      const c = await this.do(enqueueSender)
       if (c === -1) {
         break
       }
@@ -229,7 +231,7 @@ export class EventWatcher {
     logger.debug('Finished')
   }
 
-  async do(sendToQueue: (task: EventTask) => Promise<void>): Promise<number> {
+  async do(enqueueSender: enqueueSender): Promise<number> {
     const lastBlockToProcess = await this.getLastBlockToProcess()
     const lastProcessedBlock = this.status.lastProcessedBlock
 
@@ -245,6 +247,7 @@ export class EventWatcher {
       toBlock = fromBlock.add(batchSize)
     }
 
+    logger.info(`Get events between ${lastProcessedBlock} to ${toBlock}`)
     const events = await this.web3.getEvents(this.event, fromBlock, toBlock, this.eventFilter)
     logger.info(`Found ${events.length} ${this.event} events: ${JSON.stringify(events)}`)
 
@@ -255,7 +258,7 @@ export class EventWatcher {
           event,
         }
         logger.debug({ task }, 'enqueue EventTask')
-        await sendToQueue(task)
+        await enqueueSender(task)
       })
     }
     logger.debug({ lastProcessedBlock: toBlock.toString() }, 'Updating last processed block')

@@ -22,6 +22,9 @@ import { EventTask } from '../types'
 class FakeProcessState implements ProcessState {
   lastProcessedBlock: BN = toBN(0)
 
+  async loadLastProcessedBlock(): Promise<void> {
+  }
+
   async updateLastProcessedBlock(block: BN): Promise<void> {
     this.lastProcessedBlock = block
     return Promise.resolve()
@@ -481,7 +484,7 @@ describe('Test ProcessStateImpl', () => {
   it('init with empty store, use start block number', async () => {
     const memRedis = new MemKVStore()
     const ps = new ProcessStateImpl('test', memRedis, toBN(11))
-    await ps.getLastProcessedBlock()
+    await ps.loadLastProcessedBlock()
     expect(ps.lastProcessedBlock.toNumber()).to.equal(11)
   })
 
@@ -489,14 +492,14 @@ describe('Test ProcessStateImpl', () => {
     const memRedis = new MemKVStore()
     memRedis.set('test:lastProcessedBlock', toBN(123).toString())
     const ps = new ProcessStateImpl('test', memRedis, toBN(11))
-    await ps.getLastProcessedBlock()
+    await ps.loadLastProcessedBlock()
     expect(ps.lastProcessedBlock.toNumber()).to.equal(123)
   })
 
   it('update last processed block', async () => {
     const memRedis = new MemKVStore()
     const ps = new ProcessStateImpl('test', memRedis, toBN(11))
-    await ps.getLastProcessedBlock()
+    await ps.loadLastProcessedBlock()
     expect(ps.lastProcessedBlock.toNumber()).to.equal(11)
     await ps.updateLastProcessedBlock(toBN(1234))
     expect(ps.lastProcessedBlock.toNumber()).to.equal(1234)

@@ -31,3 +31,7 @@ export interface TxInfo {
   to: string
   eventTask: EventTask
 }
+
+export type enqueue<T> = (task: T) => Promise<void>;
+export type enqueueSender = enqueue<EventTask>
+export type enqueueReceiptor = enqueue<ReceiptTask>
