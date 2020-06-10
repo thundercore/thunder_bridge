@@ -200,6 +200,7 @@ export enum SendResult {
   nonceTooLow = 'nonceTooLow',
   skipped = 'skipped',
   timeout = 'timeout',
+  sendDummyTxToFillNonce = 'sendDummyTxToFillNonce',
 }
 
 
@@ -252,11 +253,10 @@ export class Sender {
         this.logger.error(`failed to read nonce from cache, force update nonce.`)
       }
     }
-    this.logger.info(`this.web3.getNonce()`)
     return this.web3.getNonce()
   }
 
-  async EventToTxInfo(task: EventTask): Promise<TxInfo|null> {
+  async processEventTask(task: EventTask): Promise<TxInfo|null> {
     let txInfos = await this.web3.processEvents(task)
     if (txInfos.length === 0 ) {
       return Promise.resolve(null)
@@ -281,17 +281,19 @@ export class Sender {
     let result: SendResult
 
     this.logger.info(`Process ${task.eventType} event '${task.event.transactionHash}'`)
-    const txInfo = await this.EventToTxInfo(task)
+    const txInfo = await this.processEventTask(task)
     if (txInfo === null) {
-      // If current nonce < retryTask.nonce, we need to fill this nonce
+      // If CurrNonce <= retryTask.nonce, we need to fill this nonce
       // even if the task was skipped by estimateGas.
-      if (isRetryTask(task) && task.nonce !== undefined && (await this.readNonce(true)) <= task.nonce!) {
+      if (isRetryTask(task) && (await this.readNonce(true)) <= task.nonce!) {
         const txHash = await this.web3.sendToSelf(task.nonce!)
         const receiptTask = await this.newReceiptTask(task, txHash, task.nonce!)
         await enqueueReceiptor(receiptTask)
         this.logger.info({txHash, nonce: task.nonce}, 'retry task was ignored, send a transaction to fill nonce.')
+        result = SendResult.sendDummyTxToFillNonce
+      } else {
+        result = SendResult.skipped
       }
-      result = SendResult.skipped
 
     } else {
       const lock = await this.locker.lock(this.noncelock)
@@ -311,7 +313,8 @@ export class Sender {
   async sendTx(txinfo: TxInfo, enqueueReceiptor: enqueueReceiptor): Promise<SendResult> {
 
     let nonce: number
-    if (isRetryTask(txinfo.eventTask) && txinfo.eventTask.nonce) {
+    if (isRetryTask(txinfo.eventTask) && txinfo.eventTask.nonce! > (await this.readNonce(true))) {
+      // Use retryTask.nonce iff currNonce <= retryTask.nonce or currNonce.
       nonce = txinfo.eventTask.nonce!
       this.logger.debug(`Use retry task nonce: ${nonce}`)
     } else {

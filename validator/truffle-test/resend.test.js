@@ -28,7 +28,24 @@ contract('test resend task', (accounts) => {
     chainOpW3 = await utils.ChainOpWeb3(w3)
   })
 
-  it('task resend with an occupied nonce', async () => {
+  it('test resend task', async () => {
+    const task = await makeTransfer(accounts[9])
+
+    await chainOpW3.minerStop()
+    const [s] = await utils.newSenders(w3, 1)
+    const q = await utils.newQueue()
+
+    const nonce = await s.readNonce()
+    task.nonce = nonce
+    task.retries = 1
+    // Because this nonce was not occupied, sender will use this nonce to send tx.
+    const r = await s.run(task, q.sendToQueue)
+    expect(r).to.be.eq(sender.SendResult.success)
+    expect(q.queue.pop().nonce).to.be.eq(nonce)
+    await chainOpW3.makeOneBlock(dummy)
+  })
+
+  it('test resend task with an occupied nonce', async () => {
     const task = await makeTransfer(accounts[9])
 
     await chainOpW3.minerStop()
@@ -40,29 +57,51 @@ contract('test resend task', (accounts) => {
     s.web3.sendToSelf(nonce)
     await chainOpW3.makeOneBlock(dummy)
 
-    sandbox.stub(s, 'EventToTxInfo').resolves(null)
     task.nonce = nonce
     task.retries = 1
-    // Send task with same nonce will be skipped due to currNonce > nonce
+    // Because this nonce was occupied, sender will use nonce+1 to send tx.
     const r = await s.run(task, q.sendToQueue)
-    expect(r).to.be.eq(sender.SendResult.skipped)
+    expect(r).to.be.eq(sender.SendResult.success)
+    expect(q.queue.pop().nonce).to.be.eq(nonce+1)
     await chainOpW3.makeOneBlock(dummy)
   })
 
-  it('task resend will fill nonce if task was skipped', async () => {
+  it('test resend task was skipped with an occupied nonce', async () => {
     const task = await makeTransfer(accounts[9])
 
     await chainOpW3.minerStop()
     const [s] = await utils.newSenders(w3, 1)
     const q = await utils.newQueue()
-    const nonce = await s.readNonce(true)
 
-    // returns null to trigger fill nonce.
+    // Send a transaction to occupy nonce
+    const nonce = await s.readNonce()
+    s.web3.sendToSelf(nonce)
+    await chainOpW3.makeOneBlock(dummy)
+
+    sandbox.stub(s, 'processEventTask').resolves(null)
     task.nonce = nonce
-    task.retries = 100
-    s.EventToTxInfo = stub().resolves(null)
+    task.retries = 1
+    // Because processEventTask skip this event and nonce was occupied,
+    // we don't need to fill this nonce.
     const r = await s.run(task, q.sendToQueue)
     expect(r).to.be.eq(sender.SendResult.skipped)
+    await chainOpW3.makeOneBlock(dummy)
+  })
+
+  it('test resend will fill nonce if task was skipped', async () => {
+    const task = await makeTransfer(accounts[9])
+
+    await chainOpW3.minerStop()
+    const [s] = await utils.newSenders(w3, 1)
+    const q = await utils.newQueue()
+
+    // returns null to trigger fill nonce.
+    const nonce = await s.readNonce(true)
+    task.nonce = nonce
+    task.retries = 100
+    s.processEventTask = stub().resolves(null)
+    const r = await s.run(task, q.sendToQueue)
+    expect(r).to.be.eq(sender.SendResult.sendDummyTxToFillNonce)
     await chainOpW3.makeOneBlock(dummy)
 
     // Expect nonce was updated
@@ -76,7 +115,7 @@ contract('test resend task', (accounts) => {
     expect(receipt.logs).to.have.length(0)
   })
 
-  it('task resend with higher gas price', async () => {
+  it('test resend with higher gas price', async () => {
     // FIXME: test with timestamp
     const task = await makeTransfer(accounts[9])
 
@@ -123,7 +162,7 @@ contract('test resend task', (accounts) => {
 
   // ganache will raise `the tx doesn't have the correct nonce`
   // error if tx has wrong nonce.
-  it('task resend task out of order', async function () {
+  it('test resend task out of order', async function () {
     // only run this test when testing on pala
     const id = await w3.eth.net.getId()
     if (id !== 19) {

@@ -83,8 +83,8 @@ contract("Test single sender", (accounts) => {
     const task2 = await makeTransfer(accounts[9])
 
     const [s] = await utils.newSenders(w3, 1)
-    const info1 = await s.EventToTxInfo(task1)
-    const info2 = await s.EventToTxInfo(task2)
+    const info1 = await s.processEventTask(task1)
+    const info2 = await s.processEventTask(task2)
 
     const nonce = await s.readNonce(true)
     info2.eventTask.nonce = nonce + 1
@@ -104,7 +104,7 @@ contract("Test single sender", (accounts) => {
     // TODO: maybe run another chain?
     const task = await makeTransfer(accounts[9])
     const [s] = await utils.newSenders(w3, 1)
-    const info = await s.EventToTxInfo(task)
+    const info = await s.processEventTask(task)
     info.gasEstimate = 100000000000000
 
     const ret = await s.sendTx(info, q.sendToQueue)
@@ -153,15 +153,15 @@ contract('Test multiple senders', (accounts) => {
     const [q1, q2] = await utils.newQueues(2)
 
     // s1 and s2 vote first
-    // EventToTxInfo will run estimateGas.
-    const info1 = await s1.EventToTxInfo(task)
+    // processEventTask will run estimateGas.
+    const info1 = await s1.processEventTask(task)
     const r1 = await s1.sendTx(info1, q1.sendToQueue)
     expect(r1).to.eq('success')
     await chainOpW3.makeOneBlock(accounts[8])
     const receipt1 = await utils.getReceiptFromSenderQueue(w3, q1.queue)
     expect(receipt1.status).to.be.true
 
-    const info2 = await s2.EventToTxInfo(task)
+    const info2 = await s2.processEventTask(task)
     const r2 = await s2.sendTx(info2, q2.sendToQueue)
     expect(r2).to.eq('success')
     await chainOpW3.makeOneBlock(accounts[8])
@@ -174,7 +174,7 @@ contract('Test multiple senders', (accounts) => {
     expect(receipt2.status).to.be.true
 
     // v3 estimateGas will failed because contract has enough affirmations.
-    const info3 = await s3.EventToTxInfo(task)
+    const info3 = await s3.processEventTask(task)
     expect(info3).to.be.null
   })
 
@@ -186,8 +186,8 @@ contract('Test multiple senders', (accounts) => {
     const [q1, q2] = await utils.newQueues(2)
 
     // s1 and s1 vote first
-    const info1 = await s1.EventToTxInfo(task)
-    const info2 = await s2.EventToTxInfo(task)
+    const info1 = await s1.processEventTask(task)
+    const info2 = await s2.processEventTask(task)
     expect(info1.gasEstimate).to.eq(info2.gasEstimate)
 
     const r1 = await s1.sendTx(info1, q1.sendToQueue)
@@ -203,7 +203,7 @@ contract('Test multiple senders', (accounts) => {
     const s2Receipt = await utils.getReceiptFromSenderQueue(w3, q2.queue)
     expect(s2Receipt.status).to.be.false
 
-    const newInfo2 = await s2.EventToTxInfo(task)
+    const newInfo2 = await s2.processEventTask(task)
     const newR2 = await s2.sendTx(newInfo2, q2.sendToQueue)
     expect(newR2).to.eq('success')
 
@@ -221,9 +221,9 @@ contract('Test multiple senders', (accounts) => {
     const [s1, s2, s3] = await utils.newSenders(w3, 3)
     const [q1, q2, q3] = await utils.newQueues(3)
 
-    const info1 = await s1.EventToTxInfo(task)
-    const info2 = await s2.EventToTxInfo(task)
-    const info3 = await s3.EventToTxInfo(task)
+    const info1 = await s1.processEventTask(task)
+    const info2 = await s2.processEventTask(task)
+    const info3 = await s3.processEventTask(task)
 
     const r1 = await s1.sendTx(info1, q1.sendToQueue)
     const r2 = await s2.sendTx(info2, q2.sendToQueue)

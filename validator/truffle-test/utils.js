@@ -15,7 +15,6 @@ const gasPriceService = {
 
 async function makeTransfer(w3, erc20, from, to) {
   const nonce = await w3.eth.getTransactionCount(from)
-  console.log('makeTransfer', {from, to, nonce})
   const receipt = await erc20.methods.transfer(to, w3.utils.toWei('0.01')).send({ from, gas: 1000000, nonce })
   return {
     eventType: 'erc-erc-affirmation-request',

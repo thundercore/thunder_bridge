@@ -48,7 +48,7 @@ contract("Test complexity case", (accounts) => {
 
     const r2 = await s2.run(task, receiptorQ2.sendToQueue)
     expect(r2).to.eq('success')
-    const t3 = await s3.EventToTxInfo(task)
+    const t3 = await s3.processEventTask(task)
     await chainOpW3.makeOneBlock(dummy)
 
     const snapshotId = await chainOpW3.snapshot()
@@ -82,7 +82,7 @@ contract("Test complexity case", (accounts) => {
     await chainOpW3.makeOneBlock(dummy)
 
     // resent task will be skipped due to enough affirmation
-    expect(result).to.be.eq('skipped')
+    expect(result).to.be.eq('sendDummyTxToFillNonce')
     const newNonce = await s3.readNonce(true)
 
     // Make sure old nonce was filled
