@@ -4,17 +4,21 @@ import { ReceiptTask, EventTask } from './types'
 
 import config = require('../../config')
 import rootLogger = require('../services/logger')
+import { Contract } from 'web3-eth-contract'
 
 interface ReceiptorWeb3 {
   getCurrentBlock: () => Promise<number>
   getTransactionReceipt: (transactionHash: string) => Promise<TransactionReceipt>
+  getRequiredBlockConfirmations: () => Promise<number>
 }
 
 export class ReceiptorWeb3Impl implements ReceiptorWeb3 {
   web3: Web3
+  bridgeContract: Contract
 
-  constructor(web3: Web3) {
+  constructor(web3: Web3, bridgeContract: Contract) {
     this.web3 = web3
+    this.bridgeContract = bridgeContract
   }
 
   async getCurrentBlock(): Promise<number> {
@@ -23,6 +27,19 @@ export class ReceiptorWeb3Impl implements ReceiptorWeb3 {
 
   async getTransactionReceipt(transactionHash: string): Promise<TransactionReceipt> {
     return this.web3.eth.getTransactionReceipt(transactionHash)
+  }
+
+  async getRequiredBlockConfirmations(): Promise<number> {
+    let requiredBlockConfirmations: number
+    try {
+      const contractAddress = this.bridgeContract.options.address
+      rootLogger.debug({ contractAddress }, 'Getting required block confirmations')
+      requiredBlockConfirmations = await this.bridgeContract.methods.requiredBlockConfirmations().call()
+      rootLogger.debug({ contractAddress, requiredBlockConfirmations }, 'Required block confirmations obtained')
+    } catch (e) {
+      throw new Error(`Required block confirmations cannot be obtained`)
+    }
+    return requiredBlockConfirmations
   }
 }
 
@@ -113,8 +130,9 @@ export class Receiptor {
       }
     } else if (receipt!.status) {
       // Get a success receipt
-      this.logger.info({ receipt }, `get receipt success, wait ${config.BLOCK_CONFIRMATION} block for confirmation`)
-      if (await this.checkBlockAdvencedK(receipt!.blockNumber, config.BLOCK_CONFIRMATION)) {
+      const requiredBlockConfirmations = await this.web3.getRequiredBlockConfirmations()
+      this.logger.info({ receipt }, `get receipt success, wait ${requiredBlockConfirmations} block for confirmation`)
+      if (await this.checkBlockAdvencedK(receipt!.blockNumber, requiredBlockConfirmations)) {
         result = ReceiptResult.success
       } else {
         result = ReceiptResult.waittingK

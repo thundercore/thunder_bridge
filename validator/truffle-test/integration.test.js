@@ -36,6 +36,10 @@ contract("Test complexity case", (accounts) => {
     const [s1, s2, s3] = await utils.newSenders(w3, 3)
     const [receiptorQ1, receiptorQ2, receiptorQ3] = await utils.newQueues(3)
     const [receiptor1, receiptor2, receiptor3] = await utils.newReceiptors(w3, 3)
+    const requiredBlockConfirmations = 2
+    receiptor1.web3.getRequiredBlockConfirmations = stub().resolves(requiredBlockConfirmations)
+    receiptor2.web3.getRequiredBlockConfirmations = stub().resolves(requiredBlockConfirmations)
+    receiptor3.web3.getRequiredBlockConfirmations = stub().resolves(requiredBlockConfirmations)
     const [senderQ1, senderQ2, senderQ3] = await utils.newQueues(3)
 
     const r1 = await s1.run(task, receiptorQ1.sendToQueue)
@@ -56,7 +60,7 @@ contract("Test complexity case", (accounts) => {
 
     await chainOpW3.revert(snapshotId)
 
-    await chainOpW3.futureBlock(config.BLOCK_CONFIRMATION)
+    await chainOpW3.futureBlock(requiredBlockConfirmations)
 
     const rr1 = await receiptor1.run(receiptorQ1.queue.pop(), senderQ1.sendToQueue)
     const rr2 = await receiptor2.run(receiptorQ2.queue.pop(), senderQ2.sendToQueue)
