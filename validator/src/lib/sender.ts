@@ -315,7 +315,7 @@ export class Sender {
     const logger = this.logger.child({eventTx: txinfo.transactionReference})
 
     let nonce: number
-    if (isRetryTask(txinfo.eventTask) && txinfo.eventTask.nonce! > (await this.readNonce(true))) {
+    if (isRetryTask(txinfo.eventTask) && txinfo.eventTask.nonce! >= (await this.readNonce(true))) {
       // Use retryTask.nonce iff currNonce <= retryTask.nonce or currNonce.
       nonce = txinfo.eventTask.nonce!
       logger.debug(`Use retry task nonce: ${nonce}`)

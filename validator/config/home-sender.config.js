@@ -9,6 +9,5 @@ module.exports = {
   queue: 'home',
   id: 'home',
   name: 'sender-home',
-  web3: web3Home,
-  blockConfirmation: baseConfig.env.HOME_BLOCK_CONFIRMATION,
+  web3: web3Home
 }
