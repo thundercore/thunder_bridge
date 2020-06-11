@@ -72,6 +72,7 @@ async function initialize() {
           switch (result) {
             case SendResult.success:
             case SendResult.skipped:
+            case SendResult.sendDummyTxToFillNonce:
             case SendResult.txImported:
               options.ackMsg(options.msg)
               break
