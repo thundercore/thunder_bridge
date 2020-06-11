@@ -57,15 +57,13 @@ contract('Test Receiptor', (accounts) => {
     await chainOpW3.minerStop()
 
     const [r] = await utils.newReceiptors(w3, 1)
-    const requiredBlockConfirmations = 2
-    r.web3.getRequiredBlockConfirmations = stub().resolves(requiredBlockConfirmations)
     const task = await makeReceiptTask()
     const q = await utils.newQueue()
 
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.waittingReceipt)
     await chainOpW3.futureBlock(1)
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.waittingK)
-    await chainOpW3.futureBlock(requiredBlockConfirmations)
+    await chainOpW3.futureBlock(config.HOME_BLOCK_CONFIRMATION)
     expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.success)
 
     await chainOpW3.minerStart()

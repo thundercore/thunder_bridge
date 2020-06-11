@@ -33,8 +33,7 @@ async function initialize() {
     rpcUrlsManager.foreignUrls.forEach(checkHttps('foreign'))
 
     const validator = await loadValidatorFromAWS()
-    const bridgeContract = new config.web3.eth.Contract(config.bridgeAbi, config.bridgeContractAddress)
-    const web3 = new ReceiptorWeb3Impl(config.web3, bridgeContract)
+    const web3 = new ReceiptorWeb3Impl(config.web3)
     const receiptor = new Receiptor(`${config.id}.${validator.id}`, web3)
 
     connectReceiptorQueue({

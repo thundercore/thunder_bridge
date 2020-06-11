@@ -40,6 +40,8 @@ let validations = {
   QUEUE_URL: envalid.str(),
   REDIS_LOCK_TTL: envalid.num(),
   ALLOW_HTTP: envalid.str({default: 'no'}),
+  HOME_BLOCK_CONFIRMATION: envalid.num({default: 6}),
+  FOREIGN_BLOCK_CONFIRMATION: envalid.num( {default: 6}),
   MAX_WAIT_RECEIPT_BLOCK: envalid.num(),
   GET_RECEIPT_TIMEOUT: envalid.num(),
   QUEUE_RETRY_DELAY: envalid.num({default: 2000}),
