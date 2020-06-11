@@ -20,7 +20,7 @@ redis.on('error', () => {
 })
 
 redlock.on('clientError', function(err) {
-  console.error('A redlock error has occurred:', err);
+  logger.error('A redlock error has occurred:', err);
 });
 
 module.exports = {

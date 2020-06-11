@@ -5,6 +5,8 @@ import { ReceiptTask, EventTask, enqueueSender} from './types'
 import config = require('../../config')
 import rootLogger = require('../services/logger')
 
+import * as Sentry from '@sentry/node';
+
 interface ReceiptorWeb3 {
   getCurrentBlock: () => Promise<number>
   getTransactionReceipt: (transactionHash: string) => Promise<TransactionReceipt>
@@ -32,6 +34,7 @@ export enum ReceiptResult {
   null = 'null',
   timeout = 'timeout',
   failed = 'failed',
+  unknown = 'unknown',
   waittingK = 'waitting K block',
   waittingReceipt = 'waitting tx receipt',
 }
@@ -57,7 +60,7 @@ export class Receiptor {
     const newTask: EventTask = {
       ...task.eventTask,
       nonce: nonce,
-      retries: task.retries ? task.retries + 1 : 1,
+      retries: task.retries ? task.retries+1 : 1,
       timestamp: task.timestamp,
     }
     this.logger.debug({ ...newTask }, 'resend event task')
@@ -74,10 +77,6 @@ export class Receiptor {
   async getReceipt(task: ReceiptTask): Promise<TransactionReceipt | null> {
     return new Promise(async (resolve, reject) => {
       const timer = setTimeout(async () => {
-        this.logger.info(
-          { timeout: config.GET_RECEIPT_TIMEOUT },
-          `Getting receipt ${task.transactionHash} reaches timeout.`,
-        )
         reject(new TimeoutError())
       }, config.GET_RECEIPT_TIMEOUT)
 
@@ -92,8 +91,19 @@ export class Receiptor {
     try {
       receipt = await this.getReceipt(task)
     } catch (e) {
-      this.logger.info({ e }, `Getting receipt failed`)
-      return Promise.resolve(ReceiptResult.timeout)
+      if (e instanceof TimeoutError) {
+        this.logger.fatal(
+          { timeout: config.GET_RECEIPT_TIMEOUT },
+          `Getting receipt ${task.transactionHash} reaches timeout.`,
+        )
+        Sentry.captureMessage(
+          `Get receipt ${task.transactionHash} exceeds timeout ${config.GET_RECEIPT_TIMEOUT}ms.`,
+          Sentry.Severity.Warning
+        )
+        return Promise.resolve(ReceiptResult.timeout)
+      }
+
+      throw e
     }
 
     let result = ReceiptResult.failed

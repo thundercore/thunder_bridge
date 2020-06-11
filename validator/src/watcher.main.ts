@@ -2,7 +2,6 @@ require('dotenv').config()
 
 import { EventWatcher, WatcherWeb3Impl, ProcessStateImpl } from './lib/watcher'
 
-import * as path from 'path'
 import logger = require('./services/logger')
 import * as rpcUrlsManager from './services/getRpcUrlsManager'
 
@@ -17,8 +16,10 @@ if (process.argv.length < 3) {
   logger.error('Please check the number of arguments, config file was not provided')
   process.exit(EXIT_CODES.GENERAL_ERROR)
 }
+import config from '../config'
 
-const config = require(path.join('../config/', process.argv[2]))
+import * as Sentry from '@sentry/node';
+import sentryInit from './lib/sentry'
 
 async function NewWatcher(validator: {id: string}): Promise<EventWatcher> {
   const web3Instance = config.web3
@@ -49,6 +50,7 @@ async function initialize() {
       cb: (options: watcherToQueueOption) => loopRunner(watcher, options)
     })
   } catch (e) {
+    Sentry.captureException(e)
     logger.fatal(e, 'initailize raised unknown error.')
     process.exit(EXIT_CODES.GENERAL_ERROR)
   }
@@ -60,6 +62,7 @@ async function loopRunner(watcher: EventWatcher, options: watcherToQueueOption) 
     if (config.maxProcessingTime) {
       await watchdog(() => watcher.run(options.enqueueSender), config.maxProcessingTime, () => {
         logger.fatal('Max processing time reached')
+        Sentry.captureMessage('Max processing time reached', Sentry.Severity.Fatal)
         process.exit(EXIT_CODES.MAX_TIME_REACHED)
       })
     } else {
@@ -72,4 +75,5 @@ async function loopRunner(watcher: EventWatcher, options: watcherToQueueOption) 
   }, config.pollingInterval)
 }
 
+sentryInit()
 initialize()

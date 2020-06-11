@@ -19,6 +19,8 @@ import config from '../config'
 import { RedisLocker } from "./lib/RedisLocker"
 import { EventTask, isRetryTask, enqueueSender, enqueueReceiptor } from "./lib/types"
 
+import * as Sentry from '@sentry/node';
+import sentryInit from './lib/sentry'
 
 async function newSender(validator: {id: string, address: string, privateKey: string}): Promise<Sender> {
     const chainId = await config.web3.eth.net.getId()
@@ -111,9 +113,11 @@ async function initialize() {
     }) // end of connectSenderToQueue
 
   } catch (e) {
-    logger.fatal(e, 'sender.main catched exception')
+    Sentry.captureException(e)
+    logger.fatal(e, 'initailize raised unknown error.')
     process.exit(EXIT_CODES.GENERAL_ERROR)
   } // end of try-catch
 }
 
+sentryInit()
 initialize()

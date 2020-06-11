@@ -16,6 +16,9 @@ import config from '../config'
 import { ReceiptTask, enqueueSender } from "./lib/types"
 import { loadValidatorFromAWS } from "../config/private-keys.config"
 
+import * as Sentry from '@sentry/node';
+import sentryInit from './lib/sentry'
+
 
 interface receiptorToQueueOptions {
   msg: Message,
@@ -68,13 +71,14 @@ async function initialize() {
               break
 
             default:
-              throw Error("No such result type")
+              throw Error("Receiptor.run() returns unknown result type")
           }
         } // end of getReceipt
 
         if (config.maxProcessingTime) {
           return watchdog(() => getReceipt(task), config.maxProcessingTime, () => {
             logger.fatal(`Max processing time ${config.maxProcessingTime} reached`)
+            Sentry.captureMessage('Max processing time reached', Sentry.Severity.Fatal)
             process.exit(EXIT_CODES.MAX_TIME_REACHED)
           })
         }
@@ -83,9 +87,11 @@ async function initialize() {
       }
     })
   } catch (e) {
-    logger.fatal(e.message)
+    Sentry.captureException(e)
+    logger.fatal(e, 'initailize raised unknown error.')
     process.exit(EXIT_CODES.GENERAL_ERROR)
   }
 }
 
+sentryInit()
 initialize()

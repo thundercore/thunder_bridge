@@ -12,6 +12,7 @@ import { BigNumber } from 'bignumber.js'
 import { JsonRpcResponse } from 'web3-core-helpers'
 import config from '../../config'
 
+import * as Sentry from '@sentry/node';
 
 export interface SenderWeb3 {
   getPrice: (timestamp: number) => Promise<number>
@@ -240,7 +241,6 @@ export class Sender {
   }
 
   async readNonce(forceUpdate: boolean): Promise<number> {
-    this.logger.info(this.cache, forceUpdate)
     if (this.cache && !forceUpdate) {
       try {
         const nonce = await this.cache.get(this.nonceKey)
@@ -272,7 +272,8 @@ export class Sender {
       timestamp: Date.now() / 1000,
       nonce: nonce,
       transactionHash: txHash,
-      sentBlock: await this.web3.getCurrentBlock()
+      sentBlock: await this.web3.getCurrentBlock(),
+      retries: task.retries
     }
     return Promise.resolve(receiptTask)
   }
@@ -311,80 +312,76 @@ export class Sender {
   }
 
   async sendTx(txinfo: TxInfo, enqueueReceiptor: enqueueReceiptor): Promise<SendResult> {
+    const logger = this.logger.child({eventTx: txinfo.transactionReference})
 
     let nonce: number
     if (isRetryTask(txinfo.eventTask) && txinfo.eventTask.nonce! > (await this.readNonce(true))) {
       // Use retryTask.nonce iff currNonce <= retryTask.nonce or currNonce.
       nonce = txinfo.eventTask.nonce!
-      this.logger.debug(`Use retry task nonce: ${nonce}`)
+      logger.debug(`Use retry task nonce: ${nonce}`)
     } else {
-      try {
-        nonce = await this.readNonce(false)
-        this.logger.debug(`Read nonce: ${nonce}`)
-      } catch (e) {
-        this.logger.error(`Failed to read nonce.`)
-        return Promise.resolve(SendResult.failed)
-      }
+      nonce = await this.readNonce(false)
+      logger.debug(`Read nonce: ${nonce}`)
     }
 
     let result = SendResult.failed
     const gasLimit = addExtraGas(txinfo.gasEstimate, config.EXTRA_GAS_PERCENTAGE)
 
-    const enqueueReceiptTask = async (txHash: string) => {
+    const enqueueReceiptTask = async (txHash: string, nonce: number) => {
       const receiptTask = await this.newReceiptTask(txinfo.eventTask, txHash, nonce)
-      this.logger.debug({receiptTask}, 'enqueue receipt task')
+      logger.debug({receiptTask}, 'enqueue receipt task')
       await enqueueReceiptor(receiptTask)
     }
 
     try {
-      this.logger.info(`Sending transaction with nonce ${nonce}`)
+      logger.info(`Sending transaction with nonce ${nonce}`)
       const txHash = await this.web3.sendTransaction(nonce, gasLimit, toBN('0'), txinfo)
 
-      this.logger.info(`sendTransaction(${txinfo.transactionReference}) returns receiptTx: ${txHash}`)
+      logger.info(`sendTransaction returns receiptTx: ${txHash}`)
 
-      await enqueueReceiptTask(txHash)
+      await enqueueReceiptTask(txHash, nonce)
       result = SendResult.success
       nonce++
 
     } catch (e) {
       let txHash: string = ''
-      this.logger.error(
-        { txHash, eventTransactionHash: txinfo.transactionReference, error: e.message },
-        `Failed to send eventTx ${txinfo.transactionReference}: ${e.message}`,
-      )
+      logger.error({ txHash, error: e.message }, `Failed to sendTx: ${e.message}`,)
 
       if (SendTxError.isTxWasImportedError(e)) {
         if (e instanceof SubmitTxError) {
-          await enqueueReceiptTask(e.txHash)
+          await enqueueReceiptTask(e.txHash, nonce)
         }
-        this.logger.info({txHash, transactionHash: txinfo.transactionReference}, `tx was already imported.`)
+        logger.warn({txHash}, `tx was already imported.`)
         result = SendResult.txImported
 
       } else if (SendTxError.isBlockGasLimitExceededError(e)) {
-        this.logger.info(`tx ${txinfo.transactionReference} block gas limit exceeded. (skiped)`)
+        logger.warn(`block gas limit exceeded. (skiped)`)
         result = SendResult.blockGasLimitExceeded
 
       } else if (SendTxError.isInsufficientFundError(e)) {
         result = SendResult.insufficientFunds
 
       } else if (SendTxError.isNonceTooLowError(e)) {
-        this.logger.info(`tx ${txinfo.transactionReference} nonce is too low. Force update nonce.`)
+        logger.error(`nonce is too low. Force update nonce.`)
         nonce = await this.readNonce(true)
         result = SendResult.nonceTooLow
 
       } else if (SendTxError.isTimeoutError(e)) {
-        this.logger.info(`tx ${txinfo.transactionReference} reaches timeout`)
+        logger.error(`sendTx reaches timeout`)
+        Sentry.captureMessage(`sendTx exceeds timeout`)
         result = SendResult.timeout
 
       } else {
-        this.logger.error(`Unknown error, EventTx: ${txinfo.transactionReference}`)
+        Sentry.addBreadcrumb({category: 'sendTx', message: 'Send transaction raised unknown error'})
+        Sentry.captureException(e)
+        logger.error(e, `Send transaction raised unknown error`)
       }
     }
 
-    this.logger.debug(`Updating nonce ${nonce}`)
+    logger.debug(`Updating nonce ${nonce}`)
     await this.updateNonce(nonce)
 
-    this.logger.info(`Finished sendTx with result: ${result}`)
+    logger.info(`Task finished with result: ${result}`)
 
     return Promise.resolve(result)
   } // end of main

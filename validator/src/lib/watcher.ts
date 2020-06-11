@@ -81,7 +81,7 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
       blockNumber = await this.web3.eth.getBlockNumber()
       logger.debug({ blockNumber }, 'Block number obtained')
     } catch (e) {
-      logger.error({e}, 'Block Number cannot be obtained')
+      logger.error(e, 'getLastBlockNumber() raised unknown error.')
       throw e
     }
     return toBN(blockNumber)
