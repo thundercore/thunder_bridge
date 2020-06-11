@@ -7,7 +7,7 @@ const Web3Utils = require('web3-utils')
 const rpcUrlsManager = require('../../src/services/getRpcUrlsManager')
 const { sendTx, sendRawTx } = require('../../src/tx/sendTx')
 const { isValidAmount } = require('../utils/utils')
-const { checkRelayedMessage, web3Foreign, sleep } = require('./utils')
+const { checkRelayedMessage, web3Foreign, sleep, web3Home } = require('./utils')
 
 const {
   USER_ADDRESS,
@@ -25,10 +25,6 @@ const NUMBER_OF_WITHDRAWALS_TO_SEND = process.argv[2] || process.env.NUMBER_OF_W
 
 const BRIDGE_ABI = require('../../abis/HomeBridgeErcToErc.abi')
 const ERC677_ABI = require('../../abis/ERC677BridgeToken.json').abi
-
-const homeRpcUrl = rpcUrlsManager.homeUrls[0]
-const homeProvider = new Web3.providers.HttpProvider(homeRpcUrl)
-const web3Home = new Web3(homeProvider)
 
 async function main() {
   const bridge = new web3Home.eth.Contract(BRIDGE_ABI, HOME_BRIDGE_ADDRESS)
@@ -134,7 +130,7 @@ async function main() {
   while (done < numToCheck) {
     await sleep(5000)
     let foreignToBlock = await web3Foreign.eth.getBlockNumber()
-    foreignToBlock = Math.min(foreignToBlock, foreignStartBlock + 10)
+    foreignToBlock = Math.min(foreignToBlock, foreignStartBlock + 100)
     const count = await checkRelayedMessage(foreignStartBlock, foreignToBlock, expect)
     if (count === 0) {
       retries += 1
@@ -145,7 +141,7 @@ async function main() {
     foreignStartBlock = foreignToBlock
     console.log(`done=${done}, total=${numToCheck}`)
 
-    if (retries > 20) {
+    if (retries > 50) {
       console.log("remaining transactions:")
       for (let i = 0; i < toCheck.length; i++) {
         const c = toCheck[i];
