@@ -7,6 +7,7 @@ import { toBN } from 'web3-utils'
 
 import logger = require('../services/logger')
 import { EventTask, enqueueSender } from './types'
+import * as Sentry from '@sentry/node'
 
 const ONE = toBN(1)
 
@@ -235,6 +236,15 @@ export class EventWatcher {
     try {
       const lastBlockToProcess = await this.getLastBlockToProcess()
       const lastProcessedBlock = this.status.lastProcessedBlock
+      Sentry.addBreadcrumb({
+        category: 'watcher',
+        message: `lastBlockToProcess=${lastBlockToProcess.toNumber()} lastProcessedBlock=${lastProcessedBlock.toNumber()}`,
+        data: {
+          event: this.event,
+          lastBlockToProcess: lastProcessedBlock.toNumber(),
+          lastProcessedBlock: lastProcessedBlock.toNumber(),
+        },
+      })
 
       if (lastBlockToProcess.lte(lastProcessedBlock)) {
         logger.debug('All blocks already processed')
@@ -247,6 +257,17 @@ export class EventWatcher {
       if (toBlock.gt(fromBlock.add(batchSize))) {
         toBlock = fromBlock.add(batchSize)
       }
+
+      Sentry.addBreadcrumb({
+        category: `watcher-${this.event}`,
+        message: `fromBlock=${fromBlock.toNumber()} toBlock=${toBlock}`,
+        data: {
+          event: this.event,
+          fromBlock: fromBlock.toNumber(),
+          toBlock: toBlock.toNumber(),
+          batchSize: batchSize.toNumber(),
+        },
+      })
 
       logger.info(`Get events between ${lastProcessedBlock} to ${toBlock}`)
       const events = await this.web3.getEvents(this.event, fromBlock, toBlock, this.eventFilter)
@@ -267,6 +288,7 @@ export class EventWatcher {
       return events.length
     } catch (e) {
       logger.error(e)
+      Sentry.captureException(e)
     }
     return -1
   }

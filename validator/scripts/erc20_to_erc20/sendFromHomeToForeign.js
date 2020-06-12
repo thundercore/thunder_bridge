@@ -38,12 +38,12 @@ async function main() {
     await isValidAmount(HOME_MIN_AMOUNT_PER_TX, bridge)
 
     const homeChainId = await sendRawTx({
-      chain: 'home',
+      web3: web3Home,
       params: [],
       method: 'net_version',
     })
     let nonce = await sendRawTx({
-      chain: 'home',
+      web3: web3Home,
       method: 'eth_getTransactionCount',
       params: [USER_ADDRESS, 'latest'],
     })

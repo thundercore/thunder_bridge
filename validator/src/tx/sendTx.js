@@ -1,40 +1,27 @@
 const Web3Utils = require('web3-utils')
-const fetch = require('node-fetch')
-const rpcUrlsManager = require('../services/getRpcUrlsManager')
 
 // eslint-disable-next-line consistent-return
-async function sendRawTx({ chain, params, method }) {
-  const result = await rpcUrlsManager.tryEach(chain, async (url) => {
-    // curl -X POST --data '{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":[{see above}],"id":1}'
-    const response = await fetch(url, {
-      headers: {
-        'Content-type': 'application/json',
-      },
-      method: 'POST',
-      body: JSON.stringify({
+async function sendRawTx({ web3, params, method }) {
+  return new Promise((resolve, reject) => {
+    web3.currentProvider.send(
+      {
         jsonrpc: '2.0',
         method,
         params,
         id: Math.floor(Math.random() * 100) + 1,
-      }),
-    })
-
-    if (!response.ok) {
-      throw new Error(response.statusText)
-    }
-
-    return response
+      },
+      (err, result) => {
+        if (err) {
+          reject(err)
+        }
+        resolve(result.result)
+      },
+    )
   })
-
-  const json = await result.json()
-  if (json.error) {
-    throw json.error
-  }
-  return json.result
 }
 
 // eslint-disable-next-line consistent-return
-async function sendTx({ chain, privateKey, data, nonce, gasPrice, amount, gasLimit, to, chainId, web3 }) {
+async function sendTx({ privateKey, data, nonce, gasPrice, amount, gasLimit, to, chainId, web3 }) {
   const serializedTx = await web3.eth.accounts.signTransaction(
     {
       nonce: Number(nonce),
@@ -49,7 +36,7 @@ async function sendTx({ chain, privateKey, data, nonce, gasPrice, amount, gasLim
   )
 
   return sendRawTx({
-    chain,
+    web3,
     method: 'eth_sendRawTransaction',
     params: [serializedTx.rawTransaction],
   })

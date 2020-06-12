@@ -35,12 +35,12 @@ async function main() {
 
   try {
     const foreignChaindId = await sendRawTx({
-      chain: 'foreign',
+      web3: web3Foreign,
       params: [],
       method: 'net_version',
     })
     let nonce = await sendRawTx({
-      chain: 'foreign',
+      web3: web3Foreign,
       method: 'eth_getTransactionCount',
       params: [USER_ADDRESS, 'latest'],
     })
