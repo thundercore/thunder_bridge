@@ -32,13 +32,11 @@ export interface Validator {
 
 class SubmitTxError extends Error {
   txHash: string;
-  txConfig: TransactionConfig;
 
-  constructor(txHash: string, txConifg: TransactionConfig, origError: Error) {
+  constructor(txHash: string, origError: Error) {
     super(origError.message)
     this.name = 'SubmitTxError'
     this.txHash = txHash;
-    this.txConfig = txConifg
   }
 }
 
@@ -89,6 +87,13 @@ export class SenderWeb3Impl implements SenderWeb3 {
     }
     const txHash = signedTx.transactionHash!
 
+    Sentry.addBreadcrumb({
+      category: 'submitTx',
+      message: `submitTx with following config`,
+      data: txConfig,
+      level: Sentry.Severity.Debug
+    })
+
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         reject(new Error(`Send ${method} timeout`))
@@ -103,10 +108,10 @@ export class SenderWeb3Impl implements SenderWeb3 {
         clearTimeout(timer)
 
         if (error) {
-          reject(new SubmitTxError(txHash, txConfig, error!))
+          reject(new SubmitTxError(txHash, error!))
         } else {
           if (result?.error) {
-            reject(new SubmitTxError(txHash, txConfig, (<Error><unknown>result.error)))
+            reject(new SubmitTxError(txHash, (<Error><unknown>result.error)))
           } else {
             resolve((<JsonRpcResponse>result).result)
           }
@@ -279,20 +284,62 @@ export class Sender {
     return Promise.resolve(receiptTask)
   }
 
+  async sendToSelf(task: EventTask, logger: any): Promise<string|null> {
+    let txHash: string
+    console.log(`send a transaction to fill nonce: ${task}`)
+
+    try {
+      Sentry.addBreadcrumb({
+        category: 'submitTx',
+        message: `send a transaction to fill nonce: ${task.nonce!}`,
+        level: Sentry.Severity.Debug,
+        data: {
+          eventType: task.eventType,
+          transactionReference: task.event.transactionHash
+        }
+      })
+
+      txHash = await this.web3.sendToSelf(task.nonce!)
+      logger.info({txHash, nonce: task.nonce!}, 'Event was ignored, send a transaction to fill nonce.')
+
+    } catch(e) {
+      if (SendTxError.isNonceTooLowError(e)) {
+        // If the nonce is too low, we don't need to fill this nonce.
+        logger.info(`sendToSelf returns nonce too low error. (skip)`)
+        return null
+      } else if (SendTxError.isTxWasImportedError(e)) {
+        // If the tx was imported, ignore this error and add to receiptor queue.
+        logger.info({txHash: e.txHash}, `sendToSelf tx was imported. (skip)`)
+        return e.txHash
+      } else {
+        Sentry.captureException(e)
+        logger.error(e, `sendToSelf raised unknown error`)
+        throw e
+      }
+    }
+
+    return txHash
+  }
+
   async run(task: EventTask, enqueueReceiptor: enqueueReceiptor): Promise<SendResult> {
     let result: SendResult
 
-    this.logger.info(`Process ${task.eventType} event '${task.event.transactionHash}'`)
+    const logger = this.logger.child({eventTx: task.event.transactionHash})
+    logger.info(`Start to process ${task.eventType} event.`)
+
     const txInfo = await this.processEventTask(task)
     if (txInfo === null) {
       // If CurrNonce <= retryTask.nonce, we need to fill this nonce
       // even if the task was skipped by estimateGas.
       if (isRetryTask(task) && (await this.readNonce(true)) <= task.nonce!) {
-        const txHash = await this.web3.sendToSelf(task.nonce!)
-        const receiptTask = await this.newReceiptTask(task, txHash, task.nonce!)
-        await enqueueReceiptor(receiptTask)
-        this.logger.info({txHash, nonce: task.nonce}, 'retry task was ignored, send a transaction to fill nonce.')
-        result = SendResult.sendDummyTxToFillNonce
+        const txHash = await this.sendToSelf(task, logger)
+        if (txHash !== null) {
+          const receiptTask = await this.newReceiptTask(task, txHash!, task.nonce!)
+          await enqueueReceiptor(receiptTask)
+          result = SendResult.sendDummyTxToFillNonce
+        } else {
+          result = SendResult.skipped
+        }
       } else {
         result = SendResult.skipped
       }
@@ -300,15 +347,15 @@ export class Sender {
     } else {
       const lock = await this.locker.lock(this.noncelock)
       try {
-        this.logger.debug(`Acquiring lock: ${this.noncelock}`)
+        logger.debug(`Acquiring lock: ${this.noncelock}`)
         result = await this.sendTx(txInfo, enqueueReceiptor)
       } finally {
-        this.logger.debug('Releasing lock')
+        logger.debug('Releasing lock')
         await lock.unlock()
       }
     }
 
-    this.logger.debug({EventTx: task.event.transactionHash, result}, "run task finished")
+    logger.debug({result}, `End of process ${task.eventType} event`)
     return Promise.resolve(result)
   }
 
@@ -373,11 +420,6 @@ export class Sender {
         result = SendResult.timeout
 
       } else {
-        Sentry.addBreadcrumb({
-          category: 'sendTx',
-          message: `Send transaction '${txinfo.transactionReference}' raised unknown error`,
-          data: e.txConfig
-        })
         Sentry.captureException(e)
         logger.error(e, `Send transaction raised unknown error`)
       }

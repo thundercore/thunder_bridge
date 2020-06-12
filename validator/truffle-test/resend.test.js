@@ -130,6 +130,71 @@ contract('test resend task', (accounts) => {
     await chainOpW3.makeOneBlock(dummy)
   })
 
+  it('test resend task fill nonce with nonce too low', async () => {
+    // 1. v2, v3 vote with success
+    // 2. v1 resend but old tx still in txpool
+    // 3. v1 estimateGas returns null and v1.nonce > currNonce (due to 2), so v1 run sendToSelf
+    // before v1 actually submit tx, old tx is packed and cause currNonce >= v1.nonce
+    // This will raise nonce too low error while send to self.
+
+    const task = await makeTransfer(accounts[9])
+
+    await chainOpW3.minerStop()
+    const [s] = await utils.newSenders(w3, 1)
+    const q = await utils.newQueue()
+
+    // returns null to trigger fill nonce.
+    const nonce = await s.readNonce(true)
+    task.nonce = nonce
+    task.retries = 100
+    s.processEventTask = stub().resolves(null)
+    const _sendToSelf = s.sendToSelf
+    s.sendToSelf = async (...args) => {
+      // nonce++ in selfToSelf
+      await _sendToSelf.apply(s, args)
+      await chainOpW3.makeOneBlock(dummy)
+
+      return await _sendToSelf.apply(s, args)
+    }
+
+    const r = await s.run(task, q.sendToQueue)
+    expect(r).to.be.eq(sender.SendResult.skipped)
+    await chainOpW3.makeOneBlock(dummy)
+  })
+  it.only('test resend task fill nonce with tx was imported', async function() {
+    // 1. v2, v3 vote with success
+    // 2. v1 old tx was dropped due to fullnode problem.
+    // 3. v1 will sendToSelf but queue in txpool but cannot be packed to due some reason (ex: price too low)
+    // 4. receiptor re-enqueue task and sender run sendToSelf again.
+    // 5. sendToSelf returns tx was imported.
+
+    const id = await w3.eth.net.getId()
+    if (id !== 19) {
+      this.skip()
+    }
+
+    const task = await makeTransfer(accounts[9])
+
+    await chainOpW3.minerStop()
+    const [s] = await utils.newSenders(w3, 1)
+    const q = await utils.newQueue()
+
+    // returns null to trigger fill nonce.
+    const nonce = await s.readNonce(true)
+    task.nonce = nonce
+    task.retries = 100
+    s.processEventTask = stub().resolves(null)
+
+    const r1 = await s.run(task, q.sendToQueue)
+    const tx1 = q.queue.pop().transactionHash
+    const r2 = await s.run(task, q.sendToQueue)
+    const tx2 = q.queue.pop().transactionHash
+    expect(r1).to.be.eq(sender.SendResult.sendDummyTxToFillNonce)
+    expect(r2).to.be.eq(sender.SendResult.sendDummyTxToFillNonce)
+    expect(tx1).to.be.eq(tx2)
+    await chainOpW3.makeOneBlock(dummy)
+  })
+
   it('test resend will fill nonce if task was skipped', async () => {
     const task = await makeTransfer(accounts[9])
 

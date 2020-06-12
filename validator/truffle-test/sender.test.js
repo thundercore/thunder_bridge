@@ -112,12 +112,11 @@ contract("Test single sender", (accounts) => {
     expect(q.queue).to.have.length(0)
   })
 
-  it('test transfer with same nonce will be fail', async () => {
+  it.only('test transfer with same nonce will be fail', async () => {
     const task = await makeTransfer(accounts[9])
 
-    const c = new storage.FakeCache()
     const [s] = await utils.newSenders(w3, 1)
-    s.cache = c
+    const c = s.cache
     // Fix nonce to same value
     const nonce = await s.readNonce(true)
     await c.set(s.nonceKey, nonce)
