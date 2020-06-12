@@ -232,37 +232,42 @@ export class EventWatcher {
   }
 
   async do(enqueueSender: enqueueSender): Promise<number> {
-    const lastBlockToProcess = await this.getLastBlockToProcess()
-    const lastProcessedBlock = this.status.lastProcessedBlock
+    try {
+      const lastBlockToProcess = await this.getLastBlockToProcess()
+      const lastProcessedBlock = this.status.lastProcessedBlock
 
-    if (lastBlockToProcess.lte(lastProcessedBlock)) {
-      logger.debug('All blocks already processed')
-      return -1
+      if (lastBlockToProcess.lte(lastProcessedBlock)) {
+        logger.debug('All blocks already processed')
+        return -1
+      }
+
+      const batchSize = toBN(100)
+      const fromBlock = lastProcessedBlock.add(ONE)
+      let toBlock = lastBlockToProcess
+      if (toBlock.gt(fromBlock.add(batchSize))) {
+        toBlock = fromBlock.add(batchSize)
+      }
+
+      logger.info(`Get events between ${lastProcessedBlock} to ${toBlock}`)
+      const events = await this.web3.getEvents(this.event, fromBlock, toBlock, this.eventFilter)
+      logger.info(`Found ${events.length} ${this.event} events: ${JSON.stringify(events)}`)
+
+      if (events.length) {
+        events.map(async (event) => {
+          const task: EventTask = {
+            eventType: this.id,
+            event,
+          }
+          logger.debug({task}, 'enqueue EventTask')
+          await enqueueSender(task)
+        })
+      }
+      logger.debug({lastProcessedBlock: toBlock.toString()}, 'Updating last processed block')
+      await this.status.updateLastProcessedBlock(toBlock)
+      return events.length
+    } catch (e) {
+      logger.error(e)
     }
-
-    const batchSize = toBN(100)
-    const fromBlock = lastProcessedBlock.add(ONE)
-    let toBlock = lastBlockToProcess
-    if (toBlock.gt(fromBlock.add(batchSize))) {
-      toBlock = fromBlock.add(batchSize)
-    }
-
-    logger.info(`Get events between ${lastProcessedBlock} to ${toBlock}`)
-    const events = await this.web3.getEvents(this.event, fromBlock, toBlock, this.eventFilter)
-    logger.info(`Found ${events.length} ${this.event} events: ${JSON.stringify(events)}`)
-
-    if (events.length) {
-      events.map(async (event) => {
-        const task: EventTask = {
-          eventType: this.id,
-          event,
-        }
-        logger.debug({ task }, 'enqueue EventTask')
-        await enqueueSender(task)
-      })
-    }
-    logger.debug({ lastProcessedBlock: toBlock.toString() }, 'Updating last processed block')
-    await this.status.updateLastProcessedBlock(toBlock)
-    return events.length
+    return -1
   }
 }
