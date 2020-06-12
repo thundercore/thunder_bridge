@@ -21,7 +21,7 @@
     "truffle-test": "tsc && cp -r ./truffle-test ./built && NODE_ENV=test truffle test built/truffle-test/*.test.js --network develop",
     "truffle-test:pala": "tsc && rm -rf ./data && cp -r ./truffle-test ./built && NODE_ENV=test truffle test built/truffle-test/*.test.js --network pala_single",
     "truffle:compile": "truffle compile",
-    "tsc": "tsc",
+    "tsc": "rm -rf built && tsc -p tsconfig-prod.json",
     "coverage": "NODE_ENV=test nyc --reporter=text --reporter=html mocha",
     "postinstall": "npm install --prefix e2e && mkdir -p logs",
     "docker-message": "echo 'Please run a valid npm command'",
@@ -34,6 +34,7 @@
   "license": "ISC",
   "dependencies": {
     "-": "0.0.1",
+    "@sentry/integrations": "^5.17.0",
     "@sentry/node": "^5.17.0",
     "@types/amqp-connection-manager": "^2.0.10",
     "@types/amqplib": "^0.5.13",

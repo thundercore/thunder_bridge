@@ -13,6 +13,7 @@ import { JsonRpcResponse } from 'web3-core-helpers'
 import config from '../../config'
 
 import * as Sentry from '@sentry/node';
+import signatureRequestWatcherConfig = require('../../config/signature-request-watcher.config')
 
 export interface SenderWeb3 {
   getPrice: (timestamp: number) => Promise<number>
@@ -31,11 +32,13 @@ export interface Validator {
 
 class SubmitTxError extends Error {
   txHash: string;
+  txConfig: TransactionConfig;
 
-  constructor(txHash: string, origError: Error) {
+  constructor(txHash: string, txConifg: TransactionConfig, origError: Error) {
     super(origError.message)
     this.name = 'SubmitTxError'
     this.txHash = txHash;
+    this.txConfig = txConifg
   }
 }
 
@@ -74,16 +77,17 @@ export class SenderWeb3Impl implements SenderWeb3 {
     }
   }
 
-  async sendSignedTransaction(serializedTx: SignedTransaction): Promise<string> {
+  async submitTx(txConfig: TransactionConfig): Promise<string> {
     const method = 'eth_sendRawTransaction'
     const provider = <HttpProvider>this.web3.currentProvider
 
-    if (serializedTx.transactionHash === undefined) {
+    const signedTx = await this.web3.eth.accounts.signTransaction(txConfig, `0x${this.validator.privateKey}`)
+    if (signedTx.transactionHash === undefined) {
       return new Promise((_, reject) => {
         reject(new Error('sendSignedTransactoin: serialiedTx.transactionHash is undefined'))
       })
     }
-    const txHash = serializedTx.transactionHash!
+    const txHash = signedTx.transactionHash!
 
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
@@ -93,16 +97,16 @@ export class SenderWeb3Impl implements SenderWeb3 {
       provider.send({
         jsonrpc: '2.0',
         method: method,
-        params: [ serializedTx.rawTransaction ],
+        params: [ signedTx.rawTransaction ],
         id: Math.floor(Math.random() * 100) + 1
       }, (error: Error | null, result?: JsonRpcResponse) => {
         clearTimeout(timer)
 
         if (error) {
-          reject(new SubmitTxError(txHash, error!))
+          reject(new SubmitTxError(txHash, txConfig, error!))
         } else {
           if (result?.error) {
-            reject(new SubmitTxError(txHash, (<Error><unknown>result.error)))
+            reject(new SubmitTxError(txHash, txConfig, (<Error><unknown>result.error)))
           } else {
             resolve((<JsonRpcResponse>result).result)
           }
@@ -122,8 +126,7 @@ export class SenderWeb3Impl implements SenderWeb3 {
     }
 
     this.logger.debug(txConfig, 'Send transaction to self')
-    const signedTx = await this.web3.eth.accounts.signTransaction(txConfig, `0x${this.validator.privateKey}`)
-    return this.sendSignedTransaction(signedTx)
+    return this.submitTx(txConfig)
   }
 
   async sendTransaction(nonce: number, gasLimit: BigNumber, amount: BN, txinfo: TxInfo): Promise<string> {
@@ -142,10 +145,8 @@ export class SenderWeb3Impl implements SenderWeb3 {
       gasPrice: (await this.getPrice(timestamp)).toString(),
     }
 
-
-    this.logger.debug({txConfig}, 'web3.eht.accounts.signTransaction')
-    const signedTx = await this.web3.eth.accounts.signTransaction(txConfig, `0x${this.validator.privateKey}`)
-    return this.sendSignedTransaction(signedTx)
+    this.logger.debug({txConfig}, 'Send transaction by txinfo')
+    return this.submitTx(txConfig)
   }
 
   async getBalance(): Promise<string> {
@@ -372,7 +373,11 @@ export class Sender {
         result = SendResult.timeout
 
       } else {
-        Sentry.addBreadcrumb({category: 'sendTx', message: 'Send transaction raised unknown error'})
+        Sentry.addBreadcrumb({
+          category: 'sendTx',
+          message: `Send transaction '${txinfo.transactionReference}' raised unknown error`,
+          data: e.txConfig
+        })
         Sentry.captureException(e)
         logger.error(e, `Send transaction raised unknown error`)
       }
