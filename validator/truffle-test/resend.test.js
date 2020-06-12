@@ -28,7 +28,7 @@ contract('test resend task', (accounts) => {
     chainOpW3 = await utils.ChainOpWeb3(w3)
   })
 
-  it('test resend task', async () => {
+  it('test resend task (task.nonce == currNonce)', async () => {
     const task = await makeTransfer(accounts[9])
 
     await chainOpW3.minerStop()
@@ -38,6 +38,10 @@ contract('test resend task', (accounts) => {
     const nonce = await s.readNonce()
     task.nonce = nonce
     task.retries = 1
+
+    // Update nonce to emulate there are many tasks have sent before this resend task
+    await s.updateNonce(nonce+10)
+
     // Because this nonce was not occupied, sender will use this nonce to send tx.
     const r = await s.run(task, q.sendToQueue)
     expect(r).to.be.eq(sender.SendResult.success)
@@ -45,7 +49,7 @@ contract('test resend task', (accounts) => {
     await chainOpW3.makeOneBlock(dummy)
   })
 
-  it('test resend task with an occupied nonce', async () => {
+  it('test resend task with an occupied nonce (task.nonce < currNonce)', async () => {
     const task = await makeTransfer(accounts[9])
 
     await chainOpW3.minerStop()
@@ -54,15 +58,53 @@ contract('test resend task', (accounts) => {
 
     // Send a transaction to occupy nonce
     const nonce = await s.readNonce()
+    // currNonce++
     s.web3.sendToSelf(nonce)
     await chainOpW3.makeOneBlock(dummy)
 
+    // currNonce = nonce+1, taskNonce = nocne, taskNone < currNonce
     task.nonce = nonce
     task.retries = 1
     // Because this nonce was occupied, sender will use nonce+1 to send tx.
     const r = await s.run(task, q.sendToQueue)
     expect(r).to.be.eq(sender.SendResult.success)
     expect(q.queue.pop().nonce).to.be.eq(nonce+1)
+    await chainOpW3.makeOneBlock(dummy)
+  })
+
+  it('test resend task (task.nonce > currNonce)', async function() {
+    // ganache will raise `the tx doesn't have the correct nonce`
+    // error if tx has wrong nonce. only run this test when testing on pala
+    const id = await w3.eth.net.getId()
+    if (id !== 19) {
+      this.skip()
+    }
+
+    const task = await makeTransfer(accounts[9])
+
+    await chainOpW3.minerStop()
+    const [s] = await utils.newSenders(w3, 1)
+    const q = await utils.newQueue()
+
+    const nonce = await s.readNonce()
+    const snapshotId = await chainOpW3.snapshot()
+
+    // nonce++
+    await s.web3.sendToSelf(nonce)
+    await chainOpW3.makeOneBlock(dummy)
+
+    // currNonce = taskNone = nonce+1
+    const taskNone = await s.readNonce()
+    task.nonce = taskNone
+    task.retries = 1
+
+    // currNonce = nonce, taskNone = nonce+1, taskNonce > currNonce
+    await chainOpW3.revert(snapshotId)
+
+    // taskNonce > currNonce, sender use taskNonce to send tx
+    const r = await s.run(task, q.sendToQueue)
+    expect(r).to.be.eq(sender.SendResult.success)
+    expect(q.queue.pop().nonce).to.be.eq(taskNone)
     await chainOpW3.makeOneBlock(dummy)
   })
 

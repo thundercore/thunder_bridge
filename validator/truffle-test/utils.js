@@ -3,9 +3,11 @@ const path = require('path')
 const sender = require(path.join(__dirname, '../src/lib/sender'))
 const receiptor = require(path.join(__dirname, '../src/lib/receiptor'))
 const locker = require(path.join(__dirname, '../src/lib/locker'))
+const storage = require(path.join(__dirname, '../src/lib/storage'))
 const Web3 = require('web3')
 
 const { expect } = require('chai')
+const { StorageGateway } = require('aws-sdk')
 
 const gasPriceService = {
   getPrice: async (timestamp) => {
@@ -210,8 +212,9 @@ async function newSender(w3, id, validator) {
   const chainId = await w3.eth.net.getId()
   const w = new sender.SenderWeb3Impl(id, chainId, validator, w3, gasPriceService)
   const l = new locker.FakeLocker()
+  const c = new storage.FakeCache()
 
-  return new sender.Sender(id, w, l, null)
+  return new sender.Sender(id, w, l, c)
 }
 
 async function newReceiptor(w3, id) {
