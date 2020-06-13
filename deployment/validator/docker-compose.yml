@@ -31,7 +31,7 @@ services:
   bridge_request:
     image: thundercore/bridge
     build: ../../validator
-    command: watcher:signature-request
+    command: npm run watcher:signature-request
     restart: always
     environment:
       - NODE_ENV=production
@@ -43,7 +43,7 @@ services:
   bridge_collected:
     image: thundercore/bridge
     build: ../../validator
-    command: watcher:collected-signatures
+    command: npm run watcher:collected-signatures
     restart: always
     environment:
       - NODE_ENV=production
@@ -55,7 +55,7 @@ services:
   bridge_affirmation:
     image: thundercore/bridge
     build: ../../validator
-    command: watcher:affirmation-request
+    command: npm run watcher:affirmation-request
     restart: always
     environment:
       - NODE_ENV=production
@@ -67,7 +67,7 @@ services:
   bridge_home:
     image: thundercore/bridge
     build: ../../validator
-    command: sender:home
+    command: npm run sender:home
     restart: always
     environment:
       - NODE_ENV=production
@@ -79,7 +79,31 @@ services:
   bridge_foreign:
     image: thundercore/bridge
     build: ../../validator
-    command: sender:foreign
+    command: npm run sender:foreign
+    restart: always
+    environment:
+      - NODE_ENV=production
+    env_file: ./.env
+    depends_on:
+      - rabbit
+      - redis
+
+  receiptor_home:
+    image: thundercore/bridge
+    build: ../../validator
+    command: npm run receiptor:home
+    restart: always
+    environment:
+      - NODE_ENV=production
+    env_file: ./.env
+    depends_on:
+      - rabbit
+      - redis
+
+  receiptor_foreign:
+    image: thundercore/bridge
+    build: ../../validator
+    command: npm run receiptor:foreign
     restart: always
     environment:
       - NODE_ENV=production
