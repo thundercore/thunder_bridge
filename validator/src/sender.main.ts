@@ -63,6 +63,7 @@ async function initialize() {
           try {
             result = await sender.run(task, options.enqueueReceiptor)
           } catch(e) {
+            Sentry.captureException(e)
             logger.error({error: e, queueTask: task}, 'queue message was re-enqueue due to error')
             await options.enqueueSender(task)
             await options.nackMsg(options.msg)
@@ -105,6 +106,7 @@ async function initialize() {
 
         if (config.maxProcessingTime) {
           return watchdog(() => runSender(task), config.maxProcessingTime, () => {
+            Sentry.captureMessage(`Max processing time ${config.maxProcessingTime} reached`)
             logger.fatal(`Max processing time ${config.maxProcessingTime} reached`)
             process.exit(EXIT_CODES.MAX_TIME_REACHED)
           })

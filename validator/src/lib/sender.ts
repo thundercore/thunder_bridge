@@ -263,7 +263,24 @@ export class Sender {
   }
 
   async processEventTask(task: EventTask): Promise<TxInfo|null> {
-    let txInfos = await this.web3.processEvents(task)
+    let txInfos: TxInfo[]
+    try {
+      txInfos = await this.web3.processEvents(task)
+    } catch(e) {
+      this.logger.fatal({task}, 'failed to process events.')
+      Sentry.addBreadcrumb({
+        category: 'processEvents',
+        message: `failed to process events`,
+        level: Sentry.Severity.Info,
+        data: {
+          eventType: task.eventType,
+          transactionReference: task.event.transactionHash
+        }
+      })
+      Sentry.captureException(e)
+      throw e
+    }
+
     if (txInfos.length === 0 ) {
       return Promise.resolve(null)
     }
