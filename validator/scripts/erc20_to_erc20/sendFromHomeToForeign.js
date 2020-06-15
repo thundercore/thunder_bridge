@@ -105,10 +105,13 @@ async function main() {
   }
 
   let receipt;
-  while(!receipt) {
+  let idx = 0
+  while(!receipt && idx < 100) {
     await sleep(1000)
     const c = toCheck[toCheck.length - 1]
     receipt = await web3Home.eth.getTransactionReceipt(c.transactionHash)
+    console.log(`${idx}s - getting receipt ${c.transactionHash}`)
+    idx++
   }
 
 

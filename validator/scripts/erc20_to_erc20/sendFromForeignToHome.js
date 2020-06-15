@@ -99,10 +99,13 @@ async function main() {
 
   // wait for last tx
   let receipt;
-  while(!receipt) {
+  let idx = 0
+  while(!receipt && idx < 100) {
     await sleep(1000)
     const c = toCheck[toCheck.length - 1]
     receipt = await web3Foreign.eth.getTransactionReceipt(c.transactionHash)
+    console.log(`${idx}s - getting receipt ${c.transactionHash}`)
+    idx++
   }
 
   const expect = {}
