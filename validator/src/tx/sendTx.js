@@ -13,6 +13,11 @@ async function sendRawTx({ web3, params, method }) {
       (err, result) => {
         if (err) {
           reject(err)
+          return
+        }
+        if (result.error) {
+          reject(result.error)
+          return
         }
         resolve(result.result)
       },

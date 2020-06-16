@@ -1,8 +1,5 @@
-const Web3 = require('web3')
 const deployed = require('../../data/deployed.json')
-const rpcUrlsManager = require('../../src/services/getRpcUrlsManager')
-const HttpListProvider = require('http-list-provider')
-
+const { web3Home, web3Foreign } = require('../../src/services/web3')
 
 const HOME_BRIDGE_ABI = require('../../abis/HomeBridgeErcToErc.abi')
 const FOREIGN_BRIDGE_ABI = require('../../abis/ForeignBridgeErcToErc.abi')
@@ -10,19 +7,7 @@ const FOREIGN_BRIDGE_ABI = require('../../abis/ForeignBridgeErcToErc.abi')
 const HOME_BRIDGE_ADDRESS = deployed.homeBridge.address
 const FOREIGN_BRIDGE_ADDRESS = deployed.foreignBridge.address
 
-const retryConfig = {
-  retry: {
-    retries: 600,
-    factor: 1,
-  },
-}
-
-const foreignProvider = new HttpListProvider(rpcUrlsManager.foreignUrls, retryConfig)
-const web3Foreign = new Web3(foreignProvider)
 const foreignBridge = new web3Foreign.eth.Contract(FOREIGN_BRIDGE_ABI, FOREIGN_BRIDGE_ADDRESS)
-
-const homeProvider = new HttpListProvider(rpcUrlsManager.homeUrls, retryConfig)
-const web3Home = new Web3(homeProvider)
 const homeBridge = new web3Home.eth.Contract(HOME_BRIDGE_ABI, HOME_BRIDGE_ADDRESS)
 
 // Check send from foreign to home is completed
