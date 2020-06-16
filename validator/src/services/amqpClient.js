@@ -43,30 +43,20 @@ function connectSenderToQueue({ queueName, cb }) {
   channelWrapper.addSetup(channel => {
     return Promise.all([
       channel.assertExchange(queueName, 'topic', { durable: true }),
-      channel.assertExchange(retryQueue, 'topic', { durable: true, noAck: true}),
-    ])
-  })
-
-  // Setup queue
-  channelWrapper.addSetup(channel => {
-    return Promise.all([
       channel.assertQueue(queueName, { durable: true }),
-      channel.assertQueue(retryQueue,
-        { durable: true, deadLetterExchange: queueName, messageTtl: config.QUEUE_RETRY_DELAY }),
       channel.assertQueue(receiptQueue, { durable: true }),
+      channel.bindQueue(queueName, queueName, '#'),
     ])
   })
 
-  // Bind exchange to queue
+  // Setup retry queue
   channelWrapper.addSetup(channel => {
-    return Promise.all([
-      channel.bindQueue(queueName, queueName, '#'),
-      channel.bindQueue(retryQueue, retryQueue, '#')
-    ]);
+    const tasks = createRetryQueueTasks(retryQueue, queueName, channel)
+    return Promise.all(tasks)
   })
+
 
   const enqueueReceiptor = data => channelWrapper.sendToQueue(receiptQueue, data, { persistent: true })
-  const enqueueSender = data => channelWrapper.sendToQueue(retryQueue, data, { persistent: true })
   channelWrapper.addSetup(channel => {
     return Promise.all([
       channel.prefetch(1),
@@ -76,13 +66,43 @@ function connectSenderToQueue({ queueName, cb }) {
             channel: channelWrapper,
             ackMsg: job => channelWrapper.ack(job),
             nackMsg: job => channelWrapper.nack(job, false, false),
-            enqueueSender,
+            enqueueSender: data => {
+              const retry = msg.properties.headers['x-retry-count'] || 0
+              const targetQueue = getRetryQueueName(retryQueue, retry)
+              channelWrapper.sendToQueue(targetQueue, data, { headers: { 'x-retry-count': retry+1 } })
+            },
             enqueueReceiptor,
           })
         }
       )
     ])
   })
+}
+
+function getRetryQueueName(retryQueue, retry) {
+  if (retry > config.QUEUE_RETRY_LIMIT) {
+    return `${retryQueue}-${config.QUEUE_RETRY_LIMIT}`
+  }
+  return `${retryQueue}-${retry}`
+}
+
+function createRetryQueueTasks(retryQueue, destQueue, channel) {
+  const tasks = []
+  let delay = config.QUEUE_RETRY_DELAY
+  for (var i=0; i<=config.QUEUE_RETRY_LIMIT; i++){
+    const name = getRetryQueueName(retryQueue, i)
+    tasks.push(
+      channel.assertExchange(name, 'topic', { durable: true, noAck: true}),
+    )
+    tasks.push(
+      channel.assertQueue(name, { durable: true, deadLetterExchange: destQueue, messageTtl: delay })
+    )
+    tasks.push(
+      channel.bindQueue(name, name, '#')
+    )
+    delay *= 2
+  }
+  return tasks
 }
 
 function connectReceiptorQueue({ queueName, cb }) {
@@ -100,27 +120,18 @@ function connectReceiptorQueue({ queueName, cb }) {
   channelWrapper.addSetup(channel => {
     return Promise.all([
       channel.assertExchange(receiptQueue, 'topic', { durable: true }),
-      channel.assertExchange(retryQueue, 'topic', { durable: true, noAck: true}),
-    ])
-  })
-
-  // Setup queue.
-  channelWrapper.addSetup(channel => {
-    return Promise.all([
       channel.assertQueue(sendQueue, { durable: true }),
       channel.assertQueue(receiptQueue, { durable: true }),
-      channel.assertQueue(retryQueue,
-        { durable: true, deadLetterExchange: receiptQueue, messageTtl: config.QUEUE_RETRY_DELAY }),
+      channel.bindQueue(receiptQueue, receiptQueue, '#'),
     ])
   })
 
-  // Bind exchange to queue
+  // Setup retry queue.
   channelWrapper.addSetup(channel => {
-    return Promise.all([
-      channel.bindQueue(receiptQueue, receiptQueue, '#'),
-      channel.bindQueue(retryQueue, retryQueue, '#')
-    ]);
+    const tasks = createRetryQueueTasks(retryQueue, receiptQueue, channel)
+    return Promise.all(tasks)
   })
+
 
   const enqueueSender = data => channelWrapper.sendToQueue(queueName, data, { persistent: true })
   channelWrapper.addSetup(channel => {
@@ -132,8 +143,10 @@ function connectReceiptorQueue({ queueName, cb }) {
             channel: channelWrapper,
             ackMsg: job => channelWrapper.ack(job),
             retryMsg: job => {
+              const retry = msg.properties.headers['x-retry-count'] || 0
+              const targetQueue = getRetryQueueName(retryQueue, retry)
               let task = JSON.parse(job.content.toString())
-              channelWrapper.sendToQueue(retryQueue, task)
+              channelWrapper.sendToQueue(targetQueue, task, {headers: {'x-retry-count': retry+1}})
               channelWrapper.nack(job, false, false)
             },
             rejectMsg: job => channelWrapper.nack(job, false, false),

@@ -14,6 +14,10 @@ declare global {
 global.__rootdir__ = __dirname || process.cwd();
 
 export default function init() {
+  if (config.SENTRY_ENVIRONMENT === 'local') {
+    return
+  }
+
   Sentry.init({
     serverName: os.hostname(),
     integrations: [new RewriteFrames({

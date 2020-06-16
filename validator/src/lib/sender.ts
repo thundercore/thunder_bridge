@@ -4,7 +4,7 @@ import rootLogger = require("../services/logger")
 import { EventTask, TxInfo, ReceiptTask, isRetryTask, enqueueReceiptor } from './types'
 import { Locker } from './locker'
 import { Cache } from './storage'
-import { TransactionConfig, HttpProvider, SignedTransaction } from 'web3-core'
+import { TransactionConfig, HttpProvider } from 'web3-core'
 import { processEvents } from '../events'
 import { addExtraGas } from '../utils/utils'
 import { toBN, toWei } from 'web3-utils'
@@ -13,7 +13,6 @@ import { JsonRpcResponse } from 'web3-core-helpers'
 import config from '../../config'
 
 import * as Sentry from '@sentry/node';
-import signatureRequestWatcherConfig = require('../../config/signature-request-watcher.config')
 
 export interface SenderWeb3 {
   getPrice: (timestamp: number) => Promise<number>
