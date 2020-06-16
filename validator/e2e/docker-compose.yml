@@ -6,7 +6,6 @@ services:
     network_mode: host
     environment:
       - SENTRY_ENVIRONMENT=local
-      - SENTRY_DSN=https://98807d470ed04805a8850ff943881940@o262383.ingest.sentry.io/5268481
       - NODE_ENV=test
       - BRIDGE_MODE=ERC_TO_ERC
       - QUEUE_URL=amqp://127.0.0.1:5672
