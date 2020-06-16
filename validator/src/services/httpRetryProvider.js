@@ -2,7 +2,6 @@ const fetch = require('node-fetch')
 const promiseRetry = require('promise-retry')
 const deepmerge = require('deepmerge')
 const Sentry = require('@sentry/node')
-const logger = require('./logger')
 
 const defaultOptions = {
   retry: {
@@ -84,7 +83,7 @@ async function trySend(payload, urls, initialIndex) {
       return [result, index]
     } catch (e) {
       // log error here
-      logger.debug({ error: e.message }, 'fetch fail')
+      console.log({ error: e.message }, 'fetch fail')
       errors.push(e)
     }
     index = (index + 1) % urls.length
