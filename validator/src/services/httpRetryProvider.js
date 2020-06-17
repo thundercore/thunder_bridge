@@ -69,7 +69,7 @@ async function trySend(payload, urls, initialIndex) {
             message: 'fetch fail',
             level: Sentry.Severity.Error,
             data: {
-              urls: this.urls,
+              urls,
               url,
               index,
               text,

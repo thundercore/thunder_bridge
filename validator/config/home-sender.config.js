@@ -9,5 +9,6 @@ module.exports = {
   queue: 'home',
   id: 'home',
   name: 'sender-home',
-  web3: web3Home
+  web3: web3Home,
+  validatorRequiredBalance: baseConfig.env.HOME_VALIDATOR_REQUIRED_BALANCE,
 }

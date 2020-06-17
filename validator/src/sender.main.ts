@@ -42,6 +42,32 @@ interface senderToQueueOption {
   enqueueReceiptor: enqueueReceiptor,
 }
 
+async function waitForSufficientFund(validator: { address: string }) {
+  const requiredBalanceInWei = config.web3.utils.toBN(
+    config.web3.utils.toWei(config.validatorRequiredBalance.toString(), 'ether'),
+  )
+
+  while (true) {
+    const balance = await config.web3.eth.getBalance(validator.address)
+    if (config.web3.utils.toBN(balance).gt(requiredBalanceInWei)) {
+      logger.info('validator balance is enough')
+      break
+    } else {
+      logger.warn(
+        {
+          validator: validator.address,
+          balance: config.web3.utils.fromWei(balance, 'ether'),
+          required: config.validatorRequiredBalance,
+        },
+        'validator balance not enough',
+      )
+    }
+    await new Promise((resolve) => {
+      setTimeout(resolve, 60 * 1000)
+    })
+  }
+}
+
 async function initialize() {
   try {
 
@@ -51,6 +77,7 @@ async function initialize() {
     rpcUrlsManager.foreignUrls.forEach(checkHttps('foreign'))
 
     const validator = await loadValidatorFromAWS()
+    await waitForSufficientFund(validator)
     const sender = await newSender(validator)
 
     connectSenderToQueue({
@@ -80,10 +107,13 @@ async function initialize() {
 
             case SendResult.failed:
             case SendResult.timeout:
-            case SendResult.insufficientFunds:
               await options.enqueueSender(task)
               await options.nackMsg(options.msg)
               break
+            case SendResult.insufficientFunds:
+              await options.enqueueSender(task)
+              await options.nackMsg(options.msg)
+              process.exit(EXIT_CODES.INSUFFICIENT_FUNDS)
 
             case SendResult.blockGasLimitExceeded:
               options.nackMsg(options.msg)

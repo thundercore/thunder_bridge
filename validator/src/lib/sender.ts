@@ -189,7 +189,7 @@ namespace SendTxError {
   }
 
   export function isInsufficientFundError(e: Error): boolean {
-    return e.message.includes('Insufficient funds')
+    return e.message.includes('Insufficient funds') || e.message.includes('insufficient funds')
   }
 
   export function isTimeoutError(e: Error): boolean {

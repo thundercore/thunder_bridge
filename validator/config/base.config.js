@@ -47,6 +47,8 @@ let validations = {
   QUEUE_RETRY_DELAY: envalid.num({default: 2000}),
   QUEUE_RETRY_LIMIT: envalid.num({default: 5}),
   EXTRA_GAS_PERCENTAGE: envalid.num({default: 1}),
+  HOME_VALIDATOR_REQUIRED_BALANCE: envalid.num({ default: 0.1 }),
+  FOREIGN_VALIDATOR_REQUIRED_BALANCE: envalid.num({ default: 0.1 }),
 }
 
 const env = envalid.cleanEnv(process.env, validations, {})

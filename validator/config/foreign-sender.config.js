@@ -10,4 +10,5 @@ module.exports = {
   id: 'foreign',
   name: 'sender-foreign',
   web3: web3Foreign,
+  validatorRequiredBalance: baseConfig.env.FOREIGN_VALIDATOR_REQUIRED_BALANCE,
 }

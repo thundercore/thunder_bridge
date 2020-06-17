@@ -30,6 +30,8 @@ services:
       - GET_RECEIPT_TIMEOUT=5000
       - LOAD_DEPLOYED_CONTRACT=yes
       - EXTRA_GAS_PERCENTAGE=0
+      - HOME_VALIDATOR_REQUIRED_BALANCE=0.1
+      - FOREIGN_VALIDATOR_REQUIRED_BALANCE=0.1
     volumes:
       - ../src:/app/src
       - ../scripts:/app/scripts
