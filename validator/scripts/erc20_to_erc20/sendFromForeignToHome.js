@@ -2,9 +2,7 @@ const path = require('path')
 require('dotenv').config({
   path: path.join(__dirname, '../../.env'),
 })
-const Web3 = require('web3')
 const Web3Utils = require('web3-utils')
-const rpcUrlsManager = require('../../src/services/getRpcUrlsManager')
 const { sendTx, sendRawTx } = require('../../src/tx/sendTx')
 const { checkAffirmationCompleted, web3Home, sleep, web3Foreign } = require('./utils')
 
@@ -14,6 +12,7 @@ const {
   FOREIGN_MIN_AMOUNT_PER_TX,
   FOREIGN_TEST_TX_GAS_PRICE,
   HOME_CUSTOM_RECIPIENT,
+  FOREIGN_BLOCK_TIME,
 } = process.env
 
 const deployed = require('../../data/deployed.json')
@@ -24,8 +23,22 @@ const NUMBER_OF_DEPOSITS_TO_SEND = process.argv[2] || process.env.NUMBER_OF_DEPO
 
 const ERC20_ABI = require('../../abis/ERC20.abi')
 const BRIDGE_ABI = require('../../abis/ForeignBridgeErcToErc.abi')
+let sent = 0
+let success = 0
 
 async function main() {
+  while(true) {
+    try {
+      await run()
+    } catch (e) {
+      console.log(e, 'stress test raise error')
+      await new Promise(r => setTimeout(r, 10 * 1000))
+    } finally{
+      console.log(`sent: ${sent}, success: ${success}`)
+    }
+  }
+}
+async function run() {
   const bridge = new web3Foreign.eth.Contract(BRIDGE_ABI, FOREIGN_BRIDGE_ADDRESS)
   const ERC20_TOKEN_ADDRESS = await bridge.methods.erc20token().call()
   const poa20 = new web3Foreign.eth.Contract(ERC20_ABI, ERC20_TOKEN_ADDRESS)
@@ -100,7 +113,7 @@ async function main() {
   // wait for last tx
   let receipt;
   let idx = 0
-  while(!receipt && idx < 100) {
+  while(!receipt && idx < NUMBER_OF_DEPOSITS_TO_SEND * FOREIGN_BLOCK_TIME) {
     await sleep(1000)
     const c = toCheck[toCheck.length - 1]
     receipt = await web3Foreign.eth.getTransactionReceipt(c.transactionHash)
@@ -119,6 +132,8 @@ async function main() {
     }
   }
 
+  sent += numToCheck
+
   console.log('numToCheck=', numToCheck)
 
   let retries = 0
@@ -132,6 +147,7 @@ async function main() {
       retries += 1
     } else {
       done += count
+      success += count
       retries = 0
     }
     homeStartBlock = homeToBlock
@@ -145,9 +161,7 @@ async function main() {
           console.log(c)
         }
       }
-      process.exit(17)
     }
-
   }
 }
 

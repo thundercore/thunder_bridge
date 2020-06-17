@@ -2,9 +2,7 @@ const path = require('path')
 require('dotenv').config({
   path: path.join(__dirname, '../../.env'),
 })
-const Web3 = require('web3')
 const Web3Utils = require('web3-utils')
-const rpcUrlsManager = require('../../src/services/getRpcUrlsManager')
 const { sendTx, sendRawTx } = require('../../src/tx/sendTx')
 const { isValidAmount } = require('../utils/utils')
 const { checkRelayedMessage, web3Foreign, sleep, web3Home } = require('./utils')
@@ -15,6 +13,7 @@ const {
   HOME_MIN_AMOUNT_PER_TX,
   HOME_TEST_TX_GAS_PRICE,
   FOREIGN_CUSTOM_RECIPIENT,
+  HOME_BLOCK_TIME,
 } = process.env
 
 const deployed = require('../../data/deployed.json')
@@ -25,8 +24,23 @@ const NUMBER_OF_WITHDRAWALS_TO_SEND = process.argv[2] || process.env.NUMBER_OF_W
 
 const BRIDGE_ABI = require('../../abis/HomeBridgeErcToErc.abi')
 const ERC677_ABI = require('../../abis/ERC677BridgeToken.json').abi
+let sent = 0
+let success = 0
 
 async function main() {
+  while(true) {
+    try {
+      await run()
+    } catch (e) {
+      console.log(e, 'stress test raise error')
+      await new Promise(r => setTimeout(r, 10 * 1000))
+    } finally{
+      console.log(`sent: ${sent}, success: ${success}`)
+    }
+  }
+}
+
+async function run() {
   const bridge = new web3Home.eth.Contract(BRIDGE_ABI, HOME_BRIDGE_ADDRESS)
   const BRIDGEABLE_TOKEN_ADDRESS = await bridge.methods.erc677token().call()
   const erc677 = new web3Home.eth.Contract(ERC677_ABI, BRIDGEABLE_TOKEN_ADDRESS)
@@ -88,16 +102,13 @@ async function main() {
         nonce++
         actualSent++
         console.log(actualSent, ' # ', txHash)
+
         toCheck.push({
           transactionHash: txHash,
           value: Web3Utils.toWei(HOME_MIN_AMOUNT_PER_TX),
           recipient: USER_ADDRESS,
           result: '',
         })
-      }
-      const r = await web3Home.eth.getTransactionReceipt(txHash)
-      if (r !== null) {
-        console.log(txHash, r.status)
       }
     }
   } catch (e) {
@@ -106,14 +117,13 @@ async function main() {
 
   let receipt;
   let idx = 0
-  while(!receipt && idx < 100) {
+  while(!receipt && idx < NUMBER_OF_WITHDRAWALS_TO_SEND * HOME_BLOCK_TIME) {
     await sleep(1000)
     const c = toCheck[toCheck.length - 1]
     receipt = await web3Home.eth.getTransactionReceipt(c.transactionHash)
     console.log(`${idx}s - getting receipt ${c.transactionHash}`)
     idx++
   }
-
 
   const expect = {}
   let numToCheck = 0
@@ -126,6 +136,7 @@ async function main() {
     }
   }
 
+  sent += numToCheck
   console.log('numToCheck=', numToCheck)
 
   let done = 0
@@ -139,6 +150,7 @@ async function main() {
       retries += 1
     } else {
       done += count
+      success += count
       retries = 0
     }
     foreignStartBlock = foreignToBlock
@@ -152,9 +164,8 @@ async function main() {
           console.log(c)
         }
       }
-      process.exit(17)
     }
-
   }
 }
+
 main()
