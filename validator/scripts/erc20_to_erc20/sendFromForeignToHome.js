@@ -4,7 +4,9 @@ require('dotenv').config({
 })
 const Web3Utils = require('web3-utils')
 const { sendTx, sendRawTx } = require('../../src/tx/sendTx')
-const { checkAffirmationCompleted, sleep, web3Foreign } = require('./utils')
+const { checkAffirmationCompleted, sleep, web3Foreign, initSentry } = require('./utils')
+
+const Sentry = require('@sentry/node')
 
 const {
   USER_ADDRESS,
@@ -170,12 +172,20 @@ async function run() {
       for (let i = 0; i < toCheck.length; i++) {
         const c = toCheck[i];
         if (expect[c.transactionHash]) {
+          Sentry.addBreadcrumb({
+            category: 'stressTest',
+            message: 'failed transactions',
+            data: c.transactionHash,
+            level: Sentry.Severity.Debug
+          })
           console.log(c)
         }
       }
+      Sentry.captureMessage('stress test foreign -> home failed')
       break
     }
   }
 }
 
+initSentry()
 main()

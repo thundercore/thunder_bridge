@@ -1,4 +1,5 @@
 const Web3 = require('web3')
+const Sentry = require('@sentry/node')
 const Web3WsProvider = require('web3-providers-ws');
 const deployed = require('../../data/deployed.json')
 const { web3Foreign } = require('../../src/services/web3')
@@ -112,10 +113,15 @@ function sleep(t) {
   })
 }
 
+function initSentry() {
+  Sentry.init()
+}
+
 module.exports = {
   checkAffirmationCompleted,
   checkRelayedMessage,
   web3Home,
   web3Foreign,
   sleep,
+  initSentry,
 }

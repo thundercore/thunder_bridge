@@ -5,7 +5,9 @@ require('dotenv').config({
 const Web3Utils = require('web3-utils')
 const { sendTx, sendRawTx } = require('../../src/tx/sendTx')
 const { isValidAmount } = require('../utils/utils')
-const { checkRelayedMessage, web3Foreign, sleep, web3Home } = require('./utils')
+const { checkRelayedMessage, sleep, web3Home, initSentry } = require('./utils')
+
+const Sentry = require('@sentry/node')
 
 const {
   USER_ADDRESS,
@@ -49,7 +51,6 @@ async function run() {
   const BRIDGEABLE_TOKEN_ADDRESS = await bridge.methods.erc677token().call()
   const erc677 = new web3Home.eth.Contract(ERC677_ABI, BRIDGEABLE_TOKEN_ADDRESS)
 
-  let foreignStartBlock = await web3Foreign.eth.getBlockNumber()
   const toCheck = []
 
   try {
@@ -174,12 +175,20 @@ async function run() {
       for (let i = 0; i < toCheck.length; i++) {
         const c = toCheck[i];
         if (!expect[c.transactionHash]) {
+          Sentry.addBreadcrumb({
+            category: 'stressTest',
+            message: 'failed transactions',
+            data: c.transactionHash,
+            level: Sentry.Severity.Debug
+          })
           console.log(c)
         }
       }
+      Sentry.captureMessage('stress test home -> foreign failed')
       break
     }
   }
 }
 
+initSentry()
 main()
