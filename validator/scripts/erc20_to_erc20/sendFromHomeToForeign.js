@@ -28,6 +28,9 @@ let sent = 0
 let success = 0
 
 async function main() {
+  const start = new Date().toISOString()
+  console.log(`[${start}] start to test foreign -> home`)
+
   while(true) {
     try {
       await run()
@@ -35,7 +38,8 @@ async function main() {
       console.log(e, 'stress test raise error')
       await new Promise(r => setTimeout(r, 10 * 1000))
     } finally{
-      console.log(`sent: ${sent}, success: ${success}`)
+      const now = new Date().toISOString()
+      console.log(`[${now}] sent: ${sent}, success: ${success}`)
     }
   }
 }
