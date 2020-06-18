@@ -127,15 +127,27 @@ async function run() {
 
   const expect = {}
   let numToCheck = 0
+  const promises = []
+  const batch = new web3Home.BatchRequest()
   for (let i = 0; i < toCheck.length; i++) {
     const c = toCheck[i]
-    const receipt = await web3Home.eth.getTransactionReceipt(c.transactionHash)
-    if (receipt && receipt.status) {
-      expect[c.transactionHash] = c
-      numToCheck += 1
-    }
+    promises.push(new Promise((resolve, reject) =>{
+      batch.add(web3Home.eth.getTransactionReceipt.request(c.transactionHash, (err, receipt) =>{
+        if (err) {
+          reject(err)
+        } else {
+          if (receipt && receipt.status) {
+            expect[c.transactionHash] = false
+            numToCheck += 1
+          }
+          resolve(receipt)
+        }
+      }))
+    }))
   }
 
+  batch.execute()
+  await Promise.all(promises)
   sent += numToCheck
   console.log('numToCheck=', numToCheck)
 
@@ -143,9 +155,7 @@ async function run() {
   let retries = 0
   while (done < numToCheck) {
     await sleep(5000)
-    let foreignToBlock = await web3Foreign.eth.getBlockNumber()
-    foreignToBlock = Math.min(foreignToBlock, foreignStartBlock + 100)
-    const count = await checkRelayedMessage(foreignStartBlock, foreignToBlock, expect)
+    const count = await checkRelayedMessage(expect)
     if (count === 0) {
       retries += 1
     } else {
@@ -153,17 +163,17 @@ async function run() {
       success += count
       retries = 0
     }
-    foreignStartBlock = foreignToBlock
     console.log(`done=${done}, total=${numToCheck}`)
 
     if (retries > 50) {
       console.log("remaining transactions:")
       for (let i = 0; i < toCheck.length; i++) {
         const c = toCheck[i];
-        if (expect[c.transactionHash] && expect[c.transactionHash].result !== 'success') {
+        if (!expect[c.transactionHash]) {
           console.log(c)
         }
       }
+      break
     }
   }
 }

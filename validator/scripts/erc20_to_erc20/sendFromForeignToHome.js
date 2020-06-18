@@ -4,7 +4,7 @@ require('dotenv').config({
 })
 const Web3Utils = require('web3-utils')
 const { sendTx, sendRawTx } = require('../../src/tx/sendTx')
-const { checkAffirmationCompleted, web3Home, sleep, web3Foreign } = require('./utils')
+const { checkAffirmationCompleted, sleep, web3Foreign } = require('./utils')
 
 const {
   USER_ADDRESS,
@@ -43,7 +43,6 @@ async function run() {
   const ERC20_TOKEN_ADDRESS = await bridge.methods.erc20token().call()
   const poa20 = new web3Foreign.eth.Contract(ERC20_ABI, ERC20_TOKEN_ADDRESS)
 
-  let homeStartBlock = await web3Home.eth.getBlockNumber()
   const toCheck = []
 
   try {
@@ -123,26 +122,36 @@ async function run() {
 
   const expect = {}
   let numToCheck = 0
+  const promises = []
+  const batch = new web3Foreign.BatchRequest()
   for (let i = 0; i < toCheck.length; i++) {
     const c = toCheck[i]
-    const receipt = await web3Foreign.eth.getTransactionReceipt(c.transactionHash)
-    if (receipt && receipt.status) {
-      expect[c.transactionHash] = c
-      numToCheck += 1
-    }
+    promises.push(new Promise((resolve, reject) =>{
+      batch.add(web3Foreign.eth.getTransactionReceipt.request(c.transactionHash, (err, receipt) =>{
+        if (err) {
+          reject(err)
+        } else {
+          if (receipt && receipt.status) {
+            expect[c.transactionHash] = c
+            numToCheck += 1
+          }
+          resolve(receipt)
+        }
+      }))
+    }))
   }
 
-  sent += numToCheck
+  batch.execute()
+  await Promise.all(promises)
 
+  sent += numToCheck
   console.log('numToCheck=', numToCheck)
 
   let retries = 0
   let done = 0
   while (done < numToCheck) {
     await sleep(5000)
-    let homeToBlock = await web3Home.eth.getBlockNumber()
-    homeToBlock = Math.min(homeToBlock, homeStartBlock + 100)
-    const count = await checkAffirmationCompleted(homeStartBlock, homeToBlock, expect)
+    const count = await checkAffirmationCompleted(expect)
     if (count === 0) {
       retries += 1
     } else {
@@ -150,17 +159,17 @@ async function run() {
       success += count
       retries = 0
     }
-    homeStartBlock = homeToBlock
     console.log('done=', done, 'to check', numToCheck)
 
     if (retries > 50) {
       console.log("remaining transactions:")
       for (let i = 0; i < toCheck.length; i++) {
         const c = toCheck[i];
-        if (expect[c.transactionHash] && expect[c.transactionHash].result !== 'success') {
+        if (expect[c.transactionHash]) {
           console.log(c)
         }
       }
+      break
     }
   }
 }
