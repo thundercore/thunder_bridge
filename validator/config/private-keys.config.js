@@ -24,7 +24,7 @@ async function getValidatorKey() {
         Key: KEY_PATH
       })
       .promise()
-    cachedValidatorPrivateKey = result.Body.toString()
+    cachedValidatorPrivateKey = result.Body.toString().trim()
     return cachedValidatorPrivateKey
   }
 }
