@@ -189,7 +189,11 @@ namespace SendTxError {
   }
 
   export function isInsufficientFundError(e: Error): boolean {
-    return e.message.includes('Insufficient funds') || e.message.includes('insufficient funds')
+    return (
+      e.message.includes('Insufficient funds') ||
+      e.message.includes('insufficient funds') ||
+      e.message.includes("doesn't have enough funds to send tx")
+    )
   }
 
   export function isTimeoutError(e: Error): boolean {
@@ -249,7 +253,7 @@ export class Sender {
     if (this.cache && !forceUpdate) {
       try {
         const nonce = await this.cache.get(this.nonceKey)
-        if (nonce) {
+        if (nonce || nonce === 0) {
           this.logger.debug({ nonce }, `Nonce found in the DB, key: ${this.nonceKey}`)
           return Promise.resolve(Number(nonce))
         }

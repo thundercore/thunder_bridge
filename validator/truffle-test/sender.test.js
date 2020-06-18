@@ -77,7 +77,7 @@ contract("Test single sender", (accounts) => {
     // Only run this test on pala
     const id = await w3.eth.net.getId()
     if (id !== 19) {
-        this.skip()
+      this.skip()
     }
     const task1 = await makeTransfer(accounts[9])
     const task2 = await makeTransfer(accounts[9])
@@ -87,6 +87,8 @@ contract("Test single sender", (accounts) => {
     const info2 = await s.processEventTask(task2)
 
     const nonce = await s.readNonce(true)
+    info1.eventTask.nonce = nonce
+    info1.eventTask.retries = 1
     info2.eventTask.nonce = nonce + 1
     info2.eventTask.retries = 1
 
@@ -112,7 +114,7 @@ contract("Test single sender", (accounts) => {
     expect(q.queue).to.have.length(0)
   })
 
-  it.only('test transfer with same nonce will be fail', async () => {
+  it('test transfer with same nonce will be fail', async () => {
     const task = await makeTransfer(accounts[9])
 
     const [s] = await utils.newSenders(w3, 1)
@@ -134,6 +136,16 @@ contract("Test single sender", (accounts) => {
     // Task is not `acked` in queue
 
     expect(q.queue).to.have.length(1)
+  })
+
+  it('test insufficient fund', async () => {
+    const task = await makeTransfer(accounts[9])
+    const [s] = await utils.newSenders(w3, 1)
+    s.web3.getPrice = async (ts) => {
+      return await w3.eth.getBalance(accounts[0])
+    }
+    const ret = await s.run(task, q.sendToQueue)
+    expect(ret).to.eq(sender.SendResult.insufficientFunds)
   })
 })
 

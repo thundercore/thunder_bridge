@@ -161,7 +161,7 @@ contract('test resend task', (accounts) => {
     expect(r).to.be.eq(sender.SendResult.skipped)
     await chainOpW3.makeOneBlock(dummy)
   })
-  it.only('test resend task fill nonce with tx was imported', async function() {
+  it('test resend task fill nonce with tx was imported', async function() {
     // 1. v2, v3 vote with success
     // 2. v1 old tx was dropped due to fullnode problem.
     // 3. v1 will sendToSelf but queue in txpool but cannot be packed to due some reason (ex: price too low)
