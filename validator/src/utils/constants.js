@@ -1,10 +1,10 @@
 module.exports = {
   MAX_CONCURRENT_EVENTS: 50,
   RETRY_CONFIG: {
-    retries: 20,
-    factor: 1.4,
+    retries: 10,
+    factor: 2,
     maxTimeout: 360000,
-    randomize: true
+    randomize: false
   },
   DEFAULT_UPDATE_INTERVAL: 600000,
   EXIT_CODES: {

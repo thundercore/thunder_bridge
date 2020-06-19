@@ -111,18 +111,6 @@ contract('Test Receiptor', (accounts) => {
     expect(resent.retries).to.eq(1)
   })
 
-  // FIXME: use fake timer
-  it('test get receipt timeout', async () => {
-    const w = new receiptor.ReceiptorWeb3Impl(w3)
-    const p = new Promise((resolve) => setTimeout(resolve, 10000))
-    w.getTransactionReceipt = stub().resolves(p)
-    const r = new receiptor.Receiptor('r1', w)
-    const q = await utils.newQueue()
-
-    const task = await makeReceiptTask(true)
-    expect(await r.run(task, q.sendToQueue)).to.eq(receiptor.ReceiptResult.timeout)
-  })
-
   it('test get receipt with chain forked', async () => {
     const id = await w3.eth.net.getId()
     await chainOpW3.minerStop()

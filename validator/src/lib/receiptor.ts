@@ -32,14 +32,11 @@ export enum ReceiptResult {
   skipped = 'skipped',
   success = 'success',
   null = 'null',
-  timeout = 'timeout',
   failed = 'failed',
   unknown = 'unknown',
   waittingK = 'waitting K block',
   waittingReceipt = 'waitting tx receipt',
 }
-
-class TimeoutError extends Error {}
 
 export class Receiptor {
   web3: ReceiptorWeb3
@@ -76,35 +73,14 @@ export class Receiptor {
 
   async getReceipt(task: ReceiptTask): Promise<TransactionReceipt | null> {
     return new Promise(async (resolve, reject) => {
-      const timer = setTimeout(async () => {
-        reject(new TimeoutError())
-      }, config.GET_RECEIPT_TIMEOUT)
-
-      this.logger.info({ timeout: config.GET_RECEIPT_TIMEOUT, tx: task.transactionHash }, 'Try to get receipt.')
+      this.logger.info({ tx: task.transactionHash }, 'Try to get receipt.')
       resolve(await this.web3.getTransactionReceipt(task.transactionHash))
-      clearTimeout(timer)
     })
   }
 
   async run(task: ReceiptTask, enqueueSender: enqueueSender): Promise<ReceiptResult> {
     let receipt: TransactionReceipt | null
-    try {
-      receipt = await this.getReceipt(task)
-    } catch (e) {
-      if (e instanceof TimeoutError) {
-        this.logger.fatal(
-          { timeout: config.GET_RECEIPT_TIMEOUT },
-          `Getting receipt ${task.transactionHash} reaches timeout.`,
-        )
-        Sentry.captureMessage(
-          `Get receipt ${task.transactionHash} exceeds timeout ${config.GET_RECEIPT_TIMEOUT}ms.`,
-          Sentry.Severity.Warning
-        )
-        return Promise.resolve(ReceiptResult.timeout)
-      }
-
-      throw e
-    }
+    receipt = await this.getReceipt(task)
 
     let result = ReceiptResult.failed
     if (receipt === null) {

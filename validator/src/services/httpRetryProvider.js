@@ -37,13 +37,13 @@ HttpRetryProvider.prototype.send = async function send(payload, callback) {
   try {
     const [result, index] = await promiseRetry((retry) => {
       return trySend(payload, this.urls, currentIndex).catch((e) => {
-        Sentry.captureException(e)
         retry(e)
       })
     }, this.options.retry)
     this.currentIndex = index
     callback(null, result)
   } catch (e) {
+    Sentry.captureException(e)
     callback(e)
   }
 }
@@ -61,6 +61,7 @@ async function trySend(payload, urls, initialIndex) {
         },
         method: 'POST',
         body: JSON.stringify(payload),
+        timeout: 30 * 1000,
       }).then(async (response) => {
         if (!response.ok) {
           const text = await response.text()

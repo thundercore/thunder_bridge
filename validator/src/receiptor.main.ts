@@ -59,7 +59,6 @@ async function initialize() {
               options.ackMsg(options.msg)
               break
 
-            case ReceiptResult.timeout:
             case ReceiptResult.waittingK:
             case ReceiptResult.waittingReceipt:
               options.retryMsg(options.msg)
