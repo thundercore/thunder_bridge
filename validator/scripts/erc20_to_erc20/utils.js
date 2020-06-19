@@ -12,7 +12,8 @@ const options = {
     onTimeout: false
   }
 }
-const web3Home = new Web3(new Web3WsProvider('wss://testnet-ws.thundercore.com', options))
+const { HOME_RPC_URL } = process.env
+const web3Home = new Web3(new Web3WsProvider(HOME_RPC_URL, options))
 
 const HOME_BRIDGE_ABI = require('../../abis/HomeBridgeErcToErc.abi')
 const FOREIGN_BRIDGE_ABI = require('../../abis/ForeignBridgeErcToErc.abi')

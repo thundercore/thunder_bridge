@@ -31,7 +31,7 @@ let success = 0
 
 async function main() {
   const start = new Date().toISOString()
-  console.log(`[${start}] start to test foreign -> home`)
+  console.log(`[${start}] start to test home -> foreign`)
 
   while(true) {
     try {
@@ -174,7 +174,7 @@ async function run() {
       console.log("remaining transactions:")
       for (let i = 0; i < toCheck.length; i++) {
         const c = toCheck[i];
-        if (!expect[c.transactionHash]) {
+        if (expect[c.transactionHash] === false) {
           Sentry.addBreadcrumb({
             category: 'stressTest',
             message: 'failed transactions',

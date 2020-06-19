@@ -11,4 +11,5 @@ module.exports = {
   name: 'receiptor-foreign',
   web3: web3Foreign,
   blockConfirmation: baseConfig.env.FOREIGN_BLOCK_CONFIRMATION,
+  blockTime: baseConfig.env.FOREIGN_BLOCK_TIME
 }

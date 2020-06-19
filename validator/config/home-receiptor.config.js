@@ -11,4 +11,5 @@ module.exports = {
   name: 'receiptor-home',
   web3: web3Home,
   blockConfirmation: baseConfig.env.HOME_BLOCK_CONFIRMATION,
+  blockTime: baseConfig.env.HOME_BLOCK_TIME
 }

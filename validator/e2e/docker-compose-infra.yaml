@@ -3,6 +3,7 @@ services:
   home-chain:
     build: thunder
     ports:
+      - "8540:8546"
       - "8541:8545"
   foreign-chain:
     build: thunder

@@ -14,7 +14,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
   return async function main(bridgeMode) {
     const homeProvider = new Web3.providers.HttpProvider(HOME_RPC_URL)
     const web3Home = new Web3(homeProvider)
-    
+
     const foreignProvider = new Web3.providers.HttpProvider(FOREIGN_RPC_URL)
     const web3Foreign = new Web3(foreignProvider)
 
@@ -39,7 +39,8 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
         const foreignTotalSupplyBN = new BN(totalSupply)
         const diff = foreignBalanceBN.minus(foreignTotalSupplyBN).toString(10)
 
-        return {
+        console.log({
+          time: new Date().toISOString(),
           home: {
             totalSupply: new BN(totalSupply).idiv(base).toString()
           },
@@ -48,7 +49,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
           },
           balanceDiff: Number(new BN(diff).idiv(base).toString()),
           lastChecked: Math.floor(Date.now() / 1000)
-        }
+        })
       } else {
         throw new Error(`Unrecognized bridge mode: '${bridgeMode}'`)
       }

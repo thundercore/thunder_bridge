@@ -23,7 +23,7 @@ import sentryInit from './lib/sentry'
 interface receiptorToQueueOptions {
   msg: Message,
   ackMsg: (msg: Message) => Promise<void>,
-  retryMsg: (msg: Message) => Promise<void>,
+  retryMsg: (msg: Message, option?: string) => Promise<void>,
   rejectMsg: (msg: Message) => Promise<void>,
   enqueueSender: enqueueSender,
 }
@@ -39,8 +39,17 @@ async function initialize() {
     const web3 = new ReceiptorWeb3Impl(config.web3)
     const receiptor = new Receiptor(`${config.id}.${validator.id}`, web3)
 
+    interface queueOptions {
+      [key: string]: Number;
+  }
+    const queueOptions: queueOptions = {}
+    queueOptions[ReceiptResult.waittingK] = Number(config.blockTime) * Number(config.blockConfirmation)
+    queueOptions[ReceiptResult.waittingReceipt] = Number(config.blockTime)
+    queueOptions['default'] = Number(config.blockTime)
+
     connectReceiptorQueue({
       queueName: `${config.queue}.${validator.id}`,
+      queueOptions: queueOptions,
       cb: (options: receiptorToQueueOptions ) => {
         let task = JSON.parse(options.msg.content.toString())
 
@@ -61,7 +70,7 @@ async function initialize() {
 
             case ReceiptResult.waittingK:
             case ReceiptResult.waittingReceipt:
-              options.retryMsg(options.msg)
+              options.retryMsg(options.msg, result)
               break
 
             case ReceiptResult.null:

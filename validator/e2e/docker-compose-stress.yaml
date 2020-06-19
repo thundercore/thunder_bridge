@@ -7,19 +7,23 @@ services:
       tty: true
       restart: always
       environment:
-        - HOME_RPC_URL=http://127.0.0.1:8541
+        - HOME_RPC_URL=ws://127.0.0.1:8540
         - FOREIGN_RPC_URL=http://127.0.0.1:8542
         - USER_ADDRESS=0x9039dD6D7189CE1F9cF8b098d18358e4e41B19BD
         - USER_ADDRESS_PRIVATE_KEY=2c3b2a410d5153214e97c814a300f8e7beb31485d0843f5b28826bab1918a61f
         - HOME_MIN_AMOUNT_PER_TX=0.01
-        - HOME_TEST_TX_GAS_PRICE=10000000000
+        - HOME_TEST_TX_GAS_PRICE=1000000000
         - FOREIGN_MIN_AMOUNT_PER_TX=0.01
-        - FOREIGN_TEST_TX_GAS_PRICE=10000000000
+        - FOREIGN_TEST_TX_GAS_PRICE=1000000000
         - FOREIGN_BLOCK_TIME=5
         - HOME_BLOCK_TIME=1
       volumes:
         - ../scripts:/app/scripts
-      command: npm run sendFromHomeToForeign 1000
+        - ../data:/app/data
+      command: npm run sendFromHomeToForeign 10
     stress-foreign:
       extends: stress-home
-      command: npm run sendFromForeignToHome 1000
+      command: npm run sendFromForeignToHome 10
+    monitor-balances:
+      extends: stress-home
+      command: node scripts/erc20_to_erc20/monitorBalances.js
