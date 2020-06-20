@@ -53,5 +53,10 @@ deploy-v3: deploy-stress
 e2e-test: deploy-v1
 	cd $(E2E_DIR) && docker-compose -f docker-compose-e2e.yaml run e2e
 
-stress: deploy-v1 deploy-v2 deploy-v3
+deploy-all: deploy-v1 deploy-v2 deploy-v3
+
+stress: deploy-all
 	cd $(E2E_DIR) && docker-compose -f docker-compose-stress.yaml up -d
+
+crash: deploy-all
+	cd $(VALIDATOR_DIR) && python scripts/crash-test.py | tee crash.log

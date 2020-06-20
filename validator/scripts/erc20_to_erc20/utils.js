@@ -1,4 +1,5 @@
 const Web3 = require('web3')
+const BN = require('bignumber.js')
 const Sentry = require('@sentry/node')
 const Web3WsProvider = require('web3-providers-ws');
 const deployed = require('../../data/deployed.json')
@@ -17,6 +18,7 @@ const web3Home = new Web3(new Web3WsProvider(HOME_RPC_URL, options))
 
 const HOME_BRIDGE_ABI = require('../../abis/HomeBridgeErcToErc.abi')
 const FOREIGN_BRIDGE_ABI = require('../../abis/ForeignBridgeErcToErc.abi')
+const ERC677_ABI = require('../../abis/ERC677BridgeToken.json').abi
 
 const HOME_BRIDGE_ADDRESS = deployed.homeBridge.address
 const FOREIGN_BRIDGE_ADDRESS = deployed.foreignBridge.address
@@ -44,7 +46,7 @@ async function checkAffirmationCompleted(expect) {
   const promises = []
   const completed = {}
 
-  for (tx in expect) {
+  for (const tx in expect) {
     const transfer = expect[tx]
     promises.push(new Promise((resolve, reject) => {
       const hashMsg = getAffirmationHashMsg(transfer.recipient, transfer.value, tx)
@@ -115,7 +117,42 @@ function sleep(t) {
 }
 
 function initSentry() {
-  Sentry.init()
+  Sentry.init(
+    {dsn: process.env.SENTRY_DSN}
+  )
+  Sentry.captureMessage('init test')
+}
+
+async function checkBalances() {
+  try {
+    const erc20Address = await foreignBridge.methods.erc20token().call()
+    const erc20Contract = new web3Foreign.eth.Contract(ERC677_ABI, erc20Address)
+    const foreignErc20Balance = await erc20Contract.methods
+      .balanceOf(FOREIGN_BRIDGE_ADDRESS)
+      .call()
+    const decimals = await erc20Contract.methods.decimals().call()
+    const base = (new BN('10')).pow(Number(decimals))
+    const tokenAddress = await homeBridge.methods.erc677token().call()
+    const tokenContract = new web3Home.eth.Contract(ERC677_ABI, tokenAddress)
+    const totalSupply = await tokenContract.methods.totalSupply().call()
+    const foreignBalanceBN = new BN(foreignErc20Balance)
+    const foreignTotalSupplyBN = new BN(totalSupply)
+    const diff = foreignBalanceBN.minus(foreignTotalSupplyBN).toString(10)
+
+    return {
+      now: new Date().toISOString(),
+      home: {
+        totalSupply: new BN(totalSupply).idiv(base).toString()
+      },
+      foreign: {
+        erc20Balance: new BN(foreignErc20Balance).idiv(base).toString()
+      },
+      balanceDiff: Number(new BN(diff).idiv(base).toString()),
+      lastChecked: Math.floor(Date.now() / 1000)
+    }
+  } catch (e) {
+    throw e
+  }
 }
 
 module.exports = {
@@ -125,4 +162,5 @@ module.exports = {
   web3Foreign,
   sleep,
   initSentry,
+  checkBalances,
 }

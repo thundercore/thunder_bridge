@@ -22,31 +22,13 @@ const deployed = require('../../data/deployed.json')
 
 const HOME_BRIDGE_ADDRESS = deployed.homeBridge.address
 
-const NUMBER_OF_WITHDRAWALS_TO_SEND = process.argv[2] || process.env.NUMBER_OF_WITHDRAWALS_TO_SEND || 1
+const RETRY_LIMIT = process.env.RETRY_LIMIT || 50
 
 const BRIDGE_ABI = require('../../abis/HomeBridgeErcToErc.abi')
 const ERC677_ABI = require('../../abis/ERC677BridgeToken.json').abi
-let sent = 0
-let success = 0
 
-async function main() {
-  const start = new Date().toISOString()
-  console.log(`[${start}] start to test home -> foreign`)
 
-  while(true) {
-    try {
-      await run()
-    } catch (e) {
-      console.log(e, 'stress test raise error')
-      await new Promise(r => setTimeout(r, 10 * 1000))
-    } finally{
-      const now = new Date().toISOString()
-      console.log(`[${now}] sent: ${sent}, success: ${success}`)
-    }
-  }
-}
-
-async function run() {
+async function sendFromHomeToForeign(numberToSend) {
   const bridge = new web3Home.eth.Contract(BRIDGE_ABI, HOME_BRIDGE_ADDRESS)
   const BRIDGEABLE_TOKEN_ADDRESS = await bridge.methods.erc677token().call()
   const erc677 = new web3Home.eth.Contract(ERC677_ABI, BRIDGEABLE_TOKEN_ADDRESS)
@@ -69,7 +51,7 @@ async function run() {
     nonce = Web3Utils.hexToNumber(nonce)
     let actualSent = 0
     const transferValue = Web3Utils.toWei(HOME_MIN_AMOUNT_PER_TX)
-    for (let i = 0; i < Number(NUMBER_OF_WITHDRAWALS_TO_SEND); i++) {
+    for (let i = 0; i < Number(numberToSend); i++) {
       let balance = Number(await erc677.methods.balanceOf(USER_ADDRESS).call())
       while (balance < Number(transferValue)) {
         console.log(`user: ${USER_ADDRESS} balance: ${balance} < ${transferValue}, sleep 1...`)
@@ -122,7 +104,7 @@ async function run() {
 
   let receipt;
   let idx = 0
-  while(!receipt && idx < NUMBER_OF_WITHDRAWALS_TO_SEND * HOME_BLOCK_TIME) {
+  while(!receipt && idx < numberToSend * HOME_BLOCK_TIME) {
     await sleep(1000)
     const c = toCheck[toCheck.length - 1]
     receipt = await web3Home.eth.getTransactionReceipt(c.transactionHash)
@@ -153,7 +135,6 @@ async function run() {
 
   batch.execute()
   await Promise.all(promises)
-  sent += numToCheck
   console.log('numToCheck=', numToCheck)
 
   let done = 0
@@ -165,12 +146,11 @@ async function run() {
       retries += 1
     } else {
       done += count
-      success += count
       retries = 0
     }
-    console.log(`done=${done}, total=${numToCheck}`)
+    console.log(`[HOME] done=${done}, total=${numToCheck}`)
 
-    if (retries > 50) {
+    if (retries > RETRY_LIMIT) {
       console.log("remaining transactions:")
       for (let i = 0; i < toCheck.length; i++) {
         const c = toCheck[i];
@@ -188,7 +168,9 @@ async function run() {
       break
     }
   }
+  return {done, numToCheck}
 }
 
-initSentry()
-main()
+module.exports = {
+  sendFromHomeToForeign
+}

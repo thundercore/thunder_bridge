@@ -39,22 +39,29 @@ services:
       - ./validator.env
   watcher-signature-request:
     extends: validator
+    restart: always
     command: npm run watcher:signature-request
   watcher-collected-signatures:
     extends: validator
+    restart: always
     command: npm run watcher:collected-signatures
   watcher-affirmation-request:
     extends: validator
+    restart: always
     command: npm run watcher:affirmation-request
   sender-home:
     extends: validator
+    restart: always
     command: npm run sender:home
   sender-foreign:
     extends: validator
+    restart: always
     command: npm run sender:foreign
   receiptor-home:
     extends: validator
+    restart: always
     command: npm run receiptor:home
   receiptor-foreign:
     extends: validator
+    restart: always
     command: npm run receiptor:foreign

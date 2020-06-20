@@ -4,7 +4,7 @@ require('dotenv').config({
 })
 const Web3Utils = require('web3-utils')
 const { sendTx, sendRawTx } = require('../../src/tx/sendTx')
-const { checkAffirmationCompleted, sleep, web3Foreign, initSentry } = require('./utils')
+const { checkAffirmationCompleted, sleep, web3Foreign, checkBalances } = require('./utils')
 
 const Sentry = require('@sentry/node')
 
@@ -21,30 +21,13 @@ const deployed = require('../../data/deployed.json')
 
 const FOREIGN_BRIDGE_ADDRESS = deployed.foreignBridge.address
 
-const NUMBER_OF_DEPOSITS_TO_SEND = process.argv[2] || process.env.NUMBER_OF_DEPOSITS_TO_SEND || 1
+const RETRY_LIMIT = process.env.RETRY_LIMIT || 50
 
 const ERC20_ABI = require('../../abis/ERC20.abi')
 const BRIDGE_ABI = require('../../abis/ForeignBridgeErcToErc.abi')
-let sent = 0
-let success = 0
 
-async function main() {
-  const start = new Date().toISOString()
-  console.log(`[${start}] start to test home -> foreign`)
 
-  while(true) {
-    try {
-      await run()
-    } catch (e) {
-      console.log(e, 'stress test raise error')
-      await new Promise(r => setTimeout(r, 10 * 1000))
-    } finally{
-      const now = new Date().toISOString()
-      console.log(`[${now}] sent: ${sent}, success: ${success}`)
-    }
-  }
-}
-async function run() {
+async function sendFromForeignToHome(numberToSend) {
   const bridge = new web3Foreign.eth.Contract(BRIDGE_ABI, FOREIGN_BRIDGE_ADDRESS)
   const ERC20_TOKEN_ADDRESS = await bridge.methods.erc20token().call()
   const poa20 = new web3Foreign.eth.Contract(ERC20_ABI, ERC20_TOKEN_ADDRESS)
@@ -65,7 +48,7 @@ async function run() {
     const transferValue = Web3Utils.toWei(FOREIGN_MIN_AMOUNT_PER_TX)
     nonce = Web3Utils.hexToNumber(nonce)
     let actualSent = 0
-    for (let i=0; i < Number(NUMBER_OF_DEPOSITS_TO_SEND); i++) {
+    for (let i=0; i < Number(numberToSend); i++) {
       let balance = Number(await poa20.methods.balanceOf(USER_ADDRESS).call())
       while (balance < Number(transferValue)) {
         console.log(`user: ${USER_ADDRESS} balance: ${balance} < ${transferValue}, sleep 1...`)
@@ -118,7 +101,7 @@ async function run() {
   // wait for last tx
   let receipt;
   let idx = 0
-  while(!receipt && idx < NUMBER_OF_DEPOSITS_TO_SEND * FOREIGN_BLOCK_TIME) {
+  while(!receipt && idx < numberToSend * FOREIGN_BLOCK_TIME) {
     await sleep(1000)
     const c = toCheck[toCheck.length - 1]
     receipt = await web3Foreign.eth.getTransactionReceipt(c.transactionHash)
@@ -150,7 +133,6 @@ async function run() {
   batch.execute()
   await Promise.all(promises)
 
-  sent += numToCheck
   console.log('numToCheck=', numToCheck)
 
   let retries = 0
@@ -162,12 +144,11 @@ async function run() {
       retries += 1
     } else {
       done += count
-      success += count
       retries = 0
     }
-    console.log('done=', done, 'to check', numToCheck)
+    console.log('[FOREIGN] done=', done, 'to check', numToCheck)
 
-    if (retries > 50) {
+    if (retries > RETRY_LIMIT) {
       console.log("remaining transactions:")
       for (let i = 0; i < toCheck.length; i++) {
         const c = toCheck[i];
@@ -185,7 +166,10 @@ async function run() {
       break
     }
   }
+
+  return {done, numToCheck}
 }
 
-initSentry()
-main()
+module.exports = {
+  sendFromForeignToHome
+}
