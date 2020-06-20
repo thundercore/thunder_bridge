@@ -11,13 +11,14 @@ async function main() {
 
   while (true) {
     try {
+      const before = await checkBalances()
       await Promise.all([
         sendFromForeignToHome(30),
         sendFromHomeToForeign(30)
       ])
-      const end = await checkBalances()
-      if (end.balanceDiff !== 0) {
-        console.log(end, 'balanceDiff is not zero')
+      const after = await checkBalances()
+      if (after.balanceDiff !== before.balanceDiff) {
+        console.log(before, after, 'balanceDiff is not equal')
         process.exit(1)
       }
     } catch(e) {

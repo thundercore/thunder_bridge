@@ -26,6 +26,16 @@ const RETRY_LIMIT = process.env.RETRY_LIMIT || 50
 const ERC20_ABI = require('../../abis/ERC20.abi')
 const BRIDGE_ABI = require('../../abis/ForeignBridgeErcToErc.abi')
 
+var originalConsoleLog = console.log;
+console.log = function() {
+    args = [];
+    args.push('[FOREIGN]')
+    // Note: arguments is part of the prototype
+    for( var i = 0; i < arguments.length; i++ ) {
+        args.push( arguments[i] );
+    }
+    originalConsoleLog.apply( console, args );
+};
 
 async function sendFromForeignToHome(numberToSend) {
   const bridge = new web3Foreign.eth.Contract(BRIDGE_ABI, FOREIGN_BRIDGE_ADDRESS)
@@ -146,7 +156,7 @@ async function sendFromForeignToHome(numberToSend) {
       done += count
       retries = 0
     }
-    console.log('[FOREIGN] done=', done, 'to check', numToCheck)
+    console.log('done=', done, 'to check', numToCheck)
 
     if (retries > RETRY_LIMIT) {
       console.log("remaining transactions:")

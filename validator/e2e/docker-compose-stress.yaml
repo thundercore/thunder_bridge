@@ -20,10 +20,4 @@ services:
       volumes:
         - ../scripts:/app/scripts
         - ../data:/app/data
-      command: npm run stressHome 10
-    stress-foreign:
-      extends: stress-home
-      command: npm run stressForeign 10
-    monitor-balances:
-      extends: stress-home
-      command: node scripts/erc20_to_erc20/monitorBalances.js
+      command: node /app/scripts/erc20_to_erc20/crashTest.js

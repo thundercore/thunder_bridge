@@ -28,6 +28,17 @@ const BRIDGE_ABI = require('../../abis/HomeBridgeErcToErc.abi')
 const ERC677_ABI = require('../../abis/ERC677BridgeToken.json').abi
 
 
+var originalConsoleLog = console.log;
+console.log = function() {
+    args = [];
+    args.push('[HOME]')
+    // Note: arguments is part of the prototype
+    for( var i = 0; i < arguments.length; i++ ) {
+        args.push( arguments[i] );
+    }
+    originalConsoleLog.apply( console, args );
+};
+
 async function sendFromHomeToForeign(numberToSend) {
   const bridge = new web3Home.eth.Contract(BRIDGE_ABI, HOME_BRIDGE_ADDRESS)
   const BRIDGEABLE_TOKEN_ADDRESS = await bridge.methods.erc677token().call()
@@ -148,7 +159,7 @@ async function sendFromHomeToForeign(numberToSend) {
       done += count
       retries = 0
     }
-    console.log(`[HOME] done=${done}, total=${numToCheck}`)
+    console.log(`done=${done}, total=${numToCheck}`)
 
     if (retries > RETRY_LIMIT) {
       console.log("remaining transactions:")
