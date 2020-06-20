@@ -4,7 +4,8 @@ require('dotenv').config({
 })
 const Web3Utils = require('web3-utils')
 const { sendTx, sendRawTx } = require('../../src/tx/sendTx')
-const { checkAffirmationCompleted, sleep, web3Foreign, checkBalances } = require('./utils')
+const { checkAffirmationCompleted, sleep, web3Foreign, rootLogger } = require('./utils')
+const logger = rootLogger.child({ module: 'foreign->home'})
 
 const Sentry = require('@sentry/node')
 
@@ -26,16 +27,7 @@ const RETRY_LIMIT = process.env.RETRY_LIMIT || 50
 const ERC20_ABI = require('../../abis/ERC20.abi')
 const BRIDGE_ABI = require('../../abis/ForeignBridgeErcToErc.abi')
 
-var originalConsoleLog = console.log;
-console.log = function() {
-    args = [];
-    args.push('[FOREIGN]')
-    // Note: arguments is part of the prototype
-    for( var i = 0; i < arguments.length; i++ ) {
-        args.push( arguments[i] );
-    }
-    originalConsoleLog.apply( console, args );
-};
+let [SENT, SUCCESS] = [0, 0]
 
 async function sendFromForeignToHome(numberToSend) {
   const bridge = new web3Foreign.eth.Contract(BRIDGE_ABI, FOREIGN_BRIDGE_ADDRESS)
@@ -61,17 +53,17 @@ async function sendFromForeignToHome(numberToSend) {
     for (let i=0; i < Number(numberToSend); i++) {
       let balance = Number(await poa20.methods.balanceOf(USER_ADDRESS).call())
       while (balance < Number(transferValue)) {
-        console.log(`user: ${USER_ADDRESS} balance: ${balance} < ${transferValue}, sleep 1...`)
+        logger.info(`user: ${USER_ADDRESS} balance: ${balance} < ${transferValue}, sleep 1...`)
         await sleep(1000)
         balance = Number(await poa20.methods.balanceOf(USER_ADDRESS).call())
       }
 
-      console.log(`user: ${USER_ADDRESS}, balance: ${balance}`)
+      logger.info(`user: ${USER_ADDRESS}, balance: ${balance}`)
       let gasLimit = await poa20.methods
         .transfer(FOREIGN_BRIDGE_ADDRESS, transferValue)
         .estimateGas({ from: USER_ADDRESS })
       gasLimit *= 2
-      console.log(`user: ${USER_ADDRESS}, gasLimit: ${gasLimit}`)
+      logger.info(`user: ${USER_ADDRESS}, gasLimit: ${gasLimit}`)
       let data = await poa20.methods
         .transfer(FOREIGN_BRIDGE_ADDRESS, transferValue)
         .encodeABI({ from: USER_ADDRESS })
@@ -95,7 +87,7 @@ async function sendFromForeignToHome(numberToSend) {
       if (txHash !== undefined) {
         nonce++
         actualSent++
-        console.log(actualSent, ' # ', txHash)
+        logger.info(`${actualSent} # ${txHash}`)
         toCheck.push({
           transactionHash: txHash,
           value: Web3Utils.toWei(FOREIGN_MIN_AMOUNT_PER_TX),
@@ -105,7 +97,7 @@ async function sendFromForeignToHome(numberToSend) {
       }
     }
   } catch (e) {
-    console.log(e)
+    logger.info(e)
   }
 
   // wait for last tx
@@ -115,7 +107,7 @@ async function sendFromForeignToHome(numberToSend) {
     await sleep(1000)
     const c = toCheck[toCheck.length - 1]
     receipt = await web3Foreign.eth.getTransactionReceipt(c.transactionHash)
-    console.log(`${idx}s - getting receipt ${c.transactionHash}`)
+    logger.info(`${idx}s - getting receipt ${c.transactionHash}`)
     idx++
   }
 
@@ -143,7 +135,7 @@ async function sendFromForeignToHome(numberToSend) {
   batch.execute()
   await Promise.all(promises)
 
-  console.log('numToCheck=', numToCheck)
+  logger.info(`numToCheck=${numToCheck}`)
 
   let retries = 0
   let done = 0
@@ -156,10 +148,10 @@ async function sendFromForeignToHome(numberToSend) {
       done += count
       retries = 0
     }
-    console.log('done=', done, 'to check', numToCheck)
+    logger.info(`done=${done} toCheck=${numToCheck}`)
 
     if (retries > RETRY_LIMIT) {
-      console.log("remaining transactions:")
+      logger.info("remaining transactions:")
       for (let i = 0; i < toCheck.length; i++) {
         const c = toCheck[i];
         if (expect[c.transactionHash]) {
@@ -169,7 +161,7 @@ async function sendFromForeignToHome(numberToSend) {
             data: c.transactionHash,
             level: Sentry.Severity.Debug
           })
-          console.log(c)
+          logger.info(c)
         }
       }
       Sentry.captureMessage('stress test foreign -> home failed')
@@ -177,6 +169,9 @@ async function sendFromForeignToHome(numberToSend) {
     }
   }
 
+  SENT += numToCheck
+  SUCCESS += done
+  logger.info({SENT, SUCCESS}, 'run sendFromForeignToHome finished.')
   return {done, numToCheck}
 }
 

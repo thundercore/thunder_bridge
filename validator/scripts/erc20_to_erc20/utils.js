@@ -4,6 +4,7 @@ const Sentry = require('@sentry/node')
 const Web3WsProvider = require('web3-providers-ws');
 const deployed = require('../../data/deployed.json')
 const { web3Foreign } = require('../../src/services/web3')
+const pino = require('pino')
 
 const options = {
   reconnect: {
@@ -155,6 +156,12 @@ async function checkBalances() {
   }
 }
 
+
+const rootLogger = pino({
+  name: 'erc20_to_erc20',
+  level: 'debug'
+})
+
 module.exports = {
   checkAffirmationCompleted,
   checkRelayedMessage,
@@ -163,4 +170,5 @@ module.exports = {
   sleep,
   initSentry,
   checkBalances,
+  rootLogger,
 }
