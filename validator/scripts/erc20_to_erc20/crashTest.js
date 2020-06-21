@@ -12,12 +12,13 @@ async function main() {
   while (true) {
     try {
       const before = await checkBalances()
-      await Promise.all([
+      const [foreignResult, homeResult] = await Promise.all([
         sendFromForeignToHome(30),
         sendFromHomeToForeign(30)
       ])
+      const txDiff = homeResult.done - foreignResult.done
       const after = await checkBalances()
-      if (after.balanceDiff !== before.balanceDiff) {
+      if (after.balanceDiff !== before.balanceDiff + txDiff) {
         console.log(before, after, 'balanceDiff is not equal')
         process.exit(1)
       }
