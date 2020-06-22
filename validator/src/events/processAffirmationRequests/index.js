@@ -15,9 +15,12 @@ const { HttpListProviderError } = require('http-list-provider')
 const limit = promiseLimit(MAX_CONCURRENT_EVENTS)
 
 let validatorContract = null
+let homeBridge = null
 
 function processAffirmationRequestsBuilder(config, validator) {
-  const homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
+  if (homeBridge === null) {
+    homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
+  }
 
   return async function processAffirmationRequests(affirmationRequests) {
     const txToSend = []
@@ -90,7 +93,6 @@ function processAffirmationRequestsBuilder(config, validator) {
           gasEstimate,
           transactionReference: affirmationRequest.transactionHash,
           to: config.homeBridgeAddress,
-          event: affirmationRequest
         })
       })
     )

@@ -22,9 +22,12 @@ const limit = promiseLimit(MAX_CONCURRENT_EVENTS)
 
 let expectedMessageLength = null
 let validatorContract = null
+let homeBridge = null
 
 function processSignatureRequestsBuilder(config, validator) {
-  const homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
+  if (homeBridge === null) {
+    homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
+  }
 
   return async function processSignatureRequests(signatureRequests) {
     const txToSend = []

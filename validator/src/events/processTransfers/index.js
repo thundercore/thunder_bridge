@@ -20,9 +20,12 @@ const estimateGas = require('../processAffirmationRequests/estimateGas')
 const limit = promiseLimit(MAX_CONCURRENT_EVENTS)
 
 let validatorContract = null
+let homeBridge = null
 
 function processTransfersBuilder(config, validator) {
-  const homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
+  if (homeBridge === null) {
+    homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
+  }
 
   return async function processTransfers(transfers) {
     var txToSend = []
