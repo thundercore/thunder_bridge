@@ -134,14 +134,20 @@ async function initialize() {
           } // end of switch
         } // end of runSender
 
+        const runSenderWithinSentryScope = async (task: EventTask) => {
+          Sentry.getCurrentHub().pushScope()
+          await runSender(task)
+          Sentry.getCurrentHub().popScope()
+        }
+
         if (config.maxProcessingTime) {
-          return watchdog(() => runSender(task), config.maxProcessingTime, () => {
+          return watchdog(() => runSenderWithinSentryScope(task), config.maxProcessingTime, () => {
             Sentry.captureMessage(`Max processing time ${config.maxProcessingTime} reached`)
             logger.fatal(`Max processing time ${config.maxProcessingTime} reached`)
             process.exit(EXIT_CODES.MAX_TIME_REACHED)
           })
         }
-        return runSender(task)
+        return runSenderWithinSentryScope(task)
       } // end of cb
     }) // end of connectSenderToQueue
 

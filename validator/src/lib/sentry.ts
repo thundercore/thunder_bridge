@@ -18,10 +18,6 @@ export default function init() {
     return
   }
 
-  if (config.SENTRY_ENVIRONMENT === 'local') {
-    return
-  }
-
   Sentry.init({
     serverName: os.hostname(),
     integrations: [new RewriteFrames({

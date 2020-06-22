@@ -58,15 +58,24 @@ async function initialize() {
 
 
 async function loopRunner(watcher: EventWatcher, options: watcherToQueueOption) {
+  const runWatcher = async () => {
+      try {
+        Sentry.getCurrentHub().pushScope();
+        await watcher.run(options.enqueueSender)
+      } finally {
+        Sentry.getCurrentHub().popScope();
+      }
+  }
+
   if (connection.isConnected() && redis.status === 'ready') {
     if (config.maxProcessingTime) {
-      await watchdog(() => watcher.run(options.enqueueSender), config.maxProcessingTime, () => {
+      await watchdog(runWatcher, config.maxProcessingTime, () => {
         logger.fatal('Max processing time reached')
         Sentry.captureMessage('Max processing time reached', Sentry.Severity.Fatal)
         process.exit(EXIT_CODES.MAX_TIME_REACHED)
       })
     } else {
-      await watcher.run(options.enqueueSender)
+      await runWatcher()
     }
   }
 

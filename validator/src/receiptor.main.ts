@@ -83,15 +83,21 @@ async function initialize() {
           }
         } // end of getReceipt
 
+        const runReceiptorWithinSentryScope = async (task: ReceiptTask) => {
+          Sentry.getCurrentHub().pushScope()
+          await getReceipt(task)
+          Sentry.getCurrentHub().popScope()
+        }
+
         if (config.maxProcessingTime) {
-          return watchdog(() => getReceipt(task), config.maxProcessingTime, () => {
+          return watchdog(() => runReceiptorWithinSentryScope(task), config.maxProcessingTime, () => {
             logger.fatal(`Max processing time ${config.maxProcessingTime} reached`)
             Sentry.captureMessage('Max processing time reached', Sentry.Severity.Fatal)
             process.exit(EXIT_CODES.MAX_TIME_REACHED)
           })
         }
 
-        return getReceipt(task)
+        return runReceiptorWithinSentryScope(task)
       }
     })
   } catch (e) {
