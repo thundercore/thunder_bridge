@@ -94,7 +94,7 @@ async function sendFromHomeToForeign(numberToSend) {
         toCheck.push({
           transactionHash: txHash,
           value: Web3Utils.toWei(HOME_MIN_AMOUNT_PER_TX),
-          recipient: USER_ADDRESS,
+          recipient: FOREIGN_CUSTOM_RECIPIENT || USER_ADDRESS,
           result: '',
         })
       }
