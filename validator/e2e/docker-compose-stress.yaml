@@ -5,12 +5,12 @@ services:
       stdin_open: true
       network_mode: host
       tty: true
-      restart: always
       environment:
         - HOME_RPC_URL=ws://127.0.0.1:8540
         - FOREIGN_RPC_URL=http://127.0.0.1:8542
-        - USER_ADDRESS=0x9039dD6D7189CE1F9cF8b098d18358e4e41B19BD
-        - USER_ADDRESS_PRIVATE_KEY=2c3b2a410d5153214e97c814a300f8e7beb31485d0843f5b28826bab1918a61f
+        - USER_ADDRESS=0x5Cb2C2Cd74CC26b1eF8Bf30AE62C90fEa5BFCc8C
+        - USER_ADDRESS_PRIVATE_KEY=c472464a8fbede4ee4bcfbc5d5d554269405b76a04e24f6281276e38584c6138
+        - HOME_CUSTOM_RECIPIENT=0x9039dD6D7189CE1F9cF8b098d18358e4e41B19BD
         - HOME_MIN_AMOUNT_PER_TX=0.01
         - HOME_TEST_TX_GAS_PRICE=1000000000
         - FOREIGN_MIN_AMOUNT_PER_TX=0.01
@@ -20,4 +20,14 @@ services:
       volumes:
         - ../scripts:/app/scripts
         - ../data:/app/data
-      command: node /app/scripts/erc20_to_erc20/crashTest.js
+      command: npm run stressHome 10
+    stress-foreign:
+      extends: stress-home
+      environment:
+        - USER_ADDRESS=0x9039dD6D7189CE1F9cF8b098d18358e4e41B19BD
+        - USER_ADDRESS_PRIVATE_KEY=2c3b2a410d5153214e97c814a300f8e7beb31485d0843f5b28826bab1918a61f
+        - FOREIGN_CUSTOM_RECIPIENT=0x5Cb2C2Cd74CC26b1eF8Bf30AE62C90fEa5BFCc8C
+      command: npm run stressForeign 10
+    monitor-balances:
+      extends: stress-home
+      command: node scripts/erc20_to_erc20/monitorBalances.js
