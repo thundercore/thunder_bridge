@@ -2,6 +2,18 @@ const { toBN } = require('web3').utils
 
 const ONE = toBN(1)
 const TWO = toBN(2)
+const queryRange = 500
+
+function *getPastEventsIter({ contract, event, fromBlock, toBlock, options }) {
+  let from = Number(fromBlock)
+  let to = Number(fromBlock) + queryRange
+  while (to < Number(toBlock)) {
+    yield getPastEvents({contract, event, from, to, options})
+    from = to
+    to += queryRange
+  }
+  yield getPastEvents({contract, event, from, toBlock, options})
+}
 
 async function getPastEvents({ contract, event, fromBlock, toBlock, options }) {
   let events
@@ -46,5 +58,6 @@ async function getBlockNumber(web3Home, web3Foreign) {
 
 module.exports = {
   getPastEvents,
+  getPastEventsIter,
   getBlockNumber
 }
