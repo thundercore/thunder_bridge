@@ -12,7 +12,7 @@ async function getPastEvents({ contract, event, fromBlock, toBlock, options }) {
       toBlock
     })
   } catch (e) {
-    if (e.message.includes('query returned more than 1000 results')) {
+    if (e.message && /query returned more than \d+ results/.test(e.message)) {
       const middle = fromBlock.add(toBlock).divRound(TWO)
       const middlePlusOne = middle.add(ONE)
 
