@@ -2,22 +2,23 @@ const Web3 = require('web3')
 const { toBN } = require('web3').utils
 const { BRIDGE_MODES, decodeBridgeMode, getBridgeABIs, ERC_TYPES } = require('./bridgeMode')
 const { getTokenType } = require('./ercUtils')
+const HttpRetryProvider = require('./httpRetryProvider')
 
 
 function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRIDGE_ADDRESS, HOME_DEPLOYMENT_BLOCK, FOREIGN_DEPLOYMENT_BLOCK }){
   return async function() {
     HOME_DEPLOYMENT_BLOCK = toBN(Number(HOME_DEPLOYMENT_BLOCK) || 0)
     FOREIGN_DEPLOYMENT_BLOCK = toBN(Number(FOREIGN_DEPLOYMENT_BLOCK) || 0)
-    const homeProvider = new Web3.providers.HttpProvider(HOME_RPC_URL)
+    const homeProvider = new HttpRetryProvider(HOME_RPC_URL.split(","))
     const web3Home = new Web3(homeProvider)
-    
-    const foreignProvider = new Web3.providers.HttpProvider(FOREIGN_RPC_URL)
+
+    const foreignProvider = new HttpRetryProvider(FOREIGN_RPC_URL.split(","))
     const web3Foreign = new Web3(foreignProvider)
-    
+
     const HOME_ERC_TO_ERC_ABI = require('../abis/HomeBridgeErcToErc.abi')
     const ERC20_ABI = require('../abis/ERC20.abi')
     const { getPastEvents, getBlockNumber } = require('./contract')
-    
+
     try {
       const homeErcBridge = new web3Home.eth.Contract(HOME_ERC_TO_ERC_ABI, HOME_BRIDGE_ADDRESS)
       const bridgeModeHash = await homeErcBridge.methods.getBridgeMode().call()

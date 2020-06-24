@@ -2,20 +2,21 @@ const { toBN } = require('web3').utils
 
 const ONE = toBN(1)
 const TWO = toBN(2)
-const queryRange = 500
+const queryRange = toBN(300)
 
-function *getPastEventsIter({ contract, event, fromBlock, toBlock, options }) {
-  let from = Number(fromBlock)
-  let to = Number(fromBlock) + queryRange
-  while (to < Number(toBlock)) {
-    yield getPastEvents({contract, event, from, to, options})
-    from = to
-    to += queryRange
+function *getPastEventsIter({ contract, event, fromBlock, toBlock, options, token }) {
+  console.log(`${token} getPastEvents: ${event} from: ${fromBlock} to: ${toBlock}`)
+  let from = toBN(fromBlock)
+  let to = toBN(fromBlock).add(queryRange)
+  while (to.lt(toBlock)) {
+    yield getPastEvents({contract, event, fromBlock: from, toBlock: to, options, token})
+    from = to.add(ONE)
+    to = to.add(queryRange)
   }
-  yield getPastEvents({contract, event, from, toBlock, options})
+  yield getPastEvents({contract, event, fromBlock: from, toBlock, options, token})
 }
 
-async function getPastEvents({ contract, event, fromBlock, toBlock, options }) {
+async function getPastEvents({ contract, event, fromBlock, toBlock, options, token }) {
   let events
   try {
     events = await contract.getPastEvents(event, {

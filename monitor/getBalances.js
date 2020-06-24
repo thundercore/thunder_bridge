@@ -1,9 +1,7 @@
 const BN = require('bignumber.js')
 const Web3 = require('web3')
 const { BRIDGE_MODES } = require('./utils/bridgeMode')
-
-const Web3Utils = Web3.utils
-
+const HttpRetryProvider = require('./utils/httpRetryProvider')
 
 const ERC20_ABI = require('./abis/ERC20.abi')
 const ERC677_ABI = require('./abis/ERC677.abi')
@@ -12,10 +10,10 @@ const FOREIGN_ERC_TO_ERC_ABI = require('./abis/ForeignBridgeErcToErc.abi')
 
 function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRIDGE_ADDRESS }) {
   return async function main(bridgeMode) {
-    const homeProvider = new Web3.providers.HttpProvider(HOME_RPC_URL)
+    const homeProvider = new HttpRetryProvider(HOME_RPC_URL.split(","))
     const web3Home = new Web3(homeProvider)
-    
-    const foreignProvider = new Web3.providers.HttpProvider(FOREIGN_RPC_URL)
+
+    const foreignProvider = new HttpRetryProvider(FOREIGN_RPC_URL.split(","))
     const web3Foreign = new Web3(foreignProvider)
 
     try {

@@ -6,9 +6,10 @@ const { getBridgeABIs, BRIDGE_MODES, ERC_TYPES } = require('./utils/bridgeMode')
 const ERC20_ABI = require('./abis/ERC20.abi')
 const { getTokenType } = require('./utils/ercUtils')
 const { getPastEventsIter, getBlockNumber } = require('./utils/contract')
+const HttpRetryProvider = require('./utils/httpRetryProvider')
 
-async function getPastEventsLength(iterator) {
-  let length = 0
+async function getPastEventsLength(iterator, lastLength) {
+  let length = lastLength
   for (const getPastEventPromise of iterator) {
     const events = await getPastEventPromise
     length += events.length
@@ -16,14 +17,14 @@ async function getPastEventsLength(iterator) {
   return length
 }
 
-function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRIDGE_ADDRESS, HOME_DEPLOYMENT_BLOCK, FOREIGN_DEPLOYMENT_BLOCK }) {
+function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRIDGE_ADDRESS, HOME_DEPLOYMENT_BLOCK, FOREIGN_DEPLOYMENT_BLOCK, redis, token }) {
   HOME_DEPLOYMENT_BLOCK = toBN(Number(HOME_DEPLOYMENT_BLOCK) || 0)
   FOREIGN_DEPLOYMENT_BLOCK = toBN(Number(FOREIGN_DEPLOYMENT_BLOCK) || 0)
 
-  const homeProvider = new Web3.providers.HttpProvider(HOME_RPC_URL)
+  const homeProvider = new HttpRetryProvider(HOME_RPC_URL.split(","))
   const web3Home = new Web3(homeProvider)
 
-  const foreignProvider = new Web3.providers.HttpProvider(FOREIGN_RPC_URL)
+  const foreignProvider = new HttpRetryProvider(FOREIGN_RPC_URL.split(","))
   const web3Foreign = new Web3(foreignProvider)
   return async function main(bridgeMode) {
 
@@ -35,55 +36,82 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
       const erc20Address = await foreignBridge.methods[erc20MethodName]().call()
       const erc20Contract = new web3Foreign.eth.Contract(ERC20_ABI, erc20Address)
       const tokenType = await getTokenType(foreignBridge, FOREIGN_BRIDGE_ADDRESS)
+      let homeDepositsCachedLength = 0;
+      let homeWithdrawalsCachedLength = 0;
+      let foreignDepositsCachedLength = 0;
+      let foreignWithdrawalsCachedLength = 0;
+      let homeStartBlock = HOME_DEPLOYMENT_BLOCK
+      let foreignStartBlock = FOREIGN_DEPLOYMENT_BLOCK
+
+      if (redis) {
+        lengthObj = await redis.getProcessedLength(token)
+        if (lengthObj) {
+          homeDepositsCachedLength = Number(lengthObj.home.deposits)
+          homeWithdrawalsCachedLength = Number(lengthObj.home.withdrawals)
+          foreignDepositsCachedLength = Number(lengthObj.foreign.deposits)
+          foreignWithdrawalsCachedLength = Number(lengthObj.foreign.withdrawals)
+        }
+        [homeLastProcessedBlock, foreignLastProcessedBlock] = await redis.getProcessedBlock(token)
+        homeStartBlock = homeLastProcessedBlock === null?
+          HOME_DEPLOYMENT_BLOCK : toBN(Number(homeLastProcessedBlock)+1)
+        foreignStartBlock = foreignLastProcessedBlock === null?
+          FOREIGN_DEPLOYMENT_BLOCK : toBN(Number(foreignLastProcessedBlock)+1)
+      }
 
       const [homeBlockNumber, foreignBlockNumber] = await getBlockNumber(web3Home, web3Foreign)
+
       const homeDepositsIter = getPastEventsIter({
         contract: homeBridge,
         event: 'UserRequestForSignature',
-        fromBlock: HOME_DEPLOYMENT_BLOCK,
+        fromBlock: homeStartBlock,
         toBlock: homeBlockNumber,
-        options: {}
+        options: {},
+        token
       })
-      const homeDepositsLength = await getPastEventsLength(homeDepositsIter)
+      const homeDepositsLength = await getPastEventsLength(homeDepositsIter, homeDepositsCachedLength)
 
       const foreignDepositsIter = getPastEventsIter({
         contract: foreignBridge,
         event: 'RelayedMessage',
-        fromBlock: FOREIGN_DEPLOYMENT_BLOCK,
+        fromBlock: foreignStartBlock,
         toBlock: foreignBlockNumber,
-        options: {}
+        options: {},
+        token
       })
-      const foreignDepositsLength = await getPastEventsLength(foreignDepositsIter)
+      const foreignDepositsLength = await getPastEventsLength(foreignDepositsIter, foreignDepositsCachedLength)
 
       const homeWithdrawalsIter = getPastEventsIter({
         contract: homeBridge,
         event: 'AffirmationCompleted',
-        fromBlock: HOME_DEPLOYMENT_BLOCK,
+        fromBlock: homeStartBlock,
         toBlock: homeBlockNumber,
-        options: {}
+        options: {},
+        token
       })
-      const homeWithdrawalsLength = await getPastEventsLength(homeWithdrawalsIter)
+      const homeWithdrawalsLength = await getPastEventsLength(homeWithdrawalsIter, homeWithdrawalsCachedLength)
 
       const foreignWithdrawalsIter =
         tokenType === ERC_TYPES.ERC20
           ? getPastEventsIter({
               contract: erc20Contract,
               event: 'Transfer',
-              fromBlock: FOREIGN_DEPLOYMENT_BLOCK,
+              fromBlock: foreignStartBlock,
               toBlock: foreignBlockNumber,
               options: {
                 filter: { to: FOREIGN_BRIDGE_ADDRESS }
-              }
+              },
+              token
             })
           : getPastEventsIter({
               contract: foreignBridge,
               event: 'UserRequestForAffirmation',
-              fromBlock: FOREIGN_DEPLOYMENT_BLOCK,
+              fromBlock: foreignStartBlock,
               toBlock: foreignBlockNumber,
-              options: {}
+              options: {},
+              token
             })
-      const foreignWithdrawalsLength = await getPastEventsLength(foreignWithdrawalsIter)
-      return {
+      const foreignWithdrawalsLength = await getPastEventsLength(foreignWithdrawalsIter, foreignWithdrawalsCachedLength)
+      lengthObj = {
         home: {
           deposits: homeDepositsLength,
           withdrawals: homeWithdrawalsLength,
@@ -93,6 +121,13 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
           withdrawals: foreignWithdrawalsLength
         }
       }
+
+      if(redis) {
+        await redis.setProcessedLength(token, lengthObj)
+        await redis.setProcessedBlock(token, homeBlockNumber, foreignBlockNumber)
+      }
+
+      return lengthObj
     } catch (e) {
       throw e
     }

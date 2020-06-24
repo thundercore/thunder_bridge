@@ -3,7 +3,8 @@ if (process.env.NODE_ENV !== "production")
 
 const express = require('express');
 const client = require('prom-client');
-
+const HttpRetryProvider = require('./utils/httpRetryProvider')
+const { newRedis } = require('./utils/redisClient')
 
 const Web3 = require('web3')
 const { decodeBridgeMode } = require('./utils/bridgeMode')
@@ -20,8 +21,6 @@ function mkDict(pairs) {
   return res;
 }
 
-
-
 let config = existsSync("config.json") ? JSON.parse(readFileSync("config.json", "utf8")) :
   mkDict(env.TOKEN_LABELS.split(" ").filter(s => s.length > 2).map(L => [L, {
     "HOME_RPC_URL": env.HOME_RPC_URL,
@@ -37,6 +36,7 @@ let config = existsSync("config.json") ? JSON.parse(readFileSync("config.json", 
   }]))
 
 
+const redis = newRedis(config.REDIS_URL || process.env.REDIS_URL)
 const registry = new client.Registry();
 
 
@@ -109,9 +109,12 @@ function updateAllData(data, token) {
 
 async function checkStatus(token) {
   const context = config[token];
+  context.redis = redis
+  context.token = token
+
   try {
     const { HOME_BRIDGE_ADDRESS, HOME_RPC_URL } = context;
-    const homeProvider = new Web3.providers.HttpProvider(HOME_RPC_URL)
+    const homeProvider = new HttpRetryProvider(HOME_RPC_URL.split(","))
     const web3Home = new Web3(homeProvider)
     const HOME_ERC_TO_ERC_ABI = require('./abis/HomeBridgeErcToErc.abi')
     const getBalances = require('./getBalances')(context)
@@ -137,7 +140,7 @@ async function checkVBalances(token) {
   const context = config[token];
   try {
     const { HOME_BRIDGE_ADDRESS, HOME_RPC_URL } = context;
-    const homeProvider = new Web3.providers.HttpProvider(HOME_RPC_URL)
+    const homeProvider = new HttpRetryProvider(HOME_RPC_URL.split(","))
     const web3Home = new Web3(homeProvider)
     const HOME_ERC_TO_ERC_ABI = require('./abis/HomeBridgeErcToErc.abi')
     const validators = require('./validators')(context)
