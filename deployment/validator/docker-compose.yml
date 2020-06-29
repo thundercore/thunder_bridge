@@ -23,91 +23,67 @@ services:
   bridge:
     image: thundercore/bridge
     build: ../../validator
-    restart: 'no'
     environment:
       - NODE_ENV=production
     env_file: ./.env
+    logging:
+      driver: json-file
+      options:
+        max-size: '20m'
+        max-file: '5'
 
   bridge_request:
-    image: thundercore/bridge
-    build: ../../validator
-    command: npm run watcher:signature-request
+    extends: bridge
     restart: always
-    environment:
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run watcher:signature-request
     depends_on:
       - rabbit
       - redis
 
   bridge_collected:
-    image: thundercore/bridge
-    build: ../../validator
-    command: npm run watcher:collected-signatures
+    extends: bridge
     restart: always
-    environment:
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run watcher:collected-signatures
     depends_on:
       - rabbit
       - redis
 
   bridge_affirmation:
-    image: thundercore/bridge
-    build: ../../validator
-    command: npm run watcher:affirmation-request
+    extends: bridge
     restart: always
-    environment:
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run watcher:affirmation-request
     depends_on:
       - rabbit
       - redis
 
   bridge_home:
-    image: thundercore/bridge
-    build: ../../validator
-    command: npm run sender:home
+    extends: bridge
     restart: always
-    environment:
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run sender:home
     depends_on:
       - rabbit
       - redis
 
   bridge_foreign:
-    image: thundercore/bridge
-    build: ../../validator
-    command: npm run sender:foreign
+    extends: bridge
     restart: always
-    environment:
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run sender:foreign
     depends_on:
       - rabbit
       - redis
 
   receiptor_home:
-    image: thundercore/bridge
-    build: ../../validator
-    command: npm run receiptor:home
+    extends: bridge
     restart: always
-    environment:
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run receiptor:home
     depends_on:
       - rabbit
       - redis
 
   receiptor_foreign:
-    image: thundercore/bridge
-    build: ../../validator
-    command: npm run receiptor:foreign
+    extends: bridge
     restart: always
-    environment:
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run receiptor:foreign
     depends_on:
       - rabbit
       - redis
