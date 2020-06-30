@@ -43,7 +43,6 @@ let validations = {
   HOME_BLOCK_CONFIRMATION: envalid.num({default: 6}),
   FOREIGN_BLOCK_CONFIRMATION: envalid.num( {default: 6}),
   MAX_WAIT_RECEIPT_BLOCK: envalid.num(),
-  GET_RECEIPT_TIMEOUT: envalid.num(),
   QUEUE_RETRY_DELAY: envalid.num({default: 2000}),
   QUEUE_RETRY_LIMIT: envalid.num({default: 5}),
   EXTRA_GAS_PERCENTAGE: envalid.num({default: 1}),

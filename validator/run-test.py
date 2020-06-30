@@ -16,43 +16,38 @@ def unittest(args):
         'ERC20_TOKEN_ADDRESS': '0x1feB40aD9420b186F019A717c37f5546165d411E',
         'VALIDATOR_ADDRESS': '0x1feB40aD9420b186F019A717c37f5546165d411E',
         'FOREIGN_BRIDGE_ADDRESS': '0x4a58D6d8D416a5fBCAcf3dC52eb8bE8948E25127',
-        'HOME_RPC_URL': 'localhost:8545',
-        'FOREIGN_RPC_URL': 'localhost:8545',
-        'HOME_START_BLOCK': '0',
-        'FOREIGN_START_BLOCK': '0',
-        'BRIDGE_MODE': 'ERC_TO_ERC',
-        'QUEUE_URL': 'localhost',
-        'REDIS_LOCK_TTL': '1000',
     }
-    os.environ.update(envs)
-    subprocess.check_call(['npm', 'run', 'test'])
-    subprocess.check_call(['npm', 'run', 'test:ts'])
+
+    cmd = ['docker-compose', '-f', 'e2e/docker-compose.yml', 'run', '--rm']
+    for k, v in envs.items():
+        cmd.append('-e')
+        cmd.append('{}={}'.format(k, v))
+    cmd += ['validator', 'npm', 'test']
+    subprocess.check_call(cmd)
 
 
 @contextlib.contextmanager
 def dev_chain():
     try:
-        subprocess.check_call(['npm', 'run', 'dev-chain'])
+        subprocess.check_call(['docker-compose', 'up', '-d', 'truffle'])
         yield
     finally:
-        subprocess.check_call(['npm', 'run', 'dev-chain:stop'])
+        subprocess.check_call(['docker-compose', 'down'])
+
 
 @contextlib.contextmanager
 def pala_chain():
-    tag = 'pala-for-truffle-test'
-    name = 'pala-for-truffle-test'
-    subprocess.check_call(['docker', 'build', '-t', tag, 'e2e/thunder'])
     try:
-        subprocess.check_call(['docker', 'run', '-d', '--restart=always', '-p', '7545:8545/tcp', '--name', name, tag])
+        subprocess.check_call(['docker-compose', 'up', '-d', 'pala'])
         yield
     finally:
-        subprocess.check_call(['docker', 'stop', name])
-        subprocess.check_call(['docker', 'rm', name])
+        subprocess.check_call(['docker-compose', 'down'])
 
 
 def copy(src, dest):
     print('Copy {} -> {}'.format(src, dest))
     shutil.copy(src, dest)
+
 
 def truffle(args):
     copy(

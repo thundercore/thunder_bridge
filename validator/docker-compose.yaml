@@ -1,5 +1,33 @@
 version: "3.2"
 services:
+  truffle:
+    image: "trufflesuite/ganache-cli:latest"
+    ports:
+     - "7545:8545"
+    command: "-m 'wisdom zero output drift choice bright east stuff craft inform invest patient' --callGasLimit 10000000000000 -l 10000000000000 -g 10000000000000000 -e 10000000000000 -i 5777"
+  pala:
+    image: "pala-for-truffle-test"
+    build: e2e/thunder
+    ports:
+     - "7545:8545"
+  truffle-test:
+    network_mode: host
+    build: .
+    volumes:
+      - ../contracts:/contracts
+      - ./truffle-test:/app/truffle-test
+    command: npm run truffle-test
+    depends_on:
+      - truffle
+  truffle-test-pala:
+    network_mode: host
+    build: .
+    volumes:
+      - ../contracts:/contracts
+      - ./truffle-test:/app/truffle-test
+    command: npm run truffle-test
+    depends_on:
+      - pala
   redis:
     image: "redis:4"
     ports:
