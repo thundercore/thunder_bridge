@@ -3,6 +3,7 @@ version: '2'
 volumes:
   prometheus_data:
   grafana_data:
+  redis_data:
 
 services:
   prometheus:
@@ -36,6 +37,16 @@ services:
     environment:
       VIRTUAL_HOST: $METRICS_HOSTNAME
       LETSENCRYPT_HOST: $METRICS_HOSTNAME
+    depends_on:
+      - redis
+
+  redis:
+    image: "redis:4"
+    restart: always
+    ports:
+     - "6379:6379"
+    volumes:
+      - redis_data:/data
 
 networks:
   default:

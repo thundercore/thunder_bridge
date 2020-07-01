@@ -4,6 +4,7 @@ const fetch = require('node-fetch')
 const { getBridgeABIs } = require('./utils/bridgeMode')
 const { getValidatorList } = require('./utils/validatorUtils')
 const { getBlockNumber } = require('./utils/contract')
+const HttpRetryProvider = require('./utils/httpRetryProvider')
 
 function main ({
   HOME_RPC_URL,
@@ -21,10 +22,10 @@ function main ({
 
   const Web3Utils = Web3.utils
 
-  const homeProvider = new Web3.providers.HttpProvider(HOME_RPC_URL)
+  const homeProvider = new HttpRetryProvider(HOME_RPC_URL.split(","))
   const web3Home = new Web3(homeProvider)
 
-  const foreignProvider = new Web3.providers.HttpProvider(FOREIGN_RPC_URL)
+  const foreignProvider = new HttpRetryProvider(FOREIGN_RPC_URL.split(","))
   const web3Foreign = new Web3(foreignProvider)
 
   const BRIDGE_VALIDATORS_ABI = require('./abis/BridgeValidators.abi')

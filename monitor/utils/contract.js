@@ -2,8 +2,21 @@ const { toBN } = require('web3').utils
 
 const ONE = toBN(1)
 const TWO = toBN(2)
+const queryRange = toBN(300)
 
-async function getPastEvents({ contract, event, fromBlock, toBlock, options }) {
+function *getPastEventsIter({ contract, event, fromBlock, toBlock, options, token }) {
+  console.log(`${token} getPastEvents: ${event} from: ${fromBlock} to: ${toBlock}`)
+  let from = toBN(fromBlock)
+  let to = toBN(fromBlock).add(queryRange)
+  while (to.lt(toBlock)) {
+    yield getPastEvents({contract, event, fromBlock: from, toBlock: to, options, token})
+    from = to.add(ONE)
+    to = to.add(queryRange)
+  }
+  yield getPastEvents({contract, event, fromBlock: from, toBlock, options, token})
+}
+
+async function getPastEvents({ contract, event, fromBlock, toBlock, options, token }) {
   let events
   try {
     events = await contract.getPastEvents(event, {
@@ -12,7 +25,7 @@ async function getPastEvents({ contract, event, fromBlock, toBlock, options }) {
       toBlock
     })
   } catch (e) {
-    if (e.message.includes('query returned more than 1000 results')) {
+    if (e.message && /query returned more than \d+ results/.test(e.message)) {
       const middle = fromBlock.add(toBlock).divRound(TWO)
       const middlePlusOne = middle.add(ONE)
 
@@ -46,5 +59,6 @@ async function getBlockNumber(web3Home, web3Foreign) {
 
 module.exports = {
   getPastEvents,
+  getPastEventsIter,
   getBlockNumber
 }
