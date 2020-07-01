@@ -61,6 +61,7 @@ test-unittest:
 	cd $(VALIDATOR_DIR) && python run-test.py unittest
 
 run-all: run-v1 run-v2 run-v3
+	echo "All validator are deployed."
 
 stress: deploy-stress run-all
 	cd $(E2E_DIR) && docker-compose -f docker-compose-stress.yaml up -d

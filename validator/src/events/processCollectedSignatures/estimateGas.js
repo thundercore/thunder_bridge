@@ -58,7 +58,7 @@ async function estimateGas({
       }
     }
 
-    throw new Error('Unknown error while processing message')
+    throw new Error(`Unknown error while processing message: ${e.message}`)
   }
 }
 
