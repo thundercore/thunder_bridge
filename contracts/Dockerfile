@@ -14,6 +14,7 @@ RUN npm run compile && ./flatten.sh
 
 FROM node:10
 
+
 RUN mkdir -p /contracts/deploy
 WORKDIR /contracts/deploy
 
@@ -27,4 +28,5 @@ COPY --from=contract /contracts/flats/ /contracts/flats/
 
 COPY deploy .
 
+VOLUME [ "/contracts" ]
 CMD [ "npm", "run", "deploy" ]

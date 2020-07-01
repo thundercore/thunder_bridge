@@ -54,8 +54,9 @@ clean-%:
 test-e2e: deploy-e2e run-v1
 	cd $(E2E_DIR) && docker-compose -f docker-compose-e2e.yaml run e2e
 
-test-truffle:
+test-truffle: build-deployer
 	cd $(VALIDATOR_DIR) && docker-compose run --rm truffle-test
+	cd $(VALIDATOR_DIR) && docker-compose down
 
 test-unittest:
 	cd $(VALIDATOR_DIR) && python run-test.py unittest
