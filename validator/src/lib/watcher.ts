@@ -10,6 +10,7 @@ import { EventTask, enqueueSender } from './types'
 import * as Sentry from '@sentry/node'
 
 const ONE = toBN(1)
+const BATCHSIZE = toBN(500)
 
 export interface ProcessState {
   lastProcessedBlock: BN
@@ -125,7 +126,6 @@ export class WatcherWeb3Impl implements WatcherWeb3 {
 
     // @ts-ignore
     batch.add(this.web3.eth.getPastLogs.request(logFilter))
-    logger.debug({batch})
 
     let results
     try {
@@ -251,11 +251,10 @@ export class EventWatcher {
         return -1
       }
 
-      const batchSize = toBN(100)
       const fromBlock = lastProcessedBlock.add(ONE)
       let toBlock = lastBlockToProcess
-      if (toBlock.gt(fromBlock.add(batchSize))) {
-        toBlock = fromBlock.add(batchSize)
+      if (toBlock.gt(fromBlock.add(BATCHSIZE))) {
+        toBlock = fromBlock.add(BATCHSIZE)
       }
 
       Sentry.addBreadcrumb({
@@ -265,11 +264,11 @@ export class EventWatcher {
           event: this.event,
           fromBlock: fromBlock.toNumber(),
           toBlock: toBlock.toNumber(),
-          batchSize: batchSize.toNumber(),
+          batchSize: BATCHSIZE.toNumber(),
         },
       })
 
-      logger.info(`Get events between ${lastProcessedBlock} to ${toBlock}`)
+      logger.info({lastProcessedBlock}, `Get events between ${fromBlock} to ${toBlock}`)
       const events = await this.web3.getEvents(this.event, fromBlock, toBlock, this.eventFilter)
       logger.info(`Found ${events.length} ${this.event} events: ${JSON.stringify(events)}`)
 
