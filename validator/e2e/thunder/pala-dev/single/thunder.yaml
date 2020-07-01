@@ -1,0 +1,24 @@
+# thunder configuration file
+# all configurations in here are case insensitive
+# debug | info | note | warn | error | crit
+logLevel:
+  /: info
+accel:
+  txpool:
+    PriceLimit: 1 # ella
+    AccountSlots: 1024
+    AccountQueue: 4096
+    GlobalSlots: 50000
+    GlobalQueue: 10000
+    Lifetime: 180s
+  blockmaker:
+    TimePerBlock: 1s
+bidder:
+  bidaddress: "0x30d87bd4D1769437880c64A543bB649a693EB348"
+chain:
+  chainID: 19 # TestnetChainID is Testnet's chain ID.
+resourceMonitor:
+  enable: true
+profiling:
+  enable: true
+  port: 9999

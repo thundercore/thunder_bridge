@@ -1,20 +1,32 @@
 const Web3Utils = require('web3-utils')
-const fetch = require('node-fetch')
-const rpcUrlsManager = require('../services/getRpcUrlsManager')
 
 // eslint-disable-next-line consistent-return
-async function sendTx({
-  chain,
-  privateKey,
-  data,
-  nonce,
-  gasPrice,
-  amount,
-  gasLimit,
-  to,
-  chainId,
-  web3
-}) {
+async function sendRawTx({ web3, params, method }) {
+  return new Promise((resolve, reject) => {
+    web3.currentProvider.send(
+      {
+        jsonrpc: '2.0',
+        method,
+        params,
+        id: Math.floor(Math.random() * 100) + 1,
+      },
+      (err, result) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        if (result.error) {
+          reject(result.error)
+          return
+        }
+        resolve(result.result)
+      },
+    )
+  })
+}
+
+// eslint-disable-next-line consistent-return
+async function sendTx({ privateKey, data, nonce, gasPrice, amount, gasLimit, to, chainId, web3 }) {
   const serializedTx = await web3.eth.accounts.signTransaction(
     {
       nonce: Number(nonce),
@@ -23,50 +35,19 @@ async function sendTx({
       data,
       value: Web3Utils.toWei(amount),
       gasPrice,
-      gas: gasLimit
+      gas: gasLimit,
     },
-    `0x${privateKey}`
+    `0x${privateKey}`,
   )
 
   return sendRawTx({
-    chain,
+    web3,
     method: 'eth_sendRawTransaction',
-    params: [serializedTx.rawTransaction]
+    params: [serializedTx.rawTransaction],
   })
-}
-
-// eslint-disable-next-line consistent-return
-async function sendRawTx({ chain, params, method }) {
-  const result = await rpcUrlsManager.tryEach(chain, async url => {
-    // curl -X POST --data '{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":[{see above}],"id":1}'
-    const response = await fetch(url, {
-      headers: {
-        'Content-type': 'application/json'
-      },
-      method: 'POST',
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        method,
-        params,
-        id: Math.floor(Math.random() * 100) + 1
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(response.statusText)
-    }
-
-    return response
-  })
-
-  const json = await result.json()
-  if (json.error) {
-    throw json.error
-  }
-  return json.result
 }
 
 module.exports = {
   sendTx,
-  sendRawTx
+  sendRawTx,
 }

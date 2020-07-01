@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "outDir": "./built",
+        "target": "es6",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "allowJs": true,
+        "strict": true
+    },
+    "include": [
+        "src/**/*",
+        "abis/**/*",
+        "config/**/*",
+        "test/**/*",
+        "truffle-test/**/*"
+    ],
+    "exclude": [
+        "./node_modules/**/*",
+        "./built/**/*",
+        "./e2e/**/*"
+    ]
+}

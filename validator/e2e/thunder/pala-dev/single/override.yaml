@@ -1,0 +1,33 @@
+loggingId: proposer_0
+dataDir: pala-dev/dataDir/single
+key:
+  # Single-process mode doesn't support using AWS keystore.
+  GenesisCommPath: pala-dev/keys/fastpath/keystore/genesis_comm_info_single.json
+  KeyStorePath: pala-dev/keys/fastpath/keystore/single
+  ProposingKeyId: voting
+  VotingKeyId: voting
+  StakeInKeyId: stakein
+pala:
+  fromGenesis: true
+  isProposer: true
+  isVoter: true
+  port: 8888
+rpc:
+  http:
+    hostname: 0.0.0.0
+    port: 8545
+    # RPC modules: net web3 eth
+    modules: thunder net web3 eth personal debug dev
+  ws:
+    hostname: 0.0.0.0
+    port: 8546
+    # RPC modules: net web3 eth
+    modules: thunder net web3 eth personal debug
+chain:
+  genesis: pala-dev/common/genesis.json
+proposer:
+  bindingIPPort: 0.0.0.0:8888
+  rewardAddress: '0x9A78d67096bA0c7C1bCdc0a8742649Bc399119c0'
+metrics:
+  address: 0.0.0.0:9201
+bidder.rpcUrl: ws://localhost:8546

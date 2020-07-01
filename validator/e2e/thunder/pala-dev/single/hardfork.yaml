@@ -1,0 +1,38 @@
+- blocknum: 0
+  session: 0
+  desc: "Default Value before any hardfork"
+  committee:
+      electionScheme: "TopKCandidates"
+      expectedCommSize: 4
+      minBidderStake: 1E+23
+      minCommitteeSize: 1
+      minGasBidPrice: 1E+7
+      verifyBid: true
+      voteCountingScheme: "Stake"
+      proposerList: ""
+  protocol:
+      blockGasLimit: 1E+8
+      maxCodeSize: 40960
+  vault:
+      burnReward: false
+  trustedRNG:
+      rngActive: false
+  pala:
+      hardfork: false
+  election:
+      stopBlockSessionOffset: 25
+
+- blocknum: 1
+  desc: "Pala hardfork"
+  pala:
+      hardfork: true
+
+- blocknum: 5
+  desc: "Trusted RNG hardfork"
+  trustedRNG:
+      rngActive: true
+
+- blocknum: 200
+  desc: "Consensus Nodes Reward Address Hardfork"
+  vault:
+      burnReward: false

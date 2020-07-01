@@ -5,7 +5,7 @@ const id = `${baseConfig.id}-collected-signatures`
 module.exports = {
   ...baseConfig.bridgeConfig,
   ...baseConfig.homeConfig,
-  initialize: baseConfig.initialize,
+  ...baseConfig.env,
   event: 'CollectedSignatures',
   queue: 'foreign',
   name: `watcher-${id}`,

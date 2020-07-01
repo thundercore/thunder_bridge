@@ -15,9 +15,12 @@ const { HttpListProviderError } = require('http-list-provider')
 const limit = promiseLimit(MAX_CONCURRENT_EVENTS)
 
 let validatorContract = null
+let homeBridge = null
 
-function processAffirmationRequestsBuilder(config) {
-  const homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
+function processAffirmationRequestsBuilder(config, validator) {
+  if (homeBridge === null) {
+    homeBridge = new web3Home.eth.Contract(config.homeBridgeAbi, config.homeBridgeAddress)
+  }
 
   return async function processAffirmationRequests(affirmationRequests) {
     const txToSend = []
@@ -54,7 +57,7 @@ function processAffirmationRequestsBuilder(config) {
             recipient,
             value,
             txHash: affirmationRequest.transactionHash,
-            address: config.validatorAddress
+            address: validator.address
           })
           logger.debug({ gasEstimate }, 'Gas estimated')
         } catch (e) {
@@ -63,7 +66,7 @@ function processAffirmationRequestsBuilder(config) {
               'RPC Connection Error: submitSignature Gas Estimate cannot be obtained.'
             )
           } else if (e instanceof InvalidValidatorError) {
-            logger.fatal({ address: config.validatorAddress }, 'Invalid validator')
+            logger.fatal({ address: validator.address }, 'Invalid validator')
             process.exit(EXIT_CODES.INCOMPATIBILITY)
           } else if (e instanceof AlreadySignedError) {
             logger.info(`Already signed affirmationRequest ${affirmationRequest.transactionHash}`)
@@ -83,13 +86,13 @@ function processAffirmationRequestsBuilder(config) {
 
         const data = await homeBridge.methods
           .executeAffirmation(recipient, value, affirmationRequest.transactionHash)
-          .encodeABI({ from: config.validatorAddress })
+          .encodeABI({ from: validator.address })
 
         txToSend.push({
           data,
           gasEstimate,
           transactionReference: affirmationRequest.transactionHash,
-          to: config.homeBridgeAddress
+          to: config.homeBridgeAddress,
         })
       })
     )

@@ -1,0 +1,23 @@
+{
+ "SlowChainHeight": 0,
+ "AccelId": 0,
+ "MemberInfo": [
+  {
+   "Stake": 0,
+   "PubVoteKey": "HuaJ8NcDSK6jTl87wO8moGLm1rsw7m2SZ6gt9GiBWOOGFYZuRxuMRm7Y6NYFMJozy19+kq/ps+RaWeb3PUpuMy3TvnLH3Z8+DVhEBA4dYHjA5Kkw37d9K3e0yK8hMKEHXig0BAPBjYomJkwx2OL5Tmh9MlVc9qqQy/XNIrFOfQQ=",
+   "Coinbase": "0x0000000000000000000000000000000000000000",
+   "GasPrice": 10000000
+  }
+ ],
+ "AccelInfo": [
+  {
+   "Stake": 100,
+   "PubVoteKey": "HuaJ8NcDSK6jTl87wO8moGLm1rsw7m2SZ6gt9GiBWOOGFYZuRxuMRm7Y6NYFMJozy19+kq/ps+RaWeb3PUpuMy3TvnLH3Z8+DVhEBA4dYHjA5Kkw37d9K3e0yK8hMKEHXig0BAPBjYomJkwx2OL5Tmh9MlVc9qqQy/XNIrFOfQQ=",
+   "Coinbase": "0x0000000000000000000000000000000000000064",
+   "GasPrice": 0,
+   "URI": "cdnserver_0:8889",
+   "HostPort": "127.0.0.1:8888",
+   "TxPoolAddr": "127.0.0.1:8887"
+  }
+ ]
+}

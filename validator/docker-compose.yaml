@@ -1,0 +1,57 @@
+version: "2"
+
+services:
+  contracts:
+    image: "thunder_bridge_deployer"
+    build: ../contracts
+    command: bash
+    volumes:
+      - /contracts
+      - ../contracts/contracts:/contracts/contracts
+      - ../contracts/migrations:/contracts/migrations
+      - ../contracts/deploy/env.local:/contracts/deploy/.env
+
+  truffle:
+    image: "trufflesuite/ganache-cli:latest"
+    ports:
+     - "7545:8545"
+    command: "-m 'wisdom zero output drift choice bright east stuff craft inform invest patient' --callGasLimit 10000000000000 -l 10000000000000 -g 10000000000000000 -e 10000000000000 -i 5777"
+
+  pala:
+    image: "pala-for-truffle-test"
+    build: e2e/thunder
+    ports:
+     - "7545:8545"
+
+  truffle-test:
+    network_mode: host
+    build: .
+    volumes_from:
+      - contracts:rw
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./truffle-test:/app/truffle-test
+      - ./env.test:/app/.env
+    command: npm run truffle-test
+    depends_on:
+      - truffle
+      - contracts
+
+  truffle-test-pala:
+    network_mode: host
+    build: .
+    volumes:
+      - ./truffle-test:/app/truffle-test
+    command: npm run truffle-test
+    depends_on:
+      - pala
+  redis:
+    image: "redis:4"
+    ports:
+     - "6379:6379"
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    ports:
+      - 15672:15672
+      - 5672:5672

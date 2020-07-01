@@ -1,0 +1,75 @@
+version: '2'
+
+volumes:
+  rabbitmq:
+  redis:
+
+services:
+  rabbit:
+    image: rabbitmq:3
+    restart: always
+    environment:
+      RABBITMQ_NODENAME: node@rabbit
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq/mnesia
+    ports:
+      - "5672:5672"
+
+  redis:
+    image: redis:4
+    restart: always
+    command: [redis-server, --appendonly, 'yes']
+    volumes:
+      - redis:/data
+    ports:
+     - "6379:6379"
+
+  bridge:
+    image: thundercore/bridge:testnet
+    build: ../../../validator
+    network_mode: host
+    restart: 'no'
+    environment:
+      - NODE_ENV=production
+    env_file: ./.env
+
+  bridge_watcher_request:
+    extends: bridge
+    restart: always
+    command: npm run watcher:signature-request
+
+  bridge_watcher_collected:
+    extends: bridge
+    restart: always
+    command: npm run watcher:collected-signatures
+
+  bridge_watcher_affirmation:
+    extends: bridge
+    restart: always
+    command: npm run watcher:affirmation-request
+
+  bridge_sender_home:
+    extends: bridge
+    restart: always
+    command: npm run sender:home
+    environment:
+      - VALIDATOR_ADDRESS=0x0b663c33A72819d2371Ad7939A4C29dc31C0881b
+      - VALIDATOR_ADDRESS_PRIVATE_KEY=4bf3b1bb36eb3f53d1ae5e6309510e17fe41df9a26a236de3385872211e0eab4
+
+  bridge_receiptor_home:
+    extends: bridge
+    restart: always
+    command: npm run receiptor:home
+
+  bridge_sender_foreign:
+    extends: bridge
+    restart: always
+    command: npm run sender:foreign
+    environment:
+      - VALIDATOR_ADDRESS=0x0b663c33A72819d2371Ad7939A4C29dc31C0881b
+      - VALIDATOR_ADDRESS_PRIVATE_KEY=4bf3b1bb36eb3f53d1ae5e6309510e17fe41df9a26a236de3385872211e0eab4
+
+  bridge_receiptor_foreign:
+    extends: bridge
+    restart: always
+    command: npm run receiptor:foreign

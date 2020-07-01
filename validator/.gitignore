@@ -5,3 +5,5 @@ node_modules
 coverage/
 logs/
 samples
+built/
+data/deployed.json

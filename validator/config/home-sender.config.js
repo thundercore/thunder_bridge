@@ -5,9 +5,10 @@ const { web3Home } = require('../src/services/web3')
 
 module.exports = {
   ...baseConfig.bridgeConfig,
-  initialize: baseConfig.initialize,
+  ...baseConfig.env,
   queue: 'home',
   id: 'home',
   name: 'sender-home',
-  web3: web3Home
+  web3: web3Home,
+  validatorRequiredBalance: baseConfig.env.HOME_VALIDATOR_REQUIRED_BALANCE,
 }

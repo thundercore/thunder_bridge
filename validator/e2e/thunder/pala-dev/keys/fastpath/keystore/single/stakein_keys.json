@@ -1,0 +1,13 @@
+{
+  "NumKey": 1,
+  "Type": "stakein",
+  "PublicKeys": [
+    "04bc9c232e9ceeec814b4d7c362cacfe8658cd8e2f39e9e330e0b4b5f8c21f6929aa4836a8d87a4eefde330fad092748fe363a45dc41f05d8988b0a4f097f60f9e"
+  ],
+  "Addresses": [
+    "76833c722eace799dbab19497ed46e6598ac3b54"
+  ],
+  "Certificates": [
+    ""
+  ]
+}

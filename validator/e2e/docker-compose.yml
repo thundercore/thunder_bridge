@@ -1,47 +1,67 @@
-version: '3'
+version: '2'
 services:
-  parity1:
-    build: parity
-    ports:
-      - "8541:8545"
-  parity2:
-    build: parity
-    ports:
-      - "8542:8545"
-  redis:
-    image: "redis:4"
-  rabbit:
-    image: "rabbitmq:3-management"
-    ports:
-      - "15672:15672"
-  bridge-erc:
+  validator:
     build: ..
+    image: validator
+    network_mode: host
     environment:
-      - NODE_ENV=production
+      - SENTRY_ENVIRONMENT=local
+      - NODE_ENV=test
       - BRIDGE_MODE=ERC_TO_ERC
-      - QUEUE_URL=amqp://rabbit
-      - REDIS_URL=redis://redis
-      - HOME_RPC_URL=http://parity1:8545
-      - FOREIGN_RPC_URL=http://parity2:8545
-      - HOME_BRIDGE_ADDRESS=0x1feB40aD9420b186F019A717c37f5546165d411E
-      - FOREIGN_BRIDGE_ADDRESS=0x4a58D6d8D416a5fBCAcf3dC52eb8bE8948E25127
-      - ERC20_TOKEN_ADDRESS=0x3C665A31199694Bf723fD08844AD290207B5797f
-      - BRIDGEABLE_TOKEN_ADDRESS=0x792455a6bCb62Ed4C4362D323E0590654CA4765c
-      - VALIDATOR_ADDRESS=0xaaB52d66283F7A1D5978bcFcB55721ACB467384b
-      - VALIDATOR_ADDRESS_PRIVATE_KEY=8e829f695aed89a154550f30262f1529582cc49dc30eff74a6b491359e0230f9
+      - QUEUE_URL=amqp://127.0.0.1:5672
+      - REDIS_URL=redis://127.0.0.1:6379
+      - HOME_RPC_URL=http://127.0.0.1:8541
+      - FOREIGN_RPC_URL=http://127.0.0.1:8542
+      - HOME_START_BLOCK=0
+      - FOREIGN_START_BLOCK=0
       - REDIS_LOCK_TTL=1000
       - HOME_GAS_PRICE_ORACLE_URL=https://gasprice.poa.network/
-      - HOME_GAS_PRICE_SPEED_TYPE=standard
       - HOME_GAS_PRICE_FALLBACK=1000000000
       - HOME_GAS_PRICE_UPDATE_INTERVAL=600000
       - FOREIGN_GAS_PRICE_ORACLE_URL=https://gasprice.poa.network/
-      - FOREIGN_GAS_PRICE_SPEED_TYPE=standard
       - FOREIGN_GAS_PRICE_FALLBACK=10000000000
       - FOREIGN_GAS_PRICE_UPDATE_INTERVAL=600000
-      - HOME_POLLING_INTERVAL=500
-      - FOREIGN_POLLING_INTERVAL=500
+      - HOME_POLLING_INTERVAL=2000
+      - FOREIGN_POLLING_INTERVAL=2000
       - ALLOW_HTTP=yes
-    command: "true"
-  e2e:
-    build: .
-    command: "true"
+      - HOME_BLOCK_CONFIRMATION=13
+      - FOREIGN_BLOCK_CONFIRMATION=13
+      - MAX_WAIT_RECEIPT_BLOCK=2
+      - GET_RECEIPT_TIMEOUT=5000
+      - LOAD_DEPLOYED_CONTRACT=yes
+      - EXTRA_GAS_PERCENTAGE=0
+      - HOME_VALIDATOR_REQUIRED_BALANCE=0.1
+      - FOREIGN_VALIDATOR_REQUIRED_BALANCE=0.1
+    volumes:
+      - ../src:/app/src
+      - ../scripts:/app/scripts
+    env_file:
+      - ./validator.env
+  watcher-signature-request:
+    extends: validator
+    restart: always
+    command: npm run watcher:signature-request
+  watcher-collected-signatures:
+    extends: validator
+    restart: always
+    command: npm run watcher:collected-signatures
+  watcher-affirmation-request:
+    extends: validator
+    restart: always
+    command: npm run watcher:affirmation-request
+  sender-home:
+    extends: validator
+    restart: always
+    command: npm run sender:home
+  sender-foreign:
+    extends: validator
+    restart: always
+    command: npm run sender:foreign
+  receiptor-home:
+    extends: validator
+    restart: always
+    command: npm run receiptor:home
+  receiptor-foreign:
+    extends: validator
+    restart: always
+    command: npm run receiptor:foreign

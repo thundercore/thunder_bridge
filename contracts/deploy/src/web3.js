@@ -8,6 +8,7 @@ const {
   DEPLOYMENT_ACCOUNT_PRIVATE_KEY
 } = env
 
+
 const homeProvider = new Web3.providers.HttpProvider(HOME_RPC_URL)
 const web3Home = new Web3(homeProvider)
 

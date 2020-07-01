@@ -43,7 +43,7 @@ contract ERC677BridgeToken is
         fundingRules.threshold = _threshold;
         fundingRules.amount = _amount;
     }
-    
+
     function getFundingRules() public view returns(uint256, uint256, uint256, uint256){
         return (fundingRules.periodLength,
         fundingRules.maxPeriodFunds,
@@ -99,11 +99,11 @@ contract ERC677BridgeToken is
 
     function transfer(address _to, uint256 _value) public returns (bool)
     {
-        require(superTransfer(_to, _value));
+        require(superTransfer(_to, _value), "failed superTransfer");
         fundReceiver(_to);
         if (isContract(_to) && !contractFallback(_to, _value, new bytes(0))) {
             if (_to == bridgeContract) {
-                revert();
+                revert("reverted here");
             } else {
                 emit ContractFallbackCallFailed(msg.sender, _to, _value);
             }

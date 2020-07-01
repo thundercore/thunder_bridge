@@ -8,82 +8,82 @@ services:
   rabbit:
     image: rabbitmq:3
     restart: always
-    environment: 
+    environment:
       RABBITMQ_NODENAME: node@rabbit
-    volumes: 
+    volumes:
       - rabbitmq:/var/lib/rabbitmq/mnesia
 
   redis:
     image: redis:4
     restart: always
     command: [redis-server, --appendonly, 'yes']
-    volumes: 
+    volumes:
       - redis:/data
 
   bridge:
     image: thundercore/bridge
     build: ../../validator
-    restart: 'no'
     environment:
       - NODE_ENV=production
     env_file: ./.env
+    logging:
+      driver: json-file
+      options:
+        max-size: '20m'
+        max-file: '5'
 
   bridge_request:
-    image: thundercore/bridge
-    build: ../../validator
-    command: watcher:signature-request
+    extends: bridge
     restart: always
-    environment: 
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run watcher:signature-request
     depends_on:
       - rabbit
       - redis
 
   bridge_collected:
-    image: thundercore/bridge
-    build: ../../validator
-    command: watcher:collected-signatures
+    extends: bridge
     restart: always
-    environment:
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run watcher:collected-signatures
     depends_on:
       - rabbit
       - redis
 
   bridge_affirmation:
-    image: thundercore/bridge
-    build: ../../validator
-    command: watcher:affirmation-request
+    extends: bridge
     restart: always
-    environment:
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run watcher:affirmation-request
     depends_on:
       - rabbit
       - redis
 
   bridge_home:
-    image: thundercore/bridge
-    build: ../../validator
-    command: sender:home
+    extends: bridge
     restart: always
-    environment:
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run sender:home
     depends_on:
       - rabbit
       - redis
 
   bridge_foreign:
-    image: thundercore/bridge
-    build: ../../validator
-    command: sender:foreign
+    extends: bridge
     restart: always
-    environment:
-      - NODE_ENV=production
-    env_file: ./.env
+    command: npm run sender:foreign
+    depends_on:
+      - rabbit
+      - redis
+
+  receiptor_home:
+    extends: bridge
+    restart: always
+    command: npm run receiptor:home
+    depends_on:
+      - rabbit
+      - redis
+
+  receiptor_foreign:
+    extends: bridge
+    restart: always
+    command: npm run receiptor:foreign
     depends_on:
       - rabbit
       - redis

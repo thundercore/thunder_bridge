@@ -1,0 +1,23 @@
+version: '2'
+services:
+    oneround:
+      image: validator
+      stdin_open: true
+      network_mode: host
+      tty: true
+      environment:
+        - HOME_RPC_URL=ws://127.0.0.1:8540
+        - FOREIGN_RPC_URL=http://127.0.0.1:8542
+        - USER_ADDRESS=0x9039dD6D7189CE1F9cF8b098d18358e4e41B19BD
+        - USER_ADDRESS_PRIVATE_KEY=2c3b2a410d5153214e97c814a300f8e7beb31485d0843f5b28826bab1918a61f
+        - SENTRY_DSN=http://106071ceac9e4743a00b61d19a1f4650@10.100.137.24:9000/2
+        - HOME_MIN_AMOUNT_PER_TX=0.01
+        - HOME_TEST_TX_GAS_PRICE=1000000000
+        - FOREIGN_MIN_AMOUNT_PER_TX=0.01
+        - FOREIGN_TEST_TX_GAS_PRICE=1000000000
+        - FOREIGN_BLOCK_TIME=1
+        - HOME_BLOCK_TIME=1
+      volumes:
+        - ../scripts:/app/scripts
+        - ../data:/app/data
+      command: node /app/scripts/erc20_to_erc20/crashTest.js
