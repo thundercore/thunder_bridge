@@ -58,6 +58,10 @@ test-truffle: build-deployer
 	cd $(VALIDATOR_DIR) && docker-compose run --rm truffle-test
 	cd $(VALIDATOR_DIR) && docker-compose down
 
+test-truffle-pala: build-deployer
+	cd $(VALIDATOR_DIR) && docker-compose run --rm truffle-test-pala
+	cd $(VALIDATOR_DIR) && docker-compose down
+
 test-unittest:
 	cd $(VALIDATOR_DIR) && python run-test.py unittest
 

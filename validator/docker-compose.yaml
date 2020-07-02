@@ -20,6 +20,7 @@ services:
   pala:
     image: "pala-for-truffle-test"
     build: e2e/thunder
+    restart: always
     ports:
      - "7545:8545"
 
@@ -41,11 +42,17 @@ services:
   truffle-test-pala:
     network_mode: host
     build: .
+    volumes_from:
+      - contracts:rw
     volumes:
       - ./truffle-test:/app/truffle-test
-    command: npm run truffle-test
+      - ./env.test:/app/.env
+    stdin_open: true
+    tty: true
+    command: npm run truffle-test:pala
     depends_on:
       - pala
+      - contracts
   redis:
     image: "redis:4"
     ports:
