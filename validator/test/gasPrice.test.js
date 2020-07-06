@@ -96,21 +96,40 @@ describe('gasPrice', () => {
   })
   describe('get price', () => {
     it('get price', async () => {
+      const toGWei = function(wei) {
+        return (wei * Math.pow(10, 9)).toString()
+      }
       process.env.GET_PRICE_TEST = 'test'
       // this function only works when env.GET_PRICE_TEST is set to 'test'
+      const standard = toGWei(1)
+      const fast = toGWei(3)
+      const instant = toGWei(7)
+      const max = toGWei(GAS_PRICE_BOUNDARIES.MAX)
       setTestCachedGasPrice({
-        standard: '1',
-        fast: '2',
-        instant: '3',
+        standard: standard,
+        fast: fast,
+        instant: instant,
       })
 
       const now = Math.floor(Date.now() / 1000)
 
-      expect(getPrice(now)).to.equal('1', 'should use standard speed type')
-      expect(getPrice(now - 350)).to.equal('2', 'should use fast speed type')
-      expect(getPrice(now - 650)).to.equal('3', 'should use instant speed type')
-    }) // given
+      expect(getPrice(now)).to.equal(standard, 'should use standard speed type')
+      expect(getPrice(now - 350)).to.equal(fast, 'should use fast speed type')
+      expect(getPrice(now - 650)).to.equal(instant, 'should use instant speed type')
+      expect(getPrice(now - 950)).to.equal(toGWei(7+(7-3)*1))
+      expect(getPrice(now - 1250)).to.equal(toGWei(7+(7-3)*2))
+      // The maximum gas price will be GAS_PRICE_BOUNDARIES.MAX after a long time
+      expect(getPrice(now - 100000)).to.equal(max, 'should use instant speed type')
+    })
+    it('set price from env', async () => {
+      process.env.SET_GAS_PRICE = 1000
+      const now = Math.floor(Date.now() / 1000)
+      expect(getPrice(now)).to.equal('1000', 'should use gas price from env')
+      expect(getPrice(now - 300)).to.equal('1000', 'should use gas price from env')
+      process.env.SET_GAS_PRICE = undefined
+    })
   })
+
   describe('start', () => {
     const utils = { setIntervalAndRun: sinon.spy() }
     beforeEach(() => {

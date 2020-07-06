@@ -148,15 +148,30 @@ async function start(chainId) {
 
 
 function getPrice(timestamp) {
-  let speedType = 'standard'
+  if (process.env.SET_GAS_PRICE) {
+    return process.env.SET_GAS_PRICE.toString()
+  }
+
+  let gasPrice = '0'
   const dt = Math.floor(Date.now() / 1000) - timestamp
-  if (dt > 300) {
-    speedType = 'fast'
+   // Bump gasPrice every 5 mins
+  const speed = Math.floor(dt / 300)
+
+  if (speed == 0) {
+    gasPrice = cachedGasPrice.standard
+  } else if (speed == 1) {
+    gasPrice = cachedGasPrice.fast
+  } else if (speed >= 2) {
+    // gasPrice = instant + (instant - fast) * (speed-2)
+    const diff = Web3Utils.toBN(cachedGasPrice.instant).sub(Web3Utils.toBN(cachedGasPrice.fast))
+    gasPrice = Web3Utils.toBN(cachedGasPrice.instant).add(diff.mul(Web3Utils.toBN(speed - 2)))
+    gasPrice = BN.min(
+      Web3Utils.toBN(Web3Utils.toWei(GAS_PRICE_BOUNDARIES.MAX.toString(), 'gwei')),
+      gasPrice
+    ).toString()
   }
-  if (dt > 600) {
-    speedType = 'instant'
-  }
-  return cachedGasPrice[speedType]
+
+  return gasPrice
 }
 
 // this function is only for unit test
