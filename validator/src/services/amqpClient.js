@@ -71,7 +71,7 @@ function connectSenderToQueue({ queueName, cb }) {
               retry = retry > config.QUEUE_RETRY_LIMIT ? config.QUEUE_RETRY_LIMIT : retry
               const targetQueue = getRetryQueueName(retryQueue, retry)
               logger.debug({targetQueue}, 'push task to retry queue')
-              channelWrapper.sendToQueue(targetQueue, data, { headers: { 'x-retry-count': retry+1 } })
+              channelWrapper.sendToQueue(targetQueue, data, { persistent: true, headers: { 'x-retry-count': retry+1 } })
             },
             enqueueReceiptor,
           })
@@ -166,7 +166,7 @@ function connectReceiptorQueue({ queueName, cb, queueOptions }) {
               const targetQueue = getRetryQueueName(retryQueue, queueOptions[key])
               logger.debug({targetQueue, key}, 'push task to retry queue')
               let task = JSON.parse(job.content.toString())
-              channelWrapper.sendToQueue(targetQueue, task)
+              channelWrapper.sendToQueue(targetQueue, task, { persistent: true })
               channelWrapper.nack(job, false, false)
             },
             rejectMsg: job => channelWrapper.nack(job, false, false),
