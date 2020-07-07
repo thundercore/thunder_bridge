@@ -66,7 +66,7 @@ const gauges = {}
 
 
 
-const G_STATUSBRIDGES = mkGaugedataRow(["totalSupply", "deposits", "withdrawals", "requiredSignatures"], ["network", "token"]);
+const G_STATUSBRIDGES = mkGaugedataRow(["totalSupply", "deposits", "depositValue", "withdrawals", "withdrawalValue", "requiredSignatures"], ["network", "token"]);
 const G_STATUS = mkGaugedataRow(["balanceDiff", "lastChecked", "requiredSignaturesMatch", "validatorsMatch"], ["token"]);
 const G_VALIDATORS = mkGaugedataRow(["balance", "leftTx", "gasPrice"], ["network", "token", "validator"]);
 
@@ -160,8 +160,8 @@ async function checkVBalances(token) {
 
 for(let token in config) {
   const updater = ((token)=>()=>{checkStatus(token); checkVBalances(token)})(token);
-  setInterval(updater, config[token].UPDATE_PERIOD);
   updater();
+  setInterval(updater, config[token].UPDATE_PERIOD);
 }
 
 

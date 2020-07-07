@@ -34,8 +34,9 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
         const tokenContract = new web3Home.eth.Contract(ERC677_ABI, tokenAddress)
         const totalSupply = await tokenContract.methods.totalSupply().call()
         const foreignBalanceBN = new BN(foreignErc20Balance)
-        const foreignTotalSupplyBN = new BN(totalSupply)
-        const diff = foreignBalanceBN.minus(foreignTotalSupplyBN).toString(10)
+        const foreignTotalSupply = await erc20Contract.methods.totalSupply().call()
+        const homeTotalSupplyBN = new BN(totalSupply)
+        const diff = foreignBalanceBN.minus(homeTotalSupplyBN).toString(10)
 
         return {
           time: new Date().toISOString(),
@@ -43,6 +44,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
             totalSupply: new BN(totalSupply).idiv(base).toString()
           },
           foreign: {
+            totalSupply: new BN(foreignTotalSupply).idiv(base).toString(),
             erc20Balance: new BN(foreignErc20Balance).idiv(base).toString()
           },
           balanceDiff: Number(new BN(diff).idiv(base).toString()),

@@ -5,7 +5,7 @@ const TWO = toBN(2)
 const queryRange = toBN(300)
 
 function *getPastEventsIter({ contract, event, fromBlock, toBlock, options, token }) {
-  console.log(`${token} getPastEvents: ${event} from: ${fromBlock} to: ${toBlock}`)
+  console.log(`${token} *getPastEventsIter: ${event} from: ${fromBlock} to: ${toBlock}`)
   let from = toBN(fromBlock)
   let to = toBN(fromBlock).add(queryRange)
   while (to.lt(toBlock)) {
@@ -17,6 +17,7 @@ function *getPastEventsIter({ contract, event, fromBlock, toBlock, options, toke
 }
 
 async function getPastEvents({ contract, event, fromBlock, toBlock, options, token }) {
+  console.log(`${token} getPastEvents: ${event} from: ${fromBlock} to: ${toBlock}`)
   let events
   try {
     events = await contract.getPastEvents(event, {
