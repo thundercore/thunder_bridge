@@ -1,20 +1,31 @@
 const Redis = require('ioredis')
 
-const lastProcessedLengthKey = 'monitorLastProcessedLength'
-const lastProcessedBlockKey = 'monitorLastProcessedBlock'
+const prefix = 'monitor'
+const lastProcessedBlockKey = 'lastProcessedBlock'
 
-Redis.prototype.getProcessedResult = async function (token) {
-  const lengthStr = await this.get(`${token}-${lastProcessedLengthKey}`)
-  console.log(`${token} getLastProcessedLength`, lengthStr)
-  return JSON.parse(lengthStr)
+Redis.prototype.getProcessedResult = async function (token, name) {
+  const key = `${prefix}-cache-${token}-${name}`
+  const obj = await this.get(key)
+  console.log(`${token} getLastProcessedResult: ${name}`, obj)
+  return JSON.parse(obj)
 }
 
-Redis.prototype.storeProcessedResult = async function (token, lenObj, homeBlockNumber, foreignBlockNumber) {
-  console.log(`${token} storeProcessedResult`, lenObj, {homeBlockNumber, foreignBlockNumber})
+Redis.prototype.storeProcessedResult = async function (token, name, obj) {
+  const key = `${prefix}-cache-${token}-${name}`
+  const convertedObj = {
+    value: obj.value.toString(),
+    length: obj.length,
+    users: Array.from(obj.users)
+  }
+  console.log(`${token} storeProcessedResult: ${name}`, convertedObj)
+  await this.set(key, JSON.stringify(convertedObj))
+}
+
+Redis.prototype.storeProcessedBlock = async function (token, home, foreign) {
+  console.log(`${token} storeProcessedBlock home:${home} foreign:${foreign}`)
   await Promise.all([
-    this.set(`${token}-${lastProcessedLengthKey}`, JSON.stringify(lenObj)),
-    this.set(`${token}-${lastProcessedBlockKey}-home`, homeBlockNumber),
-    this.set(`${token}-${lastProcessedBlockKey}-foreign`, foreignBlockNumber)
+    this.set(`${token}-${lastProcessedBlockKey}-home`, home),
+    this.set(`${token}-${lastProcessedBlockKey}-foreign`, foreign)
   ])
 }
 
