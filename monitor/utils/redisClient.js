@@ -1,4 +1,5 @@
 const Redis = require('ioredis')
+const JSONbig = require('json-bigint')
 
 const prefix = 'monitor'
 const lastProcessedBlockKey = 'lastProcessedBlock'
@@ -7,7 +8,7 @@ Redis.prototype.getProcessedResult = async function (token, name) {
   const key = `${prefix}-cache-${token}-${name}`
   const obj = await this.get(key)
   console.log(`${token} getLastProcessedResult: ${name}`, obj)
-  return JSON.parse(obj)
+  return JSONbig.parse(obj)
 }
 
 Redis.prototype.storeProcessedResult = async function (token, name, obj) {

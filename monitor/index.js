@@ -12,6 +12,7 @@ const { decodeBridgeMode } = require('./utils/bridgeMode')
 const { readFileSync, existsSync } = require('fs');
 const { env } = process;
 
+const JSONbig = require('json-bigint')({"storeAsString": true});
 function mkDict(pairs) {
   const res = {}
   for (let i in pairs) {
@@ -38,6 +39,7 @@ let config = existsSync("config.json") ? JSON.parse(readFileSync("config.json", 
 
 const redis = newRedis(config.REDIS_URL || process.env.REDIS_URL)
 const registry = new client.Registry();
+let exportStatus = {}
 
 
 function mkDict(pairs) {
@@ -115,6 +117,7 @@ async function checkStatus(token) {
   context.redis = redis
   context.token = token
 
+
   try {
     const { HOME_BRIDGE_ADDRESS, HOME_RPC_URL } = context;
     const homeProvider = new HttpRetryProvider(HOME_RPC_URL.split(","))
@@ -130,6 +133,7 @@ async function checkStatus(token) {
     const home = Object.assign({}, balances.home, events.home)
     const foreign = Object.assign({}, balances.foreign, events.foreign)
     const status = Object.assign({}, balances, events, { home }, { foreign })
+    exportStatus[token]['status'] = status
     if (!status) throw new Error('status is empty: ' + JSON.stringify(status))
     updateAllData(status, token)
     return status
@@ -151,6 +155,7 @@ async function checkVBalances(token) {
     const bridgeModeHash = await homeBridge.methods.getBridgeMode().call()
     const bridgeMode = decodeBridgeMode(bridgeModeHash)
     const vBalances = await validators(bridgeMode)
+    exportStatus[token]['v_status'] = vBalances
     if (!vBalances) throw new Error('vBalances is empty: ' + JSON.stringify(vBalances))
     updateAllData(vBalances, token)
     return vBalances
@@ -161,6 +166,7 @@ async function checkVBalances(token) {
 
 
 for(let token in config) {
+  if (!(token in exportStatus)) exportStatus[token] = {}
   const updater = ((token)=>()=>{checkStatus(token); checkVBalances(token)})(token);
   updater();
   setInterval(updater, config[token].UPDATE_PERIOD);
@@ -171,5 +177,9 @@ const server = express();
 server.get('/metrics', (req, res) => {
   res.set('Content-Type', registry.contentType);
   res.end(registry.metrics());
+});
+server.get('/status', (req, res) => {
+  res.set('Content-Type', 'application/json');
+  res.end(JSONbig.stringify(exportStatus));
 });
 server.listen(3000);
