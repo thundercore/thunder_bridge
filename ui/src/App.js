@@ -53,7 +53,7 @@ export class App extends React.Component {
         <div className="app-container">
           {showMobileMenu && <Route render={() => <div className="mobile-menu-open" />} />}
           <Route exact path="/" component={Bridge} />
-          <Route exact path="/events" component={RelayEvents} />
+          { /* <Route exact path="/events" component={RelayEvents} /> */ }
           <Route exact path="/status" component={StatusPage} />
           <Route exact path="/statistics" component={StatisticsPage} />
         </div>

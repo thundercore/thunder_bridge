@@ -12,14 +12,11 @@ import {
   getErc677TokenAddress,
   getSymbol,
   getDecimals,
-  getTotalSupply,
   getBalanceOf,
   mintedTotally,
   totalBurntCoins,
   getName,
   getHomeFee,
-  getValidatorList,
-  getDeployedAtBlock
 } from './utils/contract'
 import { balanceLoaded, removePendingTransaction } from './utils/testUtils'
 import sleep from './utils/sleep'
@@ -28,13 +25,10 @@ import {
   getBridgeABIs,
   getUnit,
   BRIDGE_MODES,
-  decodeFeeManagerMode,
-  FEE_MANAGER_MODE
 } from './utils/bridgeMode'
 import ERC20Bytes32Abi from './utils/ERC20Bytes32.abi'
-import { processLargeArrayAsync } from './utils/array'
 import { getRewardableData } from './utils/rewardable'
-import HomeBridgeV1Abi from './utils/HomeBridgeV1.abi'
+import { ReadPrometheusStatus, ReadValidators } from './utils/PrometheusStatus'
 
 async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
@@ -150,7 +144,21 @@ class HomeStore {
     this.setHome()
   }
 
+  readStatistics(name, defaultVal, formatter) {
+    return ReadPrometheusStatus(this.status, this.tokenName, 'home', name, defaultVal, formatter)
+  }
+
+  readValidators(tokenName) {
+    return ReadValidators(this.status, tokenName, 'home')
+  }
+
   async setHome(tokenName) {
+    // Load status file every 10s
+    this.status = require(process.env.REACT_APP_MONITOR_STATUS_FILE)
+    setInterval(() => {
+      this.status = require(process.env.REACT_APP_MONITOR_STATUS_FILE)
+    }, 10000)
+
     if (tokenName === 'DAI') {
       this.HOME_BRIDGE_ADDRESS = process.env.REACT_APP_HOME_DAI_BRIDGE_ADDRESS
     } else {
@@ -165,18 +173,20 @@ class HomeStore {
     if (this.rootStore.bridgeMode === BRIDGE_MODES.ERC_TO_ERC) {
       await this.getTokenInfo()
     }
+
     await this.getBlockNumber()
     this.getMinPerTxLimit()
     this.getMaxPerTxLimit()
-    this.getEvents()
+    // this.getEvents()
     this.getBalance()
     this.getCurrentLimit()
     this.getFee()
     this.getValidators()
     this.getStatistics()
     this.calculateCollectedFees()
+
     setInterval(() => {
-      this.getEvents()
+      // this.getEvents()
       this.getBalance()
       this.getBlockNumber()
       this.getCurrentLimit()
@@ -240,13 +250,16 @@ class HomeStore {
 
   @action
   async getBalance() {
+    this.decimals = this.decimals? this.decimals : await getDecimals(this.tokenContract)
+
     try {
       if (this.rootStore.bridgeMode === BRIDGE_MODES.ERC_TO_ERC) {
-        this.balance = await getTotalSupply(this.tokenContract)
+        this.balance = this.readStatistics('totalSupply', 0, x => this.homeWeb3.utils.toBN(x).toString())
         this.web3Store.getWeb3Promise.then(async () => {
           this.userBalance = await getBalanceOf(
             this.tokenContract,
-            this.web3Store.defaultAccount.address
+            this.web3Store.defaultAccount.address,
+            this.decimals
           )
           balanceLoaded()
         })
@@ -409,33 +422,21 @@ class HomeStore {
       this.requiredSignatures = await this.homeBridgeValidators.methods.requiredSignatures().call()
       this.validatorsCount = await this.homeBridgeValidators.methods.validatorCount().call()
 
-      this.validators = await getValidatorList(homeValidatorsAddress, this.homeWeb3.eth)
+      this.validators = this.readValidators(this.tokenName)
     } catch (e) {
       console.error(e)
     }
   }
 
   async getStatistics() {
-    try {
-      const deployedAtBlock = await getDeployedAtBlock(this.homeBridge)
-      const { HOME_ABI } = getBridgeABIs(this.rootStore.bridgeMode)
-      const abi = [...HomeBridgeV1Abi, ...HOME_ABI]
-      const contract = new this.homeWeb3.eth.Contract(abi, this.HOME_BRIDGE_ADDRESS)
-      const events = await getPastEvents(contract, deployedAtBlock, 'latest')
-      processLargeArrayAsync(events, this.processEvent, () => {
-        this.statistics.finished = true
-        this.statistics.totalBridged = this.statistics.depositsValue.plus(
-          this.statistics.withdrawsValue
-        )
-      })
-    } catch (e) {
-      console.error(e)
-      // This causes an infinite loop and breaks people's browsers
-      // adding a time out to reduce the calls
-      setTimeout(() => {
-        this.getStatistics()
-      }, 500)
-    }
+    const BNfromDecimal = (x) => BN(fromDecimals(x, this.tokenDecimals))
+    this.statistics.deposits= this.readStatistics('deposits', 0, this.homeWeb3.utils.toBN)
+    this.statistics.depositsValue = this.readStatistics('depositValue', 0, BNfromDecimal)
+    this.statistics.withdraws = this.readStatistics('withdrawals', 0, this.homeWeb3.utils.toBN)
+    this.statistics.withdrawsValue = this.readStatistics('withdrawalValue', 0, BNfromDecimal)
+    this.statistics.users = this.readStatistics('withdrawalUsers', 0, Number)
+    this.statistics.totalBridged = this.statistics.depositsValue.plus(this.statistics.withdrawsValue)
+    this.statistics.finished = true
   }
 
   processEvent = event => {
