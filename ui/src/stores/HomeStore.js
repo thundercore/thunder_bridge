@@ -28,7 +28,7 @@ import {
 } from './utils/bridgeMode'
 import ERC20Bytes32Abi from './utils/ERC20Bytes32.abi'
 import { getRewardableData } from './utils/rewardable'
-import { ReadPrometheusStatus, ReadValidators } from './utils/PrometheusStatus'
+import { ReadPrometheusStatus, ReadValidators, LoadPrometheusFile } from './utils/PrometheusStatus'
 
 async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
@@ -154,9 +154,9 @@ class HomeStore {
 
   async setHome(tokenName) {
     // Load status file every 10s
-    this.status = require(process.env.REACT_APP_MONITOR_STATUS_FILE)
-    setInterval(() => {
-      this.status = require(process.env.REACT_APP_MONITOR_STATUS_FILE)
+    this.status = await LoadPrometheusFile()
+    setInterval(async () => {
+      this.status = await LoadPrometheusFile()
     }, 10000)
 
     if (tokenName === 'DAI') {

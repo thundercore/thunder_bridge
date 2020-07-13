@@ -26,3 +26,7 @@ export function ReadValidators(resp, tokenName, network) {
   }
   return ret
 }
+
+export async function LoadPrometheusFile() {
+  return (await fetch(process.env.REACT_APP_MONITOR_STATUS_FILE)).json()
+}

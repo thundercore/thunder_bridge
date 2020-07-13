@@ -29,7 +29,7 @@ import ERC20Bytes32Abi from './utils/ERC20Bytes32.abi'
 import BN from 'bignumber.js'
 import { processLargeArrayAsync } from './utils/array'
 import { fromDecimals } from './utils/decimals'
-import { ReadPrometheusStatus, ReadValidators } from './utils/PrometheusStatus'
+import { ReadPrometheusStatus, ReadValidators, LoadPrometheusFile } from './utils/PrometheusStatus'
 
 class ForeignStore {
   @observable
@@ -128,9 +128,9 @@ class ForeignStore {
 
   async setForeign(tokenName) {
     // Load status file every 10s
-    this.status = require(process.env.REACT_APP_MONITOR_STATUS_FILE)
-    setInterval(() => {
-      this.status = require(process.env.REACT_APP_MONITOR_STATUS_FILE)
+    this.status = await LoadPrometheusFile()
+    setInterval(async () => {
+      this.status = await LoadPrometheusFile()
     }, 10000)
 
     if (tokenName === 'DAI') {
