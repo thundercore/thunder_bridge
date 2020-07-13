@@ -1,5 +1,8 @@
 version: '2'
 
+volumes:
+  statics:
+
 services:
   ui:
     image: thundercore/bridge-ui
@@ -8,6 +11,8 @@ services:
       VIRTUAL_HOST: $UI_HOSTNAME
       LETSENCRYPT_HOST: $UI_HOSTNAME
     env_file: ./.env
+    volumes:
+      - statics:/statics
 
 networks:
   default:
