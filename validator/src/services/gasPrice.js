@@ -153,9 +153,9 @@ function getPrice(timestamp) {
   }
 
   let gasPrice = '0'
-  const dt = Math.floor(Date.now() / 1000) - timestamp
+  const dt = Date.now() - timestamp
    // Bump gasPrice every 5 mins
-  const speed = Math.floor(dt / 300)
+  const speed = Math.floor(dt / process.env.GAS_PRICE_BUMP_INTERVAL)
 
   if (speed == 0) {
     gasPrice = cachedGasPrice.standard

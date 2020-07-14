@@ -111,21 +111,24 @@ describe('gasPrice', () => {
         instant: instant,
       })
 
-      const now = Math.floor(Date.now() / 1000)
+      const now = Math.floor(Date.now())
+      // Set bump interval to 5min
+      process.env.GAS_PRICE_BUMP_INTERVAL = Number(300 * 1000)
 
       expect(getPrice(now)).to.equal(standard, 'should use standard speed type')
-      expect(getPrice(now - 350)).to.equal(fast, 'should use fast speed type')
-      expect(getPrice(now - 650)).to.equal(instant, 'should use instant speed type')
-      expect(getPrice(now - 950)).to.equal(toGWei(7+(7-3)*1))
-      expect(getPrice(now - 1250)).to.equal(toGWei(7+(7-3)*2))
+      expect(getPrice(now - 350 * 1000)).to.equal(fast, 'should use fast speed type')
+      expect(getPrice(now - 650 * 1000)).to.equal(instant, 'should use instant speed type')
+      expect(getPrice(now - 950 * 1000)).to.equal(toGWei(7+(7-3)*1))
+      expect(getPrice(now - 1250 * 1000)).to.equal(toGWei(7+(7-3)*2))
       // The maximum gas price will be GAS_PRICE_BOUNDARIES.MAX after a long time
-      expect(getPrice(now - 100000)).to.equal(max, 'should use instant speed type')
+      expect(getPrice(now - 100000 * 1000)).to.equal(max, 'should use instant speed type')
     })
+
     it('set price from env', async () => {
       process.env.SET_GAS_PRICE = 1000
-      const now = Math.floor(Date.now() / 1000)
+      const now = Math.floor(Date.now())
       expect(getPrice(now)).to.equal('1000', 'should use gas price from env')
-      expect(getPrice(now - 300)).to.equal('1000', 'should use gas price from env')
+      expect(getPrice(now - 350 * 1000)).to.equal('1000', 'should use gas price from env')
       process.env.SET_GAS_PRICE = undefined
     })
   })

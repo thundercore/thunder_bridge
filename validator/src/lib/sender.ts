@@ -126,7 +126,7 @@ export class SenderWeb3Impl implements SenderWeb3 {
       to: this.validator.address,
       value: toWei(toBN('0')),
       gas: 21000 * 2,
-      gasPrice: (await this.getPrice(Math.floor(Date.now() / 1000))).toString(),
+      gasPrice: (await this.getPrice(Date.now())).toString(),
     }
 
     this.logger.debug(txConfig, 'Send transaction to self')
