@@ -33,6 +33,7 @@ services:
       - FOREIGN_VALIDATOR_REQUIRED_BALANCE=0.1
     volumes:
       - ../src:/app/src
+      - ../config:/app/config
       - ../scripts:/app/scripts
       - ../test:/app/test
     env_file:

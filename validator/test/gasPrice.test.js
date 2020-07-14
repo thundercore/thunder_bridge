@@ -4,6 +4,7 @@ const proxyquire = require('proxyquire').noPreserveCache()
 const { fetchGasPrice, gasPriceWithinLimits, setTestCachedGasPrice, getPrice } = require('../src/services/gasPrice')
 const { DEFAULT_UPDATE_INTERVAL, GAS_PRICE_BOUNDARIES } = require('../src/utils/constants')
 
+
 describe('gasPrice', () => {
   describe('fetchGasPrice', () => {
     beforeEach(() => {
@@ -112,14 +113,12 @@ describe('gasPrice', () => {
       })
 
       const now = Math.floor(Date.now())
-      // Set bump interval to 5min
-      process.env.GAS_PRICE_BUMP_INTERVAL = Number(300 * 1000)
 
       expect(getPrice(now)).to.equal(standard, 'should use standard speed type')
-      expect(getPrice(now - 350 * 1000)).to.equal(fast, 'should use fast speed type')
-      expect(getPrice(now - 650 * 1000)).to.equal(instant, 'should use instant speed type')
-      expect(getPrice(now - 950 * 1000)).to.equal(toGWei(7+(7-3)*1))
-      expect(getPrice(now - 1250 * 1000)).to.equal(toGWei(7+(7-3)*2))
+      expect(getPrice(now - 70 * 1000)).to.equal(fast, 'should use fast speed type')
+      expect(getPrice(now - 130 * 1000)).to.equal(instant, 'should use instant speed type')
+      expect(getPrice(now - 190 * 1000)).to.equal(toGWei(7+(7-3)*1))
+      expect(getPrice(now - 250 * 1000)).to.equal(toGWei(7+(7-3)*2))
       // The maximum gas price will be GAS_PRICE_BOUNDARIES.MAX after a long time
       expect(getPrice(now - 100000 * 1000)).to.equal(max, 'should use instant speed type')
     })
@@ -147,9 +146,9 @@ describe('gasPrice', () => {
       await gasPrice.start('home')
 
       // then
-      expect(process.env.HOME_GAS_PRICE_UPDATE_INTERVAL).to.equal('15000')
-      expect(process.env.HOME_GAS_PRICE_UPDATE_INTERVAL).to.not.equal(DEFAULT_UPDATE_INTERVAL.toString())
-      expect(utils.setIntervalAndRun.args[0][1]).to.equal(process.env.HOME_GAS_PRICE_UPDATE_INTERVAL.toString())
+      expect(process.env.HOME_GAS_PRICE_UPDATE_INTERVAL).to.equal(15000)
+      expect(process.env.HOME_GAS_PRICE_UPDATE_INTERVAL).to.not.equal(DEFAULT_UPDATE_INTERVAL)
+      expect(utils.setIntervalAndRun.args[0][1]).to.equal(process.env.HOME_GAS_PRICE_UPDATE_INTERVAL)
     })
     it('should call setIntervalAndRun with FOREIGN_GAS_PRICE_UPDATE_INTERVAL interval value on Foreign', async () => {
       // given
@@ -160,9 +159,9 @@ describe('gasPrice', () => {
       await gasPrice.start('foreign')
 
       // then
-      expect(process.env.FOREIGN_GAS_PRICE_UPDATE_INTERVAL).to.equal('15000')
-      expect(process.env.HOME_GAS_PRICE_UPDATE_INTERVAL).to.not.equal(DEFAULT_UPDATE_INTERVAL.toString())
-      expect(utils.setIntervalAndRun.args[0][1]).to.equal(process.env.FOREIGN_GAS_PRICE_UPDATE_INTERVAL.toString())
+      expect(process.env.FOREIGN_GAS_PRICE_UPDATE_INTERVAL).to.equal(15000)
+      expect(process.env.HOME_GAS_PRICE_UPDATE_INTERVAL).to.not.equal(DEFAULT_UPDATE_INTERVAL)
+      expect(utils.setIntervalAndRun.args[0][1]).to.equal(process.env.FOREIGN_GAS_PRICE_UPDATE_INTERVAL)
     })
     it.skip('should call setIntervalAndRun with default interval value on Home', async () => {
       // given

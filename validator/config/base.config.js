@@ -54,6 +54,7 @@ let validations = {
 }
 
 const env = envalid.cleanEnv(process.env, validations, {})
+process.env = Object.assign({}, process.env, env)
 
 switch (env.BRIDGE_MODE) {
   case 'NATIVE_TO_ERC':

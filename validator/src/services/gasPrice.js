@@ -3,7 +3,7 @@ const fetch = require('node-fetch')
 const Web3Utils = require('web3-utils')
 const BN = require('bn.js')
 const { web3Home, web3Foreign } = require('./web3')
-const { bridgeConfig, env } = require('../../config/base.config')
+const { bridgeConfig } = require('../../config/base.config')
 const logger = require('./logger').child({
   module: 'gasPrice',
 })
@@ -22,7 +22,7 @@ const {
   HOME_GAS_PRICE_FALLBACK,
   HOME_GAS_PRICE_ORACLE_URL,
   HOME_GAS_PRICE_UPDATE_INTERVAL,
-} = env
+} = process.env
 
 const homeBridge = new web3Home.eth.Contract(HomeABI, HOME_BRIDGE_ADDRESS)
 
@@ -148,14 +148,14 @@ async function start(chainId) {
 
 
 function getPrice(timestamp) {
-  if (env.SET_GAS_PRICE) {
-    return env.SET_GAS_PRICE.toString()
+  if (process.env.SET_GAS_PRICE) {
+    return process.env.SET_GAS_PRICE.toString()
   }
 
   let gasPrice = '0'
   const dt = Date.now() - timestamp
    // Bump gasPrice every 5 mins
-  const speed = Math.floor(dt / env.GAS_PRICE_BUMP_INTERVAL)
+  const speed = Math.floor(dt / process.env.GAS_PRICE_BUMP_INTERVAL)
 
   if (speed == 0) {
     gasPrice = cachedGasPrice.standard

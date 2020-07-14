@@ -35,5 +35,14 @@ export default function init() {
   scope.setTag("web3Host", config.web3.currentProvider.urls.toString())
   })
 
-  Sentry.captureMessage(`Init ${config.SENTRY_ENVIRONMENT} validator`, Sentry.Severity.Debug)
+  Sentry.addBreadcrumb({
+    category: 'init service',
+    message: `init service ${config.name}`,
+    level: Sentry.Severity.Debug,
+    data: {
+      env: process.env
+    }
+  })
+
+  Sentry.captureMessage(`Init ${config.SENTRY_ENVIRONMENT} validator: ${config.name}`, Sentry.Severity.Debug)
 }
