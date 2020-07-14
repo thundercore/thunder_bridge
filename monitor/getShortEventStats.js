@@ -8,15 +8,34 @@ const { getTokenType } = require('./utils/ercUtils')
 const { getPastEventsIter, getBlockNumber } = require('./utils/contract')
 const HttpRetryProvider = require('./utils/httpRetryProvider')
 
-async function processEvents(iterator, lastLength, lastValue) {
+async function processEvents(iterator, processedResult) {
   for (const getPastEventPromise of iterator) {
     const events = await getPastEventPromise
-    lastLength += events.length
+    processedResult.length += events.length
     for (const event of events) {
-      lastValue = lastValue.add(toBN(event.returnValues.value))
+      processedResult.value = processedResult.value.add(toBN(event.returnValues.value))
+      if (event.returnValues.recipient) {
+        processedResult.users.add(event.returnValues.recipient)
+      }
     }
   }
-  return [lastLength, lastValue]
+  return processedResult
+}
+
+function initCacheObject(cachedObj=null){
+  if (cachedObj === null) {
+    return {
+      value: toBN(0),
+      length: 0,
+      users: new Set()
+    }
+  }
+  const users = cachedObj.users? cachedObj.users: []
+  return {
+    value: toBN(cachedObj.value),
+    length: cachedObj.length,
+    users: new Set(users)
+  }
 }
 
 function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRIDGE_ADDRESS, HOME_DEPLOYMENT_BLOCK, FOREIGN_DEPLOYMENT_BLOCK, redis, token }) {
@@ -38,30 +57,22 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
       const erc20Address = await foreignBridge.methods[erc20MethodName]().call()
       const erc20Contract = new web3Foreign.eth.Contract(ERC20_ABI, erc20Address)
       const tokenType = await getTokenType(foreignBridge, FOREIGN_BRIDGE_ADDRESS)
-      let homeDepositsCachedLength = 0;
-      let homeWithdrawalsCachedLength = 0;
-      let foreignDepositsCachedLength = 0;
-      let foreignWithdrawalsCachedLength = 0;
-      let homeDepositCachedValue = toBN(0)
-      let homeWithdrawalCachedValue = toBN(0)
-      let foreignDepositCachedValue = toBN(0)
-      let foreignWithdrawalCachedValue = toBN(0)
+
+      let homeDepositCache = initCacheObject()
+      let homeWithdrawalCache = initCacheObject()
+      let foreignDepositCache = initCacheObject()
+      let foreignWithdrawalCache = initCacheObject()
+
       let homeStartBlock = HOME_DEPLOYMENT_BLOCK
       let foreignStartBlock = FOREIGN_DEPLOYMENT_BLOCK
 
       if (redis) {
-        lengthObj = await redis.getProcessedResult(token)
-        if (lengthObj) {
-          homeDepositsCachedLength = Number(lengthObj.home.deposits)
-          homeWithdrawalsCachedLength = Number(lengthObj.home.withdrawals)
-          foreignDepositsCachedLength = Number(lengthObj.foreign.deposits)
-          foreignWithdrawalsCachedLength = Number(lengthObj.foreign.withdrawals)
-          homeDepositCachedValue = toBN(lengthObj.home.depositValue)
-          homeWithdrawalCachedValue = toBN(lengthObj.home.withdrawalValue)
-          foreignDepositCachedValue = toBN(lengthObj.foreign.depositValue)
-          foreignWithdrawalCachedValue = toBN(lengthObj.foreign.withdrawalValue)
-        }
-        [homeLastProcessedBlock, foreignLastProcessedBlock] = await redis.getProcessedBlock(token)
+        homeDepositCache = initCacheObject(await redis.getProcessedResult(token, 'homeDeposit'))
+        homeWithdrawalCache= initCacheObject(await redis.getProcessedResult(token, 'homeWithdrawal'))
+        foreignDepositCache = initCacheObject(await redis.getProcessedResult(token, 'foreignDeposit'))
+        foreignWithdrawalCache = initCacheObject(await redis.getProcessedResult(token, 'foreignWithdrawal'))
+
+        const [homeLastProcessedBlock, foreignLastProcessedBlock] = await redis.getProcessedBlock(token)
         homeStartBlock = homeLastProcessedBlock === null?
           HOME_DEPLOYMENT_BLOCK : toBN(Number(homeLastProcessedBlock)+1)
         foreignStartBlock = foreignLastProcessedBlock === null?
@@ -78,7 +89,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
         options: {},
         token
       })
-      const [homeDepositsLength, homeDepositValue] = await processEvents(homeDepositsIter, homeDepositsCachedLength, homeDepositCachedValue)
+      const homeDeposit = await processEvents(homeDepositsIter, homeDepositCache)
 
       const foreignDepositsIter = getPastEventsIter({
         contract: foreignBridge,
@@ -88,7 +99,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
         options: {},
         token
       })
-      const [foreignDepositsLength, foreignDepositValue] = await processEvents(foreignDepositsIter, foreignDepositsCachedLength, foreignDepositCachedValue)
+      const foreignDeposit = await processEvents(foreignDepositsIter, foreignDepositCache)
 
       const homeWithdrawalsIter = getPastEventsIter({
         contract: homeBridge,
@@ -98,7 +109,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
         options: {},
         token
       })
-      const [homeWithdrawalsLength, homeWithdrawalValue] = await processEvents(homeWithdrawalsIter, homeWithdrawalsCachedLength, homeWithdrawalCachedValue)
+      const homeWithdrawal = await processEvents(homeWithdrawalsIter, homeWithdrawalCache)
 
       const foreignWithdrawalsIter =
         tokenType === ERC_TYPES.ERC20
@@ -121,27 +132,36 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
               token
             })
 
-      const [foreignWithdrawalsLength, foreignWithdrawalValue] = await processEvents(foreignWithdrawalsIter, foreignWithdrawalsCachedLength, foreignWithdrawalCachedValue)
-      lengthObj = {
-        home: {
-          deposits: homeDepositsLength,
-          depositValue: homeDepositValue.toString(),
-          withdrawals: homeWithdrawalsLength,
-          withdrawalValue: homeWithdrawalValue.toString(),
-        },
-        foreign: {
-          deposits: foreignDepositsLength,
-          depositValue: foreignDepositValue.toString(),
-          withdrawals: foreignWithdrawalsLength,
-          withdrawalValue: foreignWithdrawalValue.toString(),
-        }
-      }
+      const foreignWithdrawal = await processEvents(foreignWithdrawalsIter, foreignWithdrawalCache)
 
       if(redis) {
-        await redis.storeProcessedResult(token, lengthObj, homeBlockNumber, foreignBlockNumber)
+        await Promise.all([
+          redis.storeProcessedResult(token, 'homeDeposit', homeDeposit),
+          redis.storeProcessedResult(token, 'homeWithdrawal', homeWithdrawal),
+          redis.storeProcessedResult(token, 'foreignDeposit', foreignDeposit),
+          redis.storeProcessedResult(token, 'foreignWithdrawal', foreignWithdrawal),
+          redis.storeProcessedBlock(token, homeBlockNumber, foreignBlockNumber),
+        ])
       }
 
-      return lengthObj
+      return {
+        home: {
+          deposits: homeDeposit.length,
+          depositValue: homeDeposit.value.toString(),
+          depositUsers: homeDeposit.users.size,
+          withdrawals: homeWithdrawal.length,
+          withdrawalValue: homeWithdrawal.value.toString(),
+          withdrawalUsers: homeWithdrawal.users.size
+        },
+        foreign: {
+          deposits: foreignDeposit.length,
+          depositValue: foreignDeposit.value.toString(),
+          depositUsers: foreignDeposit.users.size,
+          withdrawals: foreignWithdrawal.length,
+          withdrawalValue: foreignWithdrawal.value.toString(),
+          withdrawalUsers: foreignWithdrawal.users.size
+        }
+      }
     } catch (e) {
       throw e
     }

@@ -1,0 +1,16 @@
+version: "3.2"
+services:
+  monitor:
+    image: thunder_bridge/monitor
+    build: .
+    ports:
+     - "4000:3000"
+    environment:
+     - REDIS_URL=redis://redis
+    command: npm run start
+    depends_on:
+      - redis
+  redis:
+    image: "redis:4"
+    ports:
+     - "6379:6379"

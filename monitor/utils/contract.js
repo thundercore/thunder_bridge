@@ -2,7 +2,7 @@ const { toBN } = require('web3').utils
 
 const ONE = toBN(1)
 const TWO = toBN(2)
-const queryRange = toBN(300)
+const queryRange = toBN(1000)
 
 function *getPastEventsIter({ contract, event, fromBlock, toBlock, options, token }) {
   console.log(`${token} *getPastEventsIter: ${event} from: ${fromBlock} to: ${toBlock}`)

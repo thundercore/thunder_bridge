@@ -6,7 +6,6 @@ import {
   getMinPerTxLimit,
   getForeignLimit,
   getPastEvents,
-  getTotalSupply,
   getBalanceOf,
   getErc677TokenAddress,
   getSymbol,
@@ -30,6 +29,7 @@ import ERC20Bytes32Abi from './utils/ERC20Bytes32.abi'
 import BN from 'bignumber.js'
 import { processLargeArrayAsync } from './utils/array'
 import { fromDecimals } from './utils/decimals'
+import { ReadPrometheusStatus, ReadValidators, LoadPrometheusFile } from './utils/PrometheusStatus'
 
 class ForeignStore {
   @observable
@@ -118,7 +118,21 @@ class ForeignStore {
     this.setForeign()
   }
 
+  readStatistics(name, defaultVal, formatter) {
+    return ReadPrometheusStatus(this.status, this.tokenName, 'foreign', name, defaultVal, formatter)
+  }
+
+  readValidators() {
+    return ReadValidators(this.status, this.tokenName, 'foreign')
+  }
+
   async setForeign(tokenName) {
+    // Load status file every 10s
+    this.status = await LoadPrometheusFile()
+    setInterval(async () => {
+      this.status = await LoadPrometheusFile()
+    }, 10000)
+
     if (tokenName === 'DAI') {
       this.FOREIGN_BRIDGE_ADDRESS = process.env.REACT_APP_FOREIGN_DAI_BRIDGE_ADDRESS
     } else {
@@ -134,15 +148,15 @@ class ForeignStore {
     await this.getTokenInfo()
     this.getMinPerTxLimit()
     this.getMaxPerTxLimit()
-    this.getEvents()
+    // this.getEvents()
     this.getTokenBalance()
     this.getCurrentLimit()
     this.getFee()
     this.getValidators()
-    this.getFeeEvents()
+    // this.getFeeEvents()
     setInterval(() => {
       this.getBlockNumber()
-      this.getEvents()
+      // this.getEvents()
       this.getTokenBalance()
       this.getCurrentLimit()
     }, 15000)
@@ -213,9 +227,9 @@ class ForeignStore {
   @action
   async getTokenBalance() {
     try {
-      this.totalSupply = await getTotalSupply(this.tokenContract)
+      this.totalSupply = this.readStatistics('totalSupply', 0, x => this.foreignWeb3.utils.toBN(x).toString())
       this.web3Store.getWeb3Promise.then(async () => {
-        this.balance = await getBalanceOf(this.tokenContract, this.web3Store.defaultAccount.address)
+        this.balance = await getBalanceOf(this.tokenContract, this.web3Store.defaultAccount.address, this.tokenDecimals)
         balanceLoaded()
       })
     } catch (e) {
@@ -390,7 +404,7 @@ class ForeignStore {
         .call()
       this.validatorsCount = await this.foreignBridgeValidators.methods.validatorCount().call()
 
-      this.validators = await getValidatorList(foreignValidatorsAddress, this.foreignWeb3.eth)
+      this.validators = this.readValidators()
     } catch (e) {
       console.error(e)
     }

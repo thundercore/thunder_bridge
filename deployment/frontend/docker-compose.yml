@@ -4,6 +4,11 @@ services:
   nginx:
     image: jwilder/nginx-proxy
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2m"
+        max-file: "10"
     ports:
       - 80:80
       - 443:443
@@ -16,6 +21,11 @@ services:
 
   letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2m"
+        max-file: "10"
     restart: always
     volumes_from:
       - nginx

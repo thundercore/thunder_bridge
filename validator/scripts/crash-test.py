@@ -9,7 +9,7 @@ import docker
 
 def get_containers(client):
     # Match local chain naming.
-    containers = [c for c in client.containers.list() if c.name.startswith('v')]
+    containers = [c for c in client.containers.list()]
     containers.sort(key=lambda x: x.name)
     return containers
 

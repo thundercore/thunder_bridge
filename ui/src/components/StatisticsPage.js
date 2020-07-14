@@ -30,7 +30,7 @@ export class StatisticsPage extends React.Component {
           <div className="statistics-bridge-container">
             <span className="statistics-bridge-title statistics-title">Bridge Statistics</span>
             <BridgeStatistics
-              users={homeStore.statistics.finished ? homeStore.statistics.users.size : ''}
+              users={homeStore.statistics.finished ? homeStore.statistics.users : ''}
               totalBridged={
                 homeStore.statistics.finished ? homeStore.statistics.totalBridged.toString() : ''
               }
