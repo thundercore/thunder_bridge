@@ -1,0 +1,17 @@
+{
+  "name": "ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@sentry/node": "^5.19.2",
+    "envalid": "^6.0.2",
+    "node-fetch": "^2.6.0",
+    "pino": "^6.3.2",
+    "pino-pretty": "^4.0.2"
+  }
+}
