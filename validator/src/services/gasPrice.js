@@ -4,6 +4,7 @@ const Web3Utils = require('web3-utils')
 const BN = require('bn.js')
 const { web3Home, web3Foreign } = require('./web3')
 const { bridgeConfig } = require('../../config/base.config')
+const config = require('../../config')
 const logger = require('./logger').child({
   module: 'gasPrice',
 })
@@ -115,7 +116,6 @@ async function start(chainId) {
 
   let bridgeContract = null
   let oracleUrl = null
-  // const speedType = null
   let updateInterval = null
   if (chainId === 'home') {
     bridgeContract = homeBridge
@@ -146,6 +146,18 @@ async function start(chainId) {
   }, updateInterval)
 }
 
+function getSpeedBase() {
+  switch (config.speedType) {
+    case "standard":
+      return 0
+    case "fast":
+      return 1
+    case "instant":
+      return 2
+    default:
+      return 0
+  }
+}
 
 function getPrice(timestamp) {
   if (process.env.SET_GAS_PRICE) {
@@ -154,8 +166,8 @@ function getPrice(timestamp) {
 
   let gasPrice = '0'
   const dt = Date.now() - timestamp
-   // Bump gasPrice every 5 mins
-  const speed = Math.floor(dt / process.env.GAS_PRICE_BUMP_INTERVAL)
+  const base = getSpeedBase()
+  const speed = base + Math.floor(dt / process.env.GAS_PRICE_BUMP_INTERVAL)
 
   if (speed == 0) {
     gasPrice = cachedGasPrice.standard
