@@ -63,6 +63,7 @@ test-truffle-pala: build-deployer
 	cd $(VALIDATOR_DIR) && docker-compose down
 
 test-unittest:
+	cd $(E2E_DIR) && cp envs/v1.env validator.env
 	cd $(VALIDATOR_DIR) && python run-test.py unittest
 
 run-all: run-v1 run-v2 run-v3

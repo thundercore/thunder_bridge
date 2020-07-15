@@ -250,7 +250,7 @@ class HomeStore {
 
   @action
   async getBalance() {
-    this.decimals = this.decimals? this.decimals : await getDecimals(this.tokenContract)
+    this.decimals = await getDecimals(this.tokenContract)
 
     try {
       if (this.rootStore.bridgeMode === BRIDGE_MODES.ERC_TO_ERC) {

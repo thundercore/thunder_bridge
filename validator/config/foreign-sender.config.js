@@ -11,4 +11,5 @@ module.exports = {
   name: 'sender-foreign',
   web3: web3Foreign,
   validatorRequiredBalance: baseConfig.env.FOREIGN_VALIDATOR_REQUIRED_BALANCE,
+  speedType: baseConfig.env.FOREIGN_GAS_PRICE_SPEED_TYPE,
 }

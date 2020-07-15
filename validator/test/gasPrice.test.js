@@ -2,6 +2,7 @@ const sinon = require('sinon')
 const { expect } = require('chai')
 const proxyquire = require('proxyquire').noPreserveCache()
 const { fetchGasPrice, gasPriceWithinLimits, setTestCachedGasPrice, getPrice } = require('../src/services/gasPrice')
+const config = require('../config')
 const { DEFAULT_UPDATE_INTERVAL, GAS_PRICE_BOUNDARIES } = require('../src/utils/constants')
 
 
@@ -96,7 +97,7 @@ describe('gasPrice', () => {
     })
   })
   describe('get price', () => {
-    it('get price', async () => {
+    it('get price without speed base', async () => {
       const toGWei = function(wei) {
         return (wei * Math.pow(10, 9)).toString()
       }
@@ -120,7 +121,65 @@ describe('gasPrice', () => {
       expect(getPrice(now - 190 * 1000)).to.equal(toGWei(7+(7-3)*1))
       expect(getPrice(now - 250 * 1000)).to.equal(toGWei(7+(7-3)*2))
       // The maximum gas price will be GAS_PRICE_BOUNDARIES.MAX after a long time
-      expect(getPrice(now - 100000 * 1000)).to.equal(max, 'should use instant speed type')
+      expect(getPrice(now - 100000 * 1000)).to.equal(max)
+    })
+
+    it('get price with speed base', async () => {
+      const toGWei = function(wei) {
+        return (wei * Math.pow(10, 9)).toString()
+      }
+      process.env.GET_PRICE_TEST = 'test'
+      // this function only works when env.GET_PRICE_TEST is set to 'test'
+      const standard = toGWei(1)
+      const fast = toGWei(3)
+      const instant = toGWei(7)
+      const max = toGWei(GAS_PRICE_BOUNDARIES.MAX)
+      setTestCachedGasPrice({
+        standard: standard,
+        fast: fast,
+        instant: instant,
+      })
+
+      // Set speedType to fast
+      config.speedType = 'fast'
+      const now = Math.floor(Date.now())
+
+      expect(getPrice(now)).to.equal(fast, 'should use fast speed type')
+      expect(getPrice(now - 70 * 1000)).to.equal(instant, 'should use instant speed type')
+      expect(getPrice(now - 130 * 1000)).to.equal(toGWei(7+(7-3)*1))
+      expect(getPrice(now - 190 * 1000)).to.equal(toGWei(7+(7-3)*2))
+      expect(getPrice(now - 250 * 1000)).to.equal(toGWei(7+(7-3)*3))
+      // The maximum gas price will be GAS_PRICE_BOUNDARIES.MAX after a long time
+      expect(getPrice(now - 100000 * 1000)).to.equal(max)
+    })
+
+    it('get price with adjusted bump interval', async () => {
+      const toGWei = function(wei) {
+        return (wei * Math.pow(10, 9)).toString()
+      }
+      process.env.GET_PRICE_TEST = 'test'
+      // this function only works when env.GET_PRICE_TEST is set to 'test'
+      const standard = toGWei(1)
+      const fast = toGWei(3)
+      const instant = toGWei(7)
+      const max = toGWei(GAS_PRICE_BOUNDARIES.MAX)
+      setTestCachedGasPrice({
+        standard: standard,
+        fast: fast,
+        instant: instant,
+      })
+
+      // Set speedType to instant
+      config.speedType = 'instant'
+      process.env.GAS_PRICE_BUMP_INTERVAL = 30 * 1000
+      const now = Math.floor(Date.now())
+
+      expect(getPrice(now)).to.equal(instant, 'should use instant speed type')
+      expect(getPrice(now - 40 * 1000)).to.equal(toGWei(7+(7-3)*1))
+      expect(getPrice(now - 70 * 1000)).to.equal(toGWei(7+(7-3)*2))
+      expect(getPrice(now - 100 * 1000)).to.equal(toGWei(7+(7-3)*3))
+      // The maximum gas price will be GAS_PRICE_BOUNDARIES.MAX after a long time
+      expect(getPrice(now - 100000 * 1000)).to.equal(max)
     })
 
     it('set price from env', async () => {
