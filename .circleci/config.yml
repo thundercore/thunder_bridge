@@ -1,0 +1,37 @@
+version: 2.1
+
+executors:
+  python3:
+    docker:
+      - image: python:3
+
+  builder:
+    machine:
+      image: ubuntu-1604:202007-01 # # recommended linux image - includes Ubuntu 16.04, Docker v19.03.12, Docker Compose v1.26.1
+      #image: ubuntu-1604:202004-01 # Ubuntu 16.04, Docker v19.03.8, Docker Compose v1.25.5
+      #image: ubuntu-1604:201903-01 # Ubuntu 16.04, Docker v18.09.3, Docker Compose v1.23.1
+
+jobs:
+
+  unittests:
+    executor: python3
+    steps:
+      - checkout
+      - run:
+          name: Run unit tests
+          command: make test-unittest
+
+  truffletests:
+    executor: builder
+    steps:
+      - checkout
+      - run:
+          name: Run truffle tests
+          command: make test-truffle
+
+workflows:
+
+  github-pull-request:
+    jobs:
+      - unittests
+      - truffletests
