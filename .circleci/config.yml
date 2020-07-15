@@ -1,10 +1,6 @@
 version: 2.1
 
 executors:
-  python3:
-    docker:
-      - image: python:3
-
   builder:
     machine:
       image: ubuntu-1604:202007-01 # # recommended linux image - includes Ubuntu 16.04, Docker v19.03.12, Docker Compose v1.26.1
@@ -14,9 +10,17 @@ executors:
 jobs:
 
   unittests:
-    executor: python3
+    executor: builder
     steps:
       - checkout
+      - run:
+          name: Install python 3.8
+          command: |
+            sudo apt-get update
+            sudo apt-get install software-properties-common
+            sudo add-apt-repository ppa:deadsnakes/ppa
+            sudo apt-get update
+            sudo apt-get install python3.8
       - run:
           name: Run unit tests
           command: make test-unittest
