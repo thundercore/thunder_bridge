@@ -511,19 +511,18 @@ class HomeStore {
       : this.web3Store.defaultAccount.homeBalance
   }
 
-  async waitUntilProcessed(txHash, value) {
+  async waitUntilProcessed(txHash, value, recipient) {
     const web3 = this.rootStore.foreignStore.foreignWeb3
     const bridge = this.homeBridge
 
-    const tx = await web3.eth.getTransaction(txHash)
-    const messageHash = web3.utils.soliditySha3(tx.from, web3.utils.toBN(value).toString(), txHash)
+    const messageHash = web3.utils.soliditySha3(recipient, web3.utils.toBN(value).toString(), txHash)
     const numSigned = await bridge.methods.numAffirmationsSigned(messageHash).call()
     const processed = await bridge.methods.isAlreadyProcessed(numSigned).call()
 
     if (processed) {
       return Promise.resolve()
     } else {
-      return sleep(5000).then(() => this.waitUntilProcessed(txHash, value))
+      return sleep(5000).then(() => this.waitUntilProcessed(txHash, value, recipient))
     }
   }
 }

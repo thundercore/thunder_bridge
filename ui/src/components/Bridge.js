@@ -128,7 +128,8 @@ export class Bridge extends React.Component {
             from: web3Store.defaultAccount.address,
             value,
             data: '0x',
-            sentValue: value
+            sentValue: value,
+            recipient
           })
         }
       } catch (e) {
@@ -189,7 +190,8 @@ export class Bridge extends React.Component {
             from: web3Store.defaultAccount.address,
             value: toHex(toDecimals(amount, foreignStore.tokenDecimals)),
             contract: foreignStore.tokenContract,
-            tokenAddress: foreignStore.tokenAddress
+            tokenAddress: foreignStore.tokenAddress,
+            recipient
           })
         }
       } catch (e) {
