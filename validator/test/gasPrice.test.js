@@ -102,11 +102,13 @@ describe('gasPrice', () => {
         return (wei * Math.pow(10, 9)).toString()
       }
       process.env.GET_PRICE_TEST = 'test'
+      process.env.MAX_GAS_PRICE_LIMIT = 300
       // this function only works when env.GET_PRICE_TEST is set to 'test'
       const standard = toGWei(1)
       const fast = toGWei(3)
       const instant = toGWei(7)
-      const max = toGWei(GAS_PRICE_BOUNDARIES.MAX)
+      const max = toGWei(300)
+
       setTestCachedGasPrice({
         standard: standard,
         fast: fast,
@@ -129,11 +131,12 @@ describe('gasPrice', () => {
         return (wei * Math.pow(10, 9)).toString()
       }
       process.env.GET_PRICE_TEST = 'test'
+      process.env.MAX_GAS_PRICE_LIMIT = 250
       // this function only works when env.GET_PRICE_TEST is set to 'test'
       const standard = toGWei(1)
       const fast = toGWei(3)
       const instant = toGWei(7)
-      const max = toGWei(GAS_PRICE_BOUNDARIES.MAX)
+      const max = toGWei(250)
       setTestCachedGasPrice({
         standard: standard,
         fast: fast,
@@ -158,11 +161,12 @@ describe('gasPrice', () => {
         return (wei * Math.pow(10, 9)).toString()
       }
       process.env.GET_PRICE_TEST = 'test'
+      process.env.MAX_GAS_PRICE_LIMIT = 500
       // this function only works when env.GET_PRICE_TEST is set to 'test'
       const standard = toGWei(1)
       const fast = toGWei(3)
       const instant = toGWei(7)
-      const max = toGWei(GAS_PRICE_BOUNDARIES.MAX)
+      const max = toGWei(500)
       setTestCachedGasPrice({
         standard: standard,
         fast: fast,
@@ -276,13 +280,13 @@ describe('gasPrice', () => {
     })
     it('should return max limit if gas price is above max boundary', () => {
       // Given
-      const initialGasPrice = 260
+      const initialGasPrice = 10000
 
       // When
       const gasPrice = gasPriceWithinLimits(initialGasPrice)
 
       // Then
-      expect(gasPrice).to.equal(GAS_PRICE_BOUNDARIES.MAX)
+      expect(gasPrice).to.equal(process.env.MAX_GAS_PRICE_LIMIT)
     })
   })
 })
