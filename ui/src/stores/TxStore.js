@@ -18,7 +18,7 @@ class TxStore {
   }
 
   @action
-  async doSend({ to, from, value, data, sentValue }) {
+  async doSend({ to, from, value, data, sentValue, recipient }) {
     return this.web3Store.getWeb3Promise.then(async () => {
       if (!this.web3Store.defaultAccount) {
         this.alertStore.pushError('Please unlock wallet')
@@ -42,7 +42,7 @@ class TxStore {
             this.txsValues[hash] = sentValue
             this.alertStore.setLoadingStepIndex(1)
             addPendingTransaction()
-            this.getTxReceipt(hash)
+            this.getTxReceipt(hash, recipient)
           })
           .on('error', e => {
             if (
@@ -66,7 +66,7 @@ class TxStore {
         if (this.web3Store.defaultAccount.address) {
           const recipientData = `0x000000000000000000000000${recipient.slice(2)}`
           const data = await contract.methods.transferAndCall(to, value, recipientData).encodeABI()
-          return this.doSend({ to: tokenAddress, from, value: '0x00', data, sentValue: value })
+          return this.doSend({ to: tokenAddress, from, value: '0x00', data, sentValue: value, recipient })
         } else {
           this.alertStore.pushError('Please unlock wallet')
         }
@@ -91,7 +91,8 @@ class TxStore {
             from,
             value: '0x',
             data,
-            sentValue: value
+            sentValue: value,
+            recipient
           })
         } else {
           this.alertStore.pushError('Please unlock wallet')
@@ -102,21 +103,21 @@ class TxStore {
     }
   }
 
-  async getTxReceipt(hash) {
+  async getTxReceipt(hash, recipient) {
     const web3 = this.web3Store.injectedWeb3
     web3.eth.getTransaction(hash, (error, res) => {
       if (res && res.blockNumber) {
-        this.getTxStatus(hash)
+        this.getTxStatus(hash, recipient)
       } else {
         console.log('not mined yet', hash)
         setTimeout(() => {
-          this.getTxReceipt(hash)
+          this.getTxReceipt(hash, recipient)
         }, 5000)
       }
     })
   }
 
-  async getTxStatus(hash) {
+  async getTxStatus(hash, recipient) {
     const web3 = this.web3Store.injectedWeb3
     web3.eth.getTransactionReceipt(hash, (error, res) => {
       if (res && res.blockNumber) {
@@ -146,7 +147,7 @@ class TxStore {
               if (blockConfirmations > 0) {
                 this.alertStore.setBlockConfirmations(blockConfirmations)
               }
-              this.getTxStatus(hash)
+              this.getTxStatus(hash, recipient)
             }
           } else {
             const blockConfirmations = this.foreignStore.latestBlockNumber - res.blockNumber
@@ -155,7 +156,7 @@ class TxStore {
               this.alertStore.setLoadingStepIndex(2)
 
               if (yn(process.env.REACT_APP_HOME_WITHOUT_EVENTS)) {
-                this.homeStore.waitUntilProcessed(hash, this.txsValues[hash]).then(() => {
+                this.homeStore.waitUntilProcessed(hash, this.txsValues[hash], recipient).then(() => {
                   this.alertStore.setLoadingStepIndex(3)
                   const unitReceived = getUnit(this.rootStore.bridgeMode).unitHome
                   setTimeout(() => {
@@ -173,7 +174,7 @@ class TxStore {
               if (blockConfirmations > 0) {
                 this.alertStore.setBlockConfirmations(blockConfirmations)
               }
-              this.getTxStatus(hash)
+              this.getTxStatus(hash, recipient)
             }
           }
         } else {
@@ -181,7 +182,7 @@ class TxStore {
           this.alertStore.pushError(`${hash} Mined but with errors. Perhaps out of gas`)
         }
       } else {
-        this.getTxStatus(hash)
+        this.getTxStatus(hash, recipient)
       }
     })
   }

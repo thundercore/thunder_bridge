@@ -48,6 +48,7 @@ let validations = {
   LOG_LEVEL: envalid.str({default: 'debug'}),
   MAX_PROCESSING_TIME: envalid.num({default: null}),
   MAX_WAIT_RECEIPT_BLOCK: envalid.num(),
+  MAX_GAS_PRICE_LIMIT: envalid.num({default: 250}),
   NODE_ENV: envalid.str({default: 'test'}),
   QUEUE_RETRY_DELAY: envalid.num({default: 2000}),
   QUEUE_RETRY_LIMIT: envalid.num({default: 5}),
