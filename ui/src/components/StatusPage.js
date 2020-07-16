@@ -18,12 +18,7 @@ export class StatusPage extends React.Component {
     const maxSingleDeposit = isHome ? homeStore.maxPerTx : foreignStore.maxPerTx
     const maxTotalBalance = isHome ? homeStore.maxCurrentDeposit : foreignStore.maxCurrentDeposit
     const validatorsList = isHome ? homeStore.validators : foreignStore.validators
-    const {
-      REACT_APP_HOME_WITHOUT_EVENTS: HOME,
-      REACT_APP_FOREIGN_WITHOUT_EVENTS: FOREIGN
-    } = process.env
-    const withoutEvents =
-      web3Store.metamaskNet.id === web3Store.homeNet.id.toString() ? yn(HOME) : yn(FOREIGN)
+    const withoutEvents = false
 
     return (
       <div className="status-page">
