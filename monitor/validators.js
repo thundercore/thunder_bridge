@@ -15,7 +15,10 @@ function main ({
   GAS_LIMIT,
   GAS_PRICE_FALLBACK,
   HOME_DEPLOYMENT_BLOCK,
-  FOREIGN_DEPLOYMENT_BLOCK}) {
+  FOREIGN_DEPLOYMENT_BLOCK,
+  HOME_MAX_GAS_PRICE_LIMIT,
+  FOREIGN_MAX_GAS_PRICE_LIMIT,
+}) {
 
   HOME_DEPLOYMENT_BLOCK = Number(HOME_DEPLOYMENT_BLOCK) || 0
   FOREIGN_DEPLOYMENT_BLOCK = Number(FOREIGN_DEPLOYMENT_BLOCK) || 0
@@ -36,14 +39,18 @@ function main ({
     }
   }
 
-  async function getGasPrices(type) {
+  async function getGasPrices(type, limit) {
+    let gasPriceInGwei;
     try {
       const response = await fetch('https://gasprice.poa.network/')
       const json = await response.json()
-      return json[type]
+      gasPriceInGwei = Math.min(Number(json[type]), Number(limit))
     } catch (e) {
-      return GAS_PRICE_FALLBACK
+      console.log(e)
+      gasPriceInGwei = GAS_PRICE_FALLBACK
     }
+    const gasPrice = new Web3Utils.BN(Web3Utils.toWei(gasPriceInGwei.toString(10), 'gwei'))
+    return [gasPriceInGwei, gasPrice]
   }
 
 
@@ -87,17 +94,18 @@ function main ({
       })
       const foreignVBalances = {}
       const homeVBalances = {}
-      const gasPriceInGwei = await getGasPrices(GAS_PRICE_SPEED_TYPE)
-      const gasPrice = new Web3Utils.BN(Web3Utils.toWei(gasPriceInGwei.toString(10), 'gwei'))
-      const txCost = gasPrice.mul(new Web3Utils.BN(GAS_LIMIT))
+      const [homeGasPriceInGwei, homeGasPrice] = await getGasPrices(GAS_PRICE_SPEED_TYPE, HOME_MAX_GAS_PRICE_LIMIT)
+      const [foreignGasPriceInGwei, foreignGasPrice] = await getGasPrices(GAS_PRICE_SPEED_TYPE, FOREIGN_MAX_GAS_PRICE_LIMIT)
+
       let validatorsMatch = true
       await asyncForEach(foreignValidators, async v => {
+        const txCost = foreignGasPrice.mul(new Web3Utils.BN(GAS_LIMIT))
         const balance = await web3Foreign.eth.getBalance(v)
         const leftTx = new Web3Utils.BN(balance).div(txCost).toString(10)
         foreignVBalances[v] = {
           balance: Web3Utils.fromWei(balance),
           leftTx: Number(leftTx),
-          gasPrice: gasPriceInGwei
+          gasPrice: foreignGasPriceInGwei
         }
         if (!homeValidators.includes(v)) {
           validatorsMatch = false
@@ -105,14 +113,13 @@ function main ({
         }
       })
       await asyncForEach(homeValidators, async v => {
-        const gasPrice = new Web3Utils.BN(1)
-        const txCost = gasPrice.mul(new Web3Utils.BN(GAS_LIMIT))
+        const txCost = homeGasPrice.mul(new Web3Utils.BN(GAS_LIMIT))
         const balance = await web3Home.eth.getBalance(v)
         const leftTx = new Web3Utils.BN(balance).div(txCost).toString(10)
         homeVBalances[v] = {
           balance: Web3Utils.fromWei(balance),
           leftTx: Number(leftTx),
-          gasPrice: Number(gasPrice.toString(10))
+          gasPrice: homeGasPriceInGwei
         }
         if (!foreignValidators.includes(v)) {
           validatorsMatch = false

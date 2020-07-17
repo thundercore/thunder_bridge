@@ -33,7 +33,9 @@ let config = existsSync("config.json") ? JSON.parse(readFileSync("config.json", 
     "GAS_PRICE_SPEED_TYPE": env.GAS_PRICE_SPEED_TYPE,
     "GAS_LIMIT": env.GAS_LIMIT,
     "GAS_PRICE_FALLBACK": env.GAS_PRICE_FALLBACK,
-    "UPDATE_PERIOD": parseInt(env.UPDATE_PERIOD)
+    "UPDATE_PERIOD": parseInt(env.UPDATE_PERIOD),
+    "HOME_MAX_GAS_PRICE_LIMIT": env.HOME_MAX_GAS_PRICE_LIMIT,
+    "FOREIGN_MAX_GAS_PRICE_LIMIT": env.FOREIGN_MAX_GAS_PRICE_LIMIT,
   }]))
 
 
