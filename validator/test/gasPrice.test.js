@@ -102,7 +102,7 @@ describe('gasPrice', () => {
         return (wei * Math.pow(10, 9)).toString()
       }
       process.env.GET_PRICE_TEST = 'test'
-      process.env.MAX_GAS_PRICE_LIMIT = 300
+      config.maxGasPriceLimit = 300
       // this function only works when env.GET_PRICE_TEST is set to 'test'
       const standard = toGWei(1)
       const fast = toGWei(3)
@@ -131,7 +131,7 @@ describe('gasPrice', () => {
         return (wei * Math.pow(10, 9)).toString()
       }
       process.env.GET_PRICE_TEST = 'test'
-      process.env.MAX_GAS_PRICE_LIMIT = 250
+      config.maxGasPriceLimit = 250
       // this function only works when env.GET_PRICE_TEST is set to 'test'
       const standard = toGWei(1)
       const fast = toGWei(3)
@@ -161,7 +161,7 @@ describe('gasPrice', () => {
         return (wei * Math.pow(10, 9)).toString()
       }
       process.env.GET_PRICE_TEST = 'test'
-      process.env.MAX_GAS_PRICE_LIMIT = 500
+      config.maxGasPriceLimit = 500
       // this function only works when env.GET_PRICE_TEST is set to 'test'
       const standard = toGWei(1)
       const fast = toGWei(3)
@@ -286,7 +286,7 @@ describe('gasPrice', () => {
       const gasPrice = gasPriceWithinLimits(initialGasPrice)
 
       // Then
-      expect(gasPrice).to.equal(process.env.MAX_GAS_PRICE_LIMIT)
+      expect(gasPrice).to.equal(config.maxGasPriceLimit)
     })
   })
 })

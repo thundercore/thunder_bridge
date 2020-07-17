@@ -39,8 +39,8 @@ function gasPriceWithinLimits(gasPrice) {
   if (gasPrice < GAS_PRICE_BOUNDARIES.MIN) {
     return GAS_PRICE_BOUNDARIES.MIN
   }
-  if (gasPrice > process.env.MAX_GAS_PRICE_LIMIT) {
-    return process.env.MAX_GAS_PRICE_LIMIT
+  if (gasPrice > config.maxGasPriceLimit) {
+    return config.maxGasPriceLimit
   }
   return gasPrice
 }
@@ -178,7 +178,7 @@ function getPrice(timestamp) {
     const diff = Web3Utils.toBN(cachedGasPrice.instant).sub(Web3Utils.toBN(cachedGasPrice.fast))
     gasPrice = Web3Utils.toBN(cachedGasPrice.instant).add(diff.mul(Web3Utils.toBN(speed - 2)))
     gasPrice = BN.min(
-      Web3Utils.toBN(Web3Utils.toWei(process.env.MAX_GAS_PRICE_LIMIT.toString(), 'gwei')),
+      Web3Utils.toBN(Web3Utils.toWei(config.maxGasPriceLimit.toString(), 'gwei')),
       gasPrice
     ).toString()
   }

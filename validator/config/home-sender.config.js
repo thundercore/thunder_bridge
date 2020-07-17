@@ -12,4 +12,5 @@ module.exports = {
   web3: web3Home,
   validatorRequiredBalance: baseConfig.env.HOME_VALIDATOR_REQUIRED_BALANCE,
   speedType: baseConfig.env.HOME_GAS_PRICE_SPEED_TYPE,
+  maxGasPriceLimit: baseConfig.env.HOME_MAX_GAS_PRICE_LIMIT,
 }
