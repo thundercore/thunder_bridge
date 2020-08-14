@@ -1,6 +1,7 @@
 import React from 'react'
 import numeral from 'numeral'
 import { InfoIcon } from './icons/InfoIcon'
+import { DAI2SAI } from './utils/dai2sai'
 
 export const BridgeNetwork = ({
   balance,
@@ -39,7 +40,7 @@ export const BridgeNetwork = ({
         </p>
         <div className="network-basic-label">Balance</div>
         <div className="network-balance">
-          {formattedBalance} <span className="network-balance-currency">{currency}</span>
+          {formattedBalance} <span className="network-balance-currency">{DAI2SAI(currency)}</span>
         </div>
       </div>
       {side === 'right' &&

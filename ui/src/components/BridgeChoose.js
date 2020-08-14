@@ -1,4 +1,5 @@
 import React from 'react'
+import { DAI2SAI } from './utils/dai2sai'
 
 export const BridgeChoose = (props) => {
   const chooseItems = [
@@ -23,12 +24,12 @@ export const BridgeChoose = (props) => {
   const chooseLogoClass = (c) => {
     return 'bridge-choose-logo logo-' + c.toLowerCase()
   }
-  
+
   const handleOptionChange = (mode) => {
     if (props.web3Store.metamaskNet.id === props.web3Store.foreignNet.id) {
       if (mode.from.substring(0,3) === 'TT-') {
         props.alert.pushError(
-          `Please, change network to ${props.web3Store.homeNet.name} to transfer ${mode.from}`
+          `Please, change network to ${props.web3Store.homeNet.name} to transfer ${DAI2SA(mode.from)}`
         )
       } else {
         props.alert.setLoading(true)
@@ -37,7 +38,7 @@ export const BridgeChoose = (props) => {
     } else {
       if (mode.from.substring(0,3) !== 'TT-') {
         props.alert.pushError(
-          `Please, change network to ${props.web3Store.foreignNet.name} to transfer ${mode.from}`
+          `Please, change network to ${props.web3Store.foreignNet.name} to transfer ${DAI2SAI(mode.from)}`
         )
       } else {
         props.alert.setLoading(true)
@@ -53,10 +54,11 @@ export const BridgeChoose = (props) => {
       }
     } else {
       if (item.from === props.foreignStore.symbol) {
-        return true 
+        return true
       }
     }
   }
+
 
   return (
     <div className="bridge-choose">
@@ -68,14 +70,14 @@ export const BridgeChoose = (props) => {
               type="radio"
               className="bridge-choose-radio"
               onChange={() => handleOptionChange(item)}
-              checked={handleChecked(item)} 
+              checked={handleChecked(item)}
             />
             <span className="bridge-choose-container">
               <span className="bridge-choose-logo-container">
                 <span className={chooseLogoClass(item.from)} />
               </span>
               <span className="bridge-choose-text">
-                {item.from} <i className="bridge-choose-arrow" /> {item.to}
+                {DAI2SAI(item.from)} <i className="bridge-choose-arrow" /> {DAI2SAI(item.to)}
               </span>
               <span className="bridge-choose-logo-container">
                 <span className={chooseLogoClass(item.to)} />

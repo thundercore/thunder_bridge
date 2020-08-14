@@ -1,6 +1,7 @@
 import React from 'react'
 import numeral from 'numeral'
 import { DataBlock } from './DataBlock'
+import { DAI2SAI } from './utils/dai2sai'
 
 export const BridgeStatistics = ({
   users,
@@ -15,7 +16,7 @@ export const BridgeStatistics = ({
     <DataBlock description="Users" value={numeral(users).format('0,0')} type="" />
     <div className="separator" />
     <DataBlock
-      description={`Total ${foreignSymbol} Bridged`}
+      description={`Total ${DAI2SAI(foreignSymbol)} Bridged`}
       value={numeral(totalBridged).format('0,0.00 a', Math.floor)}
       type={foreignSymbol}
     />
@@ -27,7 +28,7 @@ export const BridgeStatistics = ({
     />
     <div className="separator" />
     <DataBlock
-      description={`${foreignSymbol} Tokens Amount`}
+      description={`${DAI2SAI(foreignSymbol)} Tokens Amount`}
       value={numeral(foreignSupply).format('0,0.00 a', Math.floor)}
       type={foreignSymbol}
     />
