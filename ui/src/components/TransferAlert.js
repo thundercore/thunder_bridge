@@ -2,6 +2,7 @@ import React from 'react'
 import arrowsIcon from '../assets/images/transfer-modal/icon-arrows@2x.png'
 import numeral from 'numeral'
 import { ArrowRight } from './icons/ArrowRight'
+import { DAI2SAI } from './utils/dai2sai'
 
 export const TransferAlert = ({
   onConfirmation,
@@ -27,11 +28,11 @@ export const TransferAlert = ({
             <div className={reverse ? 'foreign-logo' : 'home-logo'} />
           </div>
           <div>
-            <strong>{formattedFromAmount}</strong> {fromCurrency}
+            <strong>{formattedFromAmount}</strong> {DAI2SAI(fromCurrency)}
           </div>
           <ArrowRight />
           <div>
-            <strong>{formattedToAmount}</strong> {toCurrency}
+            <strong>{formattedToAmount}</strong> {DAI2SAI(toCurrency)}
           </div>
           <div className="alert-logo-box">
             <div className={reverse ? 'home-logo' : 'foreign-logo'} />
@@ -44,7 +45,7 @@ export const TransferAlert = ({
         </p>
         <p className="transfer-description">
           Please confirm that you would like to send <strong>{formattedFromAmount}</strong>{' '}
-          {fromCurrency} from {from} to receive <strong>{formattedToAmount}</strong> {toCurrency} on{' '}
+          {DAI2SAI(fromCurrency)} from {from} to receive <strong>{formattedToAmount}</strong> {DAI2SAI(toCurrency)} on{' '}
           {to}.
         </p>
         <div className="transfer-buttons">
