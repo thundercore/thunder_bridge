@@ -29,7 +29,7 @@ export const BridgeChoose = (props) => {
     if (props.web3Store.metamaskNet.id === props.web3Store.foreignNet.id) {
       if (mode.from.substring(0,3) === 'TT-') {
         props.alert.pushError(
-          `Please, change network to ${props.web3Store.homeNet.name} to transfer ${DAI2SA(mode.from)}`
+          `Please, change network to ${props.web3Store.homeNet.name} to transfer ${DAI2SAI(mode.from)}`
         )
       } else {
         props.alert.setLoading(true)
