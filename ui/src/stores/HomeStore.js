@@ -16,7 +16,12 @@ import {
   mintedTotally,
   totalBurntCoins,
   getName,
-  getHomeFee,
+  getDepositFeePercent,
+  getDepositFixedFee,
+  getWithdrawFeePercent,
+  getWithdrawFixedFee,
+  getWithdrawFee,
+  getDepositFee,
 } from './utils/contract'
 import { balanceLoaded, removePendingTransaction } from './utils/testUtils'
 import sleep from './utils/sleep'
@@ -123,7 +128,11 @@ class HomeStore {
 
   feeManager = {
     totalFeeDistributedFromSignatures: BN(0),
-    totalFeeDistributedFromAffirmation: BN(0)
+    totalFeeDistributedFromAffirmation: BN(0),
+    withdrawFixedFee: BN(0),
+    withdrawFeePercent: BN(0),
+    depositFixedFee: BN(0),
+    depositFeePercent: BN(0),
   }
   networkName = process.env.REACT_APP_HOME_NETWORK_NAME || 'Unknown'
   filteredBlockNumber = 0
@@ -278,7 +287,36 @@ class HomeStore {
 
   @action
   async getFee() {
-    this.feeManager.homeFee = await getHomeFee(this.homeBridge)
+    this.feeManager.withdrawFeePercent = await this.deFeePercent(await getWithdrawFeePercent(this.homeBridge))
+    this.feeManager.withdrawFixedFee = await this.deDecimals(await getWithdrawFixedFee(this.homeBridge))
+    this.feeManager.depositFeePercent = await this.deFeePercent(await getDepositFeePercent(this.homeBridge))
+    this.feeManager.depositFixedFee = await this.deDecimals(await getDepositFixedFee(this.homeBridge))
+  }
+
+  async deFeePercent(feePercent) {
+    const base = new BN(100)
+    return feePercent.div(base)
+  }
+
+  async deDecimals(tokenWithDecimals) {
+    const decimals = new BN(await getDecimals(this.tokenContract)).toNumber()
+    const base = (new BN(10)).pow(decimals)
+    return tokenWithDecimals.div(base)
+  }
+
+  async toDecimals(tokenWithoutDecimals) {
+    const bnAmount = new BN(tokenWithoutDecimals)
+    const decimals = new BN(await getDecimals(this.tokenContract)).toNumber()
+    const base = (new BN(10)).pow(decimals)
+    return bnAmount.multipliedBy(base)
+  }
+
+  async getWithdrawFee(amount) {
+    return this.deDecimals(await getWithdrawFee(this.homeBridge, await this.toDecimals(amount)))
+  }
+
+  async getDepositFee(amount) {
+    return this.deDecimals(await getDepositFee(this.homeBridge, await this.toDecimals(amount)))
   }
 
   @action

@@ -15,7 +15,9 @@ export const TransferAlert = ({
   toAmount,
   fee,
   reverse,
-  recipient
+  recipient,
+  minPerTx,
+  feeCurrency
 }) => {
   const formattedFromAmount = numeral(fromAmount).format('0,0[.][000000000000000000]', Math.floor)
   const formattedToAmount = numeral(toAmount).format('0,0[.][000000000000000000]', Math.floor)
@@ -39,11 +41,10 @@ export const TransferAlert = ({
           </div>
         </div>
         <p className="transfer-description" data-testid="transfer-description">
-          <strong>{fee && `Fee: ${fee.toString()}%`}</strong>
-          <br />
-          <strong>{recipient && `Recipient: ${recipient}`}</strong>
+          <strong>{recipient && `Recipient: ${recipient}`}</strong><br />
+          <strong>{`Transaction fee: ${fee} ${DAI2SAI(feeCurrency)}`}</strong>
         </p>
-        <p className="transfer-description">
+        <p className="transfer-description" data-testid="transfer-description">
           Please confirm that you would like to send <strong>{formattedFromAmount}</strong>{' '}
           {DAI2SAI(fromCurrency)} from {from} to receive <strong>{formattedToAmount}</strong> {DAI2SAI(toCurrency)} on{' '}
           {to}.

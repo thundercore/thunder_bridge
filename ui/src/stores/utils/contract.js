@@ -5,6 +5,7 @@ import rewardableValidatorsAbi from '../../../abis/BridgeValidators.abi'
 import { ERC_TYPES } from './bridgeMode'
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+const BN_ZERO = new BN(0)
 
 export const getMaxPerTxLimit = async (contract, decimals) => {
   const maxPerTx = await contract.methods.maxPerTx().call()
@@ -139,6 +140,50 @@ export const parseValidatorEvent = event => {
 }
 
 export const getName = contract => contract.methods.name().call()
+
+export const getWithdrawFeePercent = async (contract) => {
+  try {
+    return new BN(await contract.methods.withdrawFeePercent().call())
+  } catch (error) {
+    console.error(`failed to getWithdrawFeePercent`)
+    return BN_ZERO
+  }
+}
+
+export const getWithdrawFixedFee = async (contract) => {
+  try {
+    return new BN(await contract.methods.withdrawFixedFee().call())
+  } catch (error) {
+    console.error(`failed to getWithdrawFixedFee`)
+    return BN_ZERO
+  }
+}
+
+export const getDepositFeePercent = async (contract) => {
+  try {
+    return new BN(await contract.methods.depositFeePercent().call())
+  } catch (error) {
+    console.error(`failed to getDepositFeePercent`)
+    return BN_ZERO
+  }
+}
+
+export const getDepositFixedFee = async (contract) => {
+  try {
+    return new BN(await contract.methods.depositFixedFee().call())
+  } catch (error) {
+    console.error(`failed to getDepositFixedFee`)
+    return BN_ZERO
+  }
+}
+
+export const getWithdrawFee = async (contract, amount) => {
+  return new BN(await contract.methods.withdrawFee(amount).call())
+}
+
+export const getDepositFee = async (contract, amount) => {
+  return new BN(await contract.methods.depositFee(amount).call())
+}
 
 export const getHomeFee = async contract => {
   const feePercent = await contract.methods.feePercent().call()

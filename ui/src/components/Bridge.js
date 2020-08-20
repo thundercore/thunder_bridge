@@ -229,18 +229,15 @@ export class Bridge extends React.Component {
 
     let fee = null
     let finalAmount = new BN(amount)
-    const oneHundredPercent = new BN(10000)
     if (reverse) { // foreign to home
-      const feeToApply = homeStore.feeManager.homeFee
-      if (!feeToApply.isZero()) {
-        fee = feeToApply.dividedBy(100)
-        finalAmount = finalAmount.multipliedBy(oneHundredPercent.minus(feeToApply)).dividedBy(oneHundredPercent)
+      fee = await homeStore.getDepositFee(amount)
+      if (!fee.isZero()) {
+        finalAmount = finalAmount.minus(fee)
       }
     } else { // home to foreign
-      const feeToApply = foreignStore.feeManager.foreignFee
-      if (!feeToApply.isZero()) {
-        fee = feeToApply.dividedBy(100)
-        finalAmount = finalAmount.multipliedBy(oneHundredPercent.minus(feeToApply)).dividedBy(oneHundredPercent)
+      fee = await homeStore.getWithdrawFee(amount)
+      if (!fee.isZero()) {
+        finalAmount = finalAmount.minus(fee)
       }
     }
 
@@ -251,7 +248,9 @@ export class Bridge extends React.Component {
       toCurrency: reverse ? homeStore.symbol : foreignStore.symbol,
       fromAmount: amount,
       toAmount: finalAmount,
+      minPerTx: homeStore.minPerTx,
       fee,
+      feeCurrency: homeStore.symbol,
       reverse,
       recipient
     }
@@ -291,6 +290,9 @@ export class Bridge extends React.Component {
     const isErcToErcMode = bridgeMode === BRIDGE_MODES.ERC_TO_ERC
     const isExternalErc20 =
       bridgeMode === BRIDGE_MODES.ERC_TO_ERC || bridgeMode === BRIDGE_MODES.ERC_TO_NATIVE
+    const fixedFee = homeStore.feeManager.withdrawFixedFee
+    const feePercent = homeStore.feeManager.withdrawFeePercent
+    const feeCurrency = homeStore.symbol
 
     const modalData = {
       isHome: true,
@@ -309,17 +311,23 @@ export class Bridge extends React.Component {
       tokenName: homeStore.tokenName,
       displayBridgeLimits: true,
       nativeSupplyTitle: !isExternalErc20,
-      getExplorerAddressUrl: address => homeStore.getExplorerAddressUrl(address)
+      getExplorerAddressUrl: address => homeStore.getExplorerAddressUrl(address),
+      fixedFee,
+      feePercent,
+      feeCurrency
     }
 
     this.setState({ modalData, showModal: true })
   }
 
   loadForeignDetails = () => {
-    const { web3Store, foreignStore } = this.props.RootStore
+    const { web3Store, foreignStore, homeStore } = this.props.RootStore
     const isExternalErc20 = foreignStore.tokenType === ERC_TYPES.ERC20
     const foreignURL = new URL(web3Store.FOREIGN_HTTP_PARITY_URL)
     const foreignDisplayUrl = `${foreignURL.protocol}//${foreignURL.hostname}`
+    const fixedFee = homeStore.feeManager.depositFixedFee
+    const feePercent = homeStore.feeManager.depositFeePercent
+    const feeCurrency = homeStore.symbol
 
     const modalData = {
       isHome: false,
@@ -337,7 +345,10 @@ export class Bridge extends React.Component {
       balance: foreignStore.balance,
       displayTokenAddress: true,
       displayBridgeLimits: true,
-      getExplorerAddressUrl: address => foreignStore.getExplorerAddressUrl(address)
+      getExplorerAddressUrl: address => foreignStore.getExplorerAddressUrl(address),
+      fixedFee,
+      feePercent,
+      feeCurrency
     }
 
     this.setState({ modalData, showModal: true })

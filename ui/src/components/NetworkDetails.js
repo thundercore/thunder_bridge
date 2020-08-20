@@ -22,7 +22,10 @@ export const NetworkDetails = ({
   displayBridgeLimits,
   nativeSupplyTitle,
   tokenName,
-  getExplorerAddressUrl
+  getExplorerAddressUrl,
+  fixedFee,
+  feePercent,
+  feeCurrency
 }) => {
   const displayCurrency = DAI2SAI(currency)
   const networkTitle = isHome ? 'Bridge Home' : 'Bridge Foreign'
@@ -85,6 +88,22 @@ export const NetworkDetails = ({
             <span className="details-label">Minimum Amount Per Transaction</span>
             <span className="details-description-black">
               {numeral(minPerTx).format('0,0.000', Math.floor)} {displayCurrency}
+            </span>
+          </p>
+        )}
+        {displayBridgeLimits && fixedFee && (
+          <p className="details-data-container">
+            <span className="details-label">Minimum Fee</span>
+            <span className="details-description-black">
+              {numeral(fixedFee).format('0,0.000', Math.floor)} {DAI2SAI(feeCurrency)}
+            </span>
+          </p>
+        )}
+        {displayBridgeLimits && feePercent && (
+          <p className="details-data-container">
+            <span className="details-label">Fee Percent</span>
+            <span className="details-description-black">
+              {numeral(feePercent).format('0,0.0', Math.floor)} %
             </span>
           </p>
         )}
