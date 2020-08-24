@@ -186,6 +186,37 @@ describe('gasPrice', () => {
       expect(getPrice(now - 100000 * 1000)).to.equal(max)
     })
 
+    it('bump 10 gwei gas price if instant == fast', async () => {
+      const toGWei = function(wei) {
+        return (wei * Math.pow(10, 9)).toString()
+      }
+      process.env.GET_PRICE_TEST = 'test'
+      process.env.GAS_PRICE_BUMP_INTERVAL = 60 * 1000
+      config.maxGasPriceLimit = 300
+      config.speedType = 'standard'
+      // this function only works when env.GET_PRICE_TEST is set to 'test'
+      const standard = toGWei(1)
+      const fast = toGWei(7)
+      const instant = toGWei(7)
+      const max = toGWei(300)
+
+      setTestCachedGasPrice({
+        standard: standard,
+        fast: fast,
+        instant: instant,
+      })
+
+      const now = Math.floor(Date.now())
+
+      expect(getPrice(now)).to.equal(standard, 'should use standard speed type')
+      expect(getPrice(now - 70 * 1000)).to.equal(fast, 'should use fast speed type')
+      expect(getPrice(now - 130 * 1000)).to.equal(instant, 'should use instant speed type')
+      expect(getPrice(now - 190 * 1000)).to.equal(toGWei(7+(10)*1))
+      expect(getPrice(now - 250 * 1000)).to.equal(toGWei(7+(10)*2))
+      // The maximum gas price will be GAS_PRICE_BOUNDARIES.MAX after a long time
+      expect(getPrice(now - 100000 * 1000)).to.equal(max)
+    })
+
     it('set price from env', async () => {
       process.env.SET_GAS_PRICE = 1000
       const now = Math.floor(Date.now())
