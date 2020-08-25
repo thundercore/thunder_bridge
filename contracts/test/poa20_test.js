@@ -1,17 +1,22 @@
 const POA20 = artifacts.require("ERC677BridgeToken.sol");
 const ERC677ReceiverTest = artifacts.require("ERC677ReceiverTest.sol")
-const { ERROR_MSG, ZERO_ADDRESS} = require('./setup');
+
+const { expect } = require('chai')
+const { ERROR_MSG, ERROR_MSG_OPCODE, ZERO_ADDRESS, BN } = require('./setup')
+const { ether, expectEventInLogs } = require('./helpers/helpers')
+
 const Web3Utils = require('web3-utils');
 const HomeErcToErcBridge = artifacts.require("HomeBridgeErcToErc.sol");
 const ForeignBridgeErcToErc = artifacts.require("ForeignBridgeErcToErc.sol");
 const BridgeValidators = artifacts.require("BridgeValidators.sol");
-const minPerTx = web3.toBigNumber(web3.toWei(0.01, "ether"));
+const minPerTx = ether('0.01')
 const requireBlockConfirmations = 8;
 const gasPrice = Web3Utils.toWei('1', 'gwei');
-const oneEther = web3.toBigNumber(web3.toWei(1, "ether"));
-const halfEther = web3.toBigNumber(web3.toWei(0.5, "ether"));
+const oneEther = ether('1')
+const halfEther = ether('0.5')
 const executionDailyLimit = oneEther
 const executionMaxPerTx = halfEther
+const ZERO = new BN(0)
 
 contract('ERC677BridgeToken', async (accounts) => {
   let token
@@ -21,26 +26,16 @@ contract('ERC677BridgeToken', async (accounts) => {
     token = await POA20.new("POA ERC20 Foundation", "POA20", 18);
   })
   it('default values', async () => {
+    expect(await token.symbol()).to.be.equal('POA20')
+    expect(await token.decimals()).to.be.bignumber.equal('18')
+    expect(await token.name()).to.be.equal('POA ERC20 Foundation')
+    expect(await token.totalSupply()).to.be.bignumber.equal(ZERO)
+    expect(await token.mintingFinished()).to.be.equal(false)
 
-    const symbol = await token.symbol()
-    assert.equal(symbol, 'POA20')
-
-    const decimals = await token.decimals()
-    assert.equal(decimals, 18)
-
-    const name = await token.name()
-    assert.equal(name, "POA ERC20 Foundation")
-
-    const totalSupply = await token.totalSupply();
-    assert.equal(totalSupply, 0);
-
-    const mintingFinished = await token.mintingFinished();
-    assert.equal(mintingFinished, false);
-
-    const [major, minor, patch] = await token.getTokenInterfacesVersion()
-    major.should.be.bignumber.gte(0)
-    minor.should.be.bignumber.gte(0)
-    patch.should.be.bignumber.gte(0)
+    const { major, minor, patch } = await token.getTokenInterfacesVersion()
+    expect(major).to.be.bignumber.gte(ZERO)
+    expect(minor).to.be.bignumber.gte(ZERO)
+    expect(patch).to.be.bignumber.gte(ZERO)
   })
 
   describe('#bridgeContract', async() => {
@@ -78,10 +73,10 @@ contract('ERC677BridgeToken', async (accounts) => {
 
   describe('#mint', async() => {
     it('can mint by owner', async () => {
-      (await token.totalSupply()).should.be.bignumber.equal(0);
-      await token.mint(user, 1, {from: owner }).should.be.fulfilled;
-      (await token.totalSupply()).should.be.bignumber.equal(1);
-      (await token.balanceOf(user)).should.be.bignumber.equal(1);
+      expect(await token.totalSupply()).to.be.bignumber.equal(ZERO)
+      await token.mint(user, 1, { from: owner }).should.be.fulfilled
+      expect(await token.totalSupply()).to.be.bignumber.equal('1')
+      expect(await token.balanceOf(user)).to.be.bignumber.equal('1')
     })
 
     it('no one can call finishMinting', async () => {
@@ -89,10 +84,10 @@ contract('ERC677BridgeToken', async (accounts) => {
     })
 
     it('cannot mint by non-owner', async () => {
-      (await token.totalSupply()).should.be.bignumber.equal(0);
-      await token.mint(user, 1, {from: user }).should.be.rejectedWith(ERROR_MSG);
-      (await token.totalSupply()).should.be.bignumber.equal(0);
-      (await token.balanceOf(user)).should.be.bignumber.equal(0);
+      expect(await token.totalSupply()).to.be.bignumber.equal(ZERO)
+      await token.mint(user, 1, { from: user }).should.be.rejectedWith(ERROR_MSG)
+      expect(await token.totalSupply()).to.be.bignumber.equal(ZERO)
+      expect(await token.balanceOf(user)).to.be.bignumber.equal(ZERO)
     })
   })
 
@@ -122,23 +117,22 @@ contract('ERC677BridgeToken', async (accounts) => {
       await token.mint(user, 1, {from: owner }).should.be.fulfilled;
       await token.transfer(user, 1, {from: owner}).should.be.rejectedWith(ERROR_MSG);
       const {logs} = await token.transfer(owner, 1, {from: user}).should.be.fulfilled;
-      (await token.balanceOf(owner)).should.be.bignumber.equal(1);
-      (await token.balanceOf(user)).should.be.bignumber.equal(0);
-      logs[0].event.should.be.equal("Transfer")
-      logs[0].args.should.be.deep.equal({
+
+      expect(await token.balanceOf(owner)).to.be.bignumber.equal('1')
+      expect(await token.balanceOf(user)).to.be.bignumber.equal(ZERO)
+      expectEventInLogs(logs, 'Transfer', {
         from: user,
         to: owner,
-        value: new web3.BigNumber(1)
+        value: new BN(1)
       })
     })
 
     it('sends tokens to bridge contract', async () => {
       await token.setBridgeContract(homeErcToErcContract.address).should.be.fulfilled;
-      await token.mint(user, web3.toWei(1, "ether"), {from: owner }).should.be.fulfilled;
+      await token.mint(user, web3.utils.toWei('1', "ether"), {from: owner }).should.be.fulfilled;
 
       const result = await token.transfer(homeErcToErcContract.address, minPerTx, {from: user}).should.be.fulfilled;
-      result.logs[0].event.should.be.equal("Transfer")
-      result.logs[0].args.should.be.deep.equal({
+      expectEventInLogs(result.logs, 'Transfer', {
         from: user,
         to: homeErcToErcContract.address,
         value: minPerTx
@@ -147,17 +141,15 @@ contract('ERC677BridgeToken', async (accounts) => {
 
     it('sends tokens to contract that does not contains onTokenTransfer method', async () => {
       await token.setBridgeContract(homeErcToErcContract.address).should.be.fulfilled;
-      await token.mint(user, web3.toWei(1, "ether"), {from: owner }).should.be.fulfilled;
+      await token.mint(user, web3.utils.toWei('1', "ether"), {from: owner }).should.be.fulfilled;
 
       const result = await token.transfer(validatorContract.address, minPerTx, {from: user}).should.be.fulfilled;
-      result.logs[0].event.should.be.equal("Transfer")
-      result.logs[0].args.should.be.deep.equal({
+      expectEventInLogs(result.logs, 'Transfer', {
         from: user,
         to: validatorContract.address,
         value: minPerTx
       })
-      result.logs[1].event.should.be.equal("ContractFallbackCallFailed")
-      result.logs[1].args.should.be.deep.equal({
+      expectEventInLogs(result.logs, 'ContractFallbackCallFailed', {
         from: user,
         to: validatorContract.address,
         value: minPerTx
@@ -165,8 +157,8 @@ contract('ERC677BridgeToken', async (accounts) => {
     })
 
     it('fail to send tokens to bridge contract out of limits', async () => {
-      const lessThanMin = web3.toBigNumber(web3.toWei(0.0001, "ether"))
-      await token.mint(user, web3.toWei(1, "ether"), {from: owner }).should.be.fulfilled;
+      const lessThanMin = web3.utils.toBN(web3.utils.toWei('0.0001', "ether"))
+      await token.mint(user, web3.utils.toWei('1', "ether"), {from: owner }).should.be.fulfilled;
 
       await token.setBridgeContract(homeErcToErcContract.address).should.be.fulfilled;
       await token.transfer(homeErcToErcContract.address, lessThanMin, {from: user}).should.be.rejectedWith(ERROR_MSG);
@@ -178,11 +170,11 @@ contract('ERC677BridgeToken', async (accounts) => {
 
   describe("#burn", async () => {
     it('can burn', async() => {
-      await token.burn(100, {from: owner}).should.be.rejectedWith(ERROR_MSG);
-      await token.mint(user, 1, {from: owner }).should.be.fulfilled;
-      await token.burn(1, {from: user}).should.be.fulfilled;
-      (await token.totalSupply()).should.be.bignumber.equal(0);
-      (await token.balanceOf(user)).should.be.bignumber.equal(0);
+      await token.burn(100, { from: owner }).should.be.rejectedWith(ERROR_MSG)
+      await token.mint(user, 1, { from: owner }).should.be.fulfilled
+      await token.burn(1, { from: user }).should.be.fulfilled
+      expect(await token.totalSupply()).to.be.bignumber.equal(ZERO)
+      expect(await token.balanceOf(user)).to.be.bignumber.equal(ZERO)
     })
   })
 
@@ -209,35 +201,35 @@ contract('ERC677BridgeToken', async (accounts) => {
       );
     })
     it('calls contractFallback', async () => {
-      const receiver = await ERC677ReceiverTest.new();
-      (await receiver.from()).should.be.equal('0x0000000000000000000000000000000000000000');
-      (await receiver.value()).should.be.bignumber.equal('0');
-      (await receiver.data()).should.be.equal('0x');
-      (await receiver.someVar()).should.be.bignumber.equal('0');
+      const receiver = await ERC677ReceiverTest.new()
+      expect(await receiver.from()).to.be.equal(ZERO_ADDRESS)
+      expect(await receiver.value()).to.be.bignumber.equal(ZERO)
+      expect(await receiver.data()).to.be.equal(null)
+      expect(await receiver.someVar()).to.be.bignumber.equal(ZERO)
 
-      var ERC677ReceiverTestWeb3 = web3.eth.contract(ERC677ReceiverTest.abi);
-      var ERC677ReceiverTestWeb3Instance = ERC677ReceiverTestWeb3.at(receiver.address);
-      var callDoSomething123 = ERC677ReceiverTestWeb3Instance.doSomething.getData(123);
+      const callDoSomething123 = receiver.contract.methods.doSomething(123).encodeABI()
 
       await token.mint(user, 1, {from: owner }).should.be.fulfilled;
-      await token.transferAndCall(token.address, 1, callDoSomething123, {from: user}).should.be.rejectedWith(ERROR_MSG);
-      await token.transferAndCall('0x0000000000000000000000000000000000000000', 1, callDoSomething123, {from: user}).should.be.rejectedWith(ERROR_MSG);
-      await token.transferAndCall(receiver.address, 1, callDoSomething123, {from: user}).should.be.fulfilled;
-      (await token.balanceOf(receiver.address)).should.be.bignumber.equal(1);
-      (await token.balanceOf(user)).should.be.bignumber.equal(0);
-      (await receiver.from()).should.be.equal(user);
-      (await receiver.value()).should.be.bignumber.equal(1);
-      (await receiver.data()).should.be.equal(callDoSomething123);
-      (await receiver.someVar()).should.be.bignumber.equal('123');
+      await token.transferAndCall(token.address, '1', callDoSomething123, {from: user}).should.be.rejectedWith(ERROR_MSG);
+      await token
+        .transferAndCall(ZERO_ADDRESS, '1', callDoSomething123, { from: user })
+        .should.be.rejectedWith(ERROR_MSG)
+      await token.transferAndCall(receiver.address, '1', callDoSomething123, {from: user}).should.be.fulfilled;
+
+      expect(await token.balanceOf(receiver.address)).to.be.bignumber.equal('1')
+      expect(await token.balanceOf(user)).to.be.bignumber.equal(ZERO)
+      expect(await receiver.from()).to.be.equal(user)
+      expect(await receiver.value()).to.be.bignumber.equal('1')
+      expect(await receiver.data()).to.be.equal(callDoSomething123)
+      expect(await receiver.someVar()).to.be.bignumber.equal('123')
     })
 
     it('sends tokens to bridge contract', async () => {
       await token.setBridgeContract(homeErcToErcContract.address).should.be.fulfilled;
-      await token.mint(user, web3.toWei(1, "ether"), {from: owner }).should.be.fulfilled;
+      await token.mint(user, web3.utils.toWei('1', "ether"), {from: owner }).should.be.fulfilled;
 
       const result = await token.transferAndCall(homeErcToErcContract.address, minPerTx, '0x', {from: user}).should.be.fulfilled;
-      result.logs[0].event.should.be.equal("Transfer")
-      result.logs[0].args.should.be.deep.equal({
+      expectEventInLogs(result.logs, 'Transfer', {
         from: user,
         to: homeErcToErcContract.address,
         value: minPerTx
@@ -246,14 +238,14 @@ contract('ERC677BridgeToken', async (accounts) => {
 
     it('fail to sends tokens to contract that does not contains onTokenTransfer method', async () => {
       await token.setBridgeContract(homeErcToErcContract.address).should.be.fulfilled;
-      await token.mint(user, web3.toWei(1, "ether"), {from: owner }).should.be.fulfilled;
+      await token.mint(user, web3.utils.toWei('1', "ether"), {from: owner }).should.be.fulfilled;
 
       await token.transferAndCall(validatorContract.address, minPerTx, '0x', {from: user}).should.be.rejectedWith(ERROR_MSG);
     })
 
     it('fail to send tokens to bridge contract out of limits', async () => {
-      const lessThanMin = web3.toBigNumber(web3.toWei(0.0001, "ether"))
-      await token.mint(user, web3.toWei(1, "ether"), {from: owner }).should.be.fulfilled;
+      const lessThanMin = web3.utils.toBN(web3.utils.toWei('0.0001', "ether"))
+      await token.mint(user, web3.utils.toWei('1', "ether"), {from: owner }).should.be.fulfilled;
 
       await token.setBridgeContract(homeErcToErcContract.address).should.be.fulfilled;
       await token.transferAndCall(homeErcToErcContract.address, lessThanMin, '0x', {from: user}).should.be.rejectedWith(ERROR_MSG);
@@ -265,7 +257,7 @@ contract('ERC677BridgeToken', async (accounts) => {
   describe('#claimtokens', async () => {
     it('can take send ERC20 tokens', async ()=> {
       const owner = accounts[0];
-      const halfEther = web3.toBigNumber(web3.toWei(0.5, "ether"));
+      const halfEther = web3.utils.toBN(web3.utils.toWei('0.5', "ether"));
       let tokenSecond = await POA20.new("Roman Token", "RST", 18);
 
       await tokenSecond.mint(accounts[0], halfEther).should.be.fulfilled;
@@ -283,28 +275,28 @@ contract('ERC677BridgeToken', async (accounts) => {
   describe('#transfer', async () => {
     it('if transfer called on contract, onTokenTransfer is also invoked', async () => {
       const receiver = await ERC677ReceiverTest.new();
-      (await receiver.from()).should.be.equal('0x0000000000000000000000000000000000000000');
-      (await receiver.value()).should.be.bignumber.equal('0');
-      (await receiver.data()).should.be.equal('0x');
-      (await receiver.someVar()).should.be.bignumber.equal('0');
+      expect(await receiver.from()).to.be.equal(ZERO_ADDRESS)
+      expect(await receiver.value()).to.be.bignumber.equal(ZERO)
+      expect(await receiver.data()).to.be.equal(null)
+      expect(await receiver.someVar()).to.be.bignumber.equal(ZERO)
 
       await token.mint(user, 1, {from: owner }).should.be.fulfilled;
       const {logs} = await token.transfer(receiver.address, 1, {from: user}).should.be.fulfilled;
 
-      (await token.balanceOf(receiver.address)).should.be.bignumber.equal(1);
-      (await token.balanceOf(user)).should.be.bignumber.equal(0);
-      (await receiver.from()).should.be.equal(user);
-      (await receiver.value()).should.be.bignumber.equal(1);
-      (await receiver.data()).should.be.equal('0x');
-      logs[0].event.should.be.equal("Transfer")
+      expect(await token.balanceOf(receiver.address)).to.be.bignumber.equal('1')
+      expect(await token.balanceOf(user)).to.be.bignumber.equal(ZERO)
+      expect(await receiver.from()).to.be.equal(user)
+      expect(await receiver.value()).to.be.bignumber.equal('1')
+      expect(await receiver.data()).to.be.equal(null)
+      expect(logs[0].event).to.be.equal('Transfer')
     })
     it('if transfer called on contract, still works even if onTokenTransfer doesnot exist', async () => {
       const someContract = await POA20.new("Some", "Token", 18);
       await token.mint(user, 2, {from: owner }).should.be.fulfilled;
       const tokenTransfer = await token.transfer(someContract.address, 1, {from: user}).should.be.fulfilled;
       const tokenTransfer2 = await token.transfer(accounts[0], 1, {from: user}).should.be.fulfilled;
-      (await token.balanceOf(someContract.address)).should.be.bignumber.equal(1);
-      (await token.balanceOf(user)).should.be.bignumber.equal(0);
+      expect(await token.balanceOf(someContract.address)).to.be.bignumber.equal('1')
+      expect(await token.balanceOf(user)).to.be.bignumber.equal(ZERO)
       tokenTransfer.logs[0].event.should.be.equal("Transfer")
       tokenTransfer2.logs[0].event.should.be.equal("Transfer")
 

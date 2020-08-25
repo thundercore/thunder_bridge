@@ -1,5 +1,6 @@
 
 VALIDATOR_DIR=validator/
+CONTRACT_DIR=contracts/
 E2E_DIR=validator/e2e/
 
 build-deployer:
@@ -65,6 +66,14 @@ test-truffle-pala: build-deployer
 test-unittest:
 	cd $(E2E_DIR) && cp envs/v1.env validator.env
 	cd $(VALIDATOR_DIR) && python run-test.py unittest
+
+test-unittest:
+	cd $(E2E_DIR) && cp envs/v1.env validator.env
+	cd $(VALIDATOR_DIR) && python run-test.py unittest
+
+test-contracts:
+	cd $(CONTRACT_DIR) && docker build -t test-contracts -f Dockerfile.test .
+	cd $(CONTRACT_DIR) && docker run test-contracts
 
 run-all: run-v1 run-v2 run-v3
 	echo "All validator are deployed."
