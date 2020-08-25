@@ -12,6 +12,20 @@ const { decodeBridgeMode } = require('./utils/bridgeMode')
 const { readFileSync, existsSync } = require('fs');
 const { env } = process;
 
+const _lock = {}
+
+function isLocked(key) {
+  return _lock[key] === true
+}
+
+function lock(key) {
+  _lock[key] = true
+}
+
+function unlock(key) {
+  _lock[key] = false
+}
+
 const JSONbig = require('json-bigint')({"storeAsString": true});
 function mkDict(pairs) {
   const res = {}
@@ -119,6 +133,12 @@ async function checkStatus(token) {
   context.redis = redis
   context.token = token
 
+  const lockKey = `checkStatus_${token}`
+  if(isLocked(lockKey)) {
+    console.log(`${lockKey} is locked. skip.`)
+    return
+  }
+  lock(lockKey)
 
   try {
     const { HOME_BRIDGE_ADDRESS, HOME_RPC_URL } = context;
@@ -141,12 +161,21 @@ async function checkStatus(token) {
     return status
   } catch (e) {
     throw e
+  } finally {
+    unlock(lockKey)
   }
 }
 
 
 async function checkVBalances(token) {
   const context = config[token];
+
+  const lockKey = `checkVBalances_${token}`
+  if(isLocked(lockKey)) {
+    console.log(`${lockKey} is locked. skip.`)
+    return
+  }
+  lock(lockKey)
   try {
     const { HOME_BRIDGE_ADDRESS, HOME_RPC_URL } = context;
     const homeProvider = new HttpRetryProvider(HOME_RPC_URL.split(","))
@@ -163,6 +192,8 @@ async function checkVBalances(token) {
     return vBalances
   } catch (e) {
     throw e
+  } finally {
+    unlock(lockKey)
   }
 }
 
