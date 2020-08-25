@@ -5,17 +5,20 @@ const EternalStorageProxy = artifacts.require("EternalStorageProxy.sol");
 const TetherToken = artifacts.require("TetherToken.sol");
 
 const ERC677BridgeToken = artifacts.require("ERC677BridgeToken.sol");
-const {ERROR_MSG, ZERO_ADDRESS, INVALID_ARGUMENTS} = require('../setup');
-const {createMessage, sign, signatureToVRS} = require('../helpers/helpers');
-const halfEther = web3.toBigNumber(web3.toWei(0.5, "ether"));
+const {ERROR_MSG, ZERO_ADDRESS, INVALID_ARGUMENTS, toBN} = require('../setup');
+const {createMessage, sign, signatureToVRS, expectEventInLogs} = require('../helpers/helpers');
+const halfEther = web3.utils.toBN(web3.utils.toWei('0.5', "ether"));
 const requireBlockConfirmations = 8;
-const gasPrice = web3.toWei('1', 'gwei')
-const oneEther = web3.toBigNumber(web3.toWei(1, "ether"));
+const gasPrice = web3.utils.toWei('1', 'gwei')
+const oneEther = web3.utils.toBN(web3.utils.toWei('1', "ether"));
 const homeDailyLimit = oneEther
 const homeMaxPerTx = halfEther
 const maxPerTx = halfEther
 const FEE_PERCENT = '500'; // 5%
 const FULL_PERCENT = '10000'; // 100%
+
+const { expect } = require('chai')
+const ZERO = toBN(0)
 
 contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
   let validatorContract, authorities, owner, token;
@@ -31,13 +34,11 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       token = await ERC677BridgeToken.new("Some ERC20", "RSZT", 18);
       let foreignBridge =  await ForeignBridge.new();
 
-      ZERO_ADDRESS.should.be.equal(await foreignBridge.erc20token());
-      ZERO_ADDRESS.should.be.equal(await foreignBridge.validatorContract())
-      '0'.should.be.bignumber.equal(await foreignBridge.deployedAtBlock())
-      false.should.be.equal(await foreignBridge.isInitialized())
-      '0'.should.be.bignumber.equal(await foreignBridge.requiredBlockConfirmations())
-
-      await foreignBridge.initialize(validatorContract.address, token.address, requireBlockConfirmations, owner, FEE_PERCENT).should.be.rejectedWith(INVALID_ARGUMENTS);
+      expect(await foreignBridge.erc20token()).to.be.equal(ZERO_ADDRESS)
+      expect(await foreignBridge.validatorContract()).to.be.equal(ZERO_ADDRESS)
+      expect(await foreignBridge.deployedAtBlock()).to.be.bignumber.equal(ZERO)
+      expect(await foreignBridge.isInitialized()).to.be.equal(false)
+      expect(await foreignBridge.requiredBlockConfirmations()).to.be.bignumber.equal(ZERO)
 
       await foreignBridge.initialize(ZERO_ADDRESS, token.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT).should.be.rejectedWith(ERROR_MSG);
       await foreignBridge.initialize(validatorContract.address, ZERO_ADDRESS, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT).should.be.rejectedWith(ERROR_MSG);
@@ -46,30 +47,30 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       await foreignBridge.initialize(validatorContract.address, token.address, requireBlockConfirmations, 0, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT).should.be.rejectedWith(ERROR_MSG);
       await foreignBridge.initialize(owner, token.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT).should.be.rejectedWith(ERROR_MSG);
 
-      await foreignBridge.initialize(validatorContract.address, token.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT);
+      const { logs } = await foreignBridge.initialize(validatorContract.address, token.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT);
 
-      token.address.should.be.equal(await foreignBridge.erc20token());
-      true.should.be.equal(await foreignBridge.isInitialized())
-      validatorContract.address.should.be.equal(await foreignBridge.validatorContract());
-      token.address.should.be.equal(await foreignBridge.erc20token());
-      (await foreignBridge.deployedAtBlock()).should.be.bignumber.above(0);
-      requireBlockConfirmations.should.be.bignumber.equal(await foreignBridge.requiredBlockConfirmations())
-      const contractGasPrice = await foreignBridge.gasPrice()
-      contractGasPrice.should.be.bignumber.equal(gasPrice)
+      expect(await foreignBridge.erc20token()).to.be.equal(token.address)
+      expect(await foreignBridge.isInitialized()).to.be.equal(true)
+      expect(await foreignBridge.validatorContract()).to.be.equal(validatorContract.address)
+      expect(await foreignBridge.deployedAtBlock()).to.be.bignumber.above(ZERO)
+      expect(await foreignBridge.requiredBlockConfirmations()).to.be.bignumber.equal(
+        requireBlockConfirmations.toString()
+      )
+
+      expect(await foreignBridge.maxPerTx()).to.be.bignumber.equal(maxPerTx)
+      expect(await foreignBridge.gasPrice()).to.be.bignumber.equal(gasPrice)
       const bridgeMode = '0xba4690f5' // 4 bytes of keccak256('erc-to-erc-core')
-      const mode = await foreignBridge.getBridgeMode();
-      mode.should.be.equal(bridgeMode)
-      const [major, minor, patch] = await foreignBridge.getBridgeInterfacesVersion()
-      major.should.be.bignumber.gte(0)
-      minor.should.be.bignumber.gte(0)
-      patch.should.be.bignumber.gte(0)
-
-      const feePercent = await foreignBridge.feePercent()
-      FEE_PERCENT.should.be.bignumber.equal(feePercent)
+      expect(await foreignBridge.getBridgeMode()).to.be.equal(bridgeMode)
+      const { major, minor, patch } = await foreignBridge.getBridgeInterfacesVersion()
+      expect(major).to.be.bignumber.gte(ZERO)
+      expect(minor).to.be.bignumber.gte(ZERO)
+      expect(patch).to.be.bignumber.gte(ZERO)
+      expect(await foreignBridge.feePercent()).to.be.bignumber.equal(FEE_PERCENT)
     })
   })
+
   describe('#executeSignatures', async () => {
-    var value = web3.toBigNumber(web3.toWei(0.25, "ether"));
+    var value = web3.utils.toBN(web3.utils.toWei('0.25', "ether"));
     let foreignBridge
     beforeEach(async () => {
       foreignBridge = await ForeignBridge.new()
@@ -95,15 +96,15 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       const balanceAfter = await token.balanceOf(recipientAccount);
       const balanceAfterBridge = await token.balanceOf(foreignBridge.address);
       balanceAfter.should.be.bignumber.equal(balanceBefore.add(value))
-      balanceAfterBridge.should.be.bignumber.equal(0)
+      balanceAfterBridge.should.be.bignumber.equal(ZERO)
       true.should.be.equal(await foreignBridge.relayedMessages(transactionHash))
     })
 
     it('should executeSignatures with broken ERC20 (USDT)', async () => {
-      var value = web3.toBigNumber(web3.toWei(0.25, "ether"));
-      const initSupply = web3.toBigNumber(web3.toWei(100000, "ether"));
+      var value = toBN(web3.utils.toWei('0.25', "ether"));
+      const initSupply = toBN(web3.utils.toWei('100000', "ether"));
       foreignBridge = await ForeignBridge.new()
-      token = await TetherToken.new(initSupply.toFixed(), "Tether USD", "USDT", 6);
+      token = await TetherToken.new(initSupply.toString(), "Tether USD", "USDT", 6);
       const feePercent = '0';
       await foreignBridge.initialize(validatorContract.address, token.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, feePercent);
       await token.transfer(foreignBridge.address, value);
@@ -124,7 +125,7 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       const balanceAfter = await token.balanceOf(recipientAccount);
       const balanceAfterBridge = await token.balanceOf(foreignBridge.address);
       balanceAfter.should.be.bignumber.equal(balanceBefore.add(value))
-      balanceAfterBridge.should.be.bignumber.equal(0)
+      balanceAfterBridge.should.be.bignumber.equal(ZERO)
       true.should.be.equal(await foreignBridge.relayedMessages(transactionHash))
     })
 
@@ -132,7 +133,7 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       var recipientAccount = accounts[3];
       const balanceBefore = await token.balanceOf(recipientAccount)
       // tx 1
-      var value = web3.toBigNumber(web3.toWei(0.25, "ether"));
+      var value = toBN(web3.utils.toWei('0.25', "ether"));
       var transactionHash = "0x35d3818e50234655f6aebb2a1cfbf30f59568d8a4ec72066fac5a25dbe7b8121";
       var message = createMessage(recipientAccount, value, transactionHash, foreignBridge.address);
       var signature = await sign(authorities[0], message)
@@ -152,7 +153,7 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       logs[0].args.recipient.should.be.equal(recipientAccount)
       logs[0].args.value.should.be.bignumber.equal(value)
       const balanceAfter = await token.balanceOf(recipientAccount)
-      balanceAfter.should.be.bignumber.equal(balanceBefore.add(value.mul(2)))
+      balanceAfter.should.be.bignumber.equal(balanceBefore.add(value.mul(toBN(2))))
       true.should.be.equal(await foreignBridge.relayedMessages(transactionHash))
       true.should.be.equal(await foreignBridge.relayedMessages(transactionHash2))
     })
@@ -178,8 +179,8 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
 
     it('should not allow withdraw over home max tx limit', async () => {
       const recipientAccount = accounts[3];
-      const invalidValue = web3.toBigNumber(web3.toWei(0.75, "ether"));
-      await token.mint(foreignBridge.address, web3.toBigNumber(web3.toWei(5, "ether")));
+      const invalidValue = web3.utils.toBN(web3.utils.toWei('0.75', "ether"));
+      await token.mint(foreignBridge.address, web3.utils.toBN(web3.utils.toWei('5', "ether")));
 
       const transactionHash = "0x35d3818e50234655f6aebb2a1cfbf30f59568d8a4ec72066fac5a25dbe7b8121";
       const message = createMessage(recipientAccount, invalidValue, transactionHash, foreignBridge.address);
@@ -191,7 +192,7 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
 
     it('should not allow withdraw over daily home limit', async () => {
       const recipientAccount = accounts[3];
-      await token.mint(foreignBridge.address, web3.toBigNumber(web3.toWei(5, "ether")));
+      await token.mint(foreignBridge.address, web3.utils.toBN(web3.utils.toWei('5', "ether")));
 
       const transactionHash = "0x35d3818e50234655f6aebb2a1cfbf30f59568d8a4ec72066fac5a25dbe7b8121";
       const message = createMessage(recipientAccount, halfEther, transactionHash, foreignBridge.address);
@@ -218,16 +219,16 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
 
   describe('#withdraw with 2 minimum signatures', async () => {
     let multisigValidatorContract, twoAuthorities, ownerOfValidatorContract, foreignBridgeWithMultiSignatures
-    var value = web3.toBigNumber(web3.toWei(0.5, "ether"));
+    var value = web3.utils.toBN(web3.utils.toWei('0.5', "ether"));
     beforeEach(async () => {
       multisigValidatorContract = await BridgeValidators.new()
       token = await ERC677BridgeToken.new("Some ERC20", "RSZT", 18);
       twoAuthorities = [accounts[0], accounts[1]];
       ownerOfValidatorContract = accounts[3]
-      const halfEther = web3.toBigNumber(web3.toWei(0.5, "ether"));
+      const halfEther = web3.utils.toBN(web3.utils.toWei('0.5', "ether"));
       await multisigValidatorContract.initialize(2, twoAuthorities, ownerOfValidatorContract, {from: ownerOfValidatorContract})
       foreignBridgeWithMultiSignatures = await ForeignBridge.new()
-      const oneEther = web3.toBigNumber(web3.toWei(1, "ether"));
+      const oneEther = web3.utils.toBN(web3.utils.toWei('1', "ether"));
       await foreignBridgeWithMultiSignatures.initialize(multisigValidatorContract.address, token.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, {from: ownerOfValidatorContract});
       await token.mint(foreignBridgeWithMultiSignatures.address,value);
     })
@@ -269,7 +270,7 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       const validatorContractWith3Signatures = await BridgeValidators.new()
       await validatorContractWith3Signatures.initialize(3, authoritiesFiveAccs, ownerOfValidators)
       const erc20Token = await ERC677BridgeToken.new("Some ERC20", "RSZT", 18);
-      const value = web3.toBigNumber(web3.toWei(0.5, "ether"));
+      const value = web3.utils.toBN(web3.utils.toWei('0.5', "ether"));
       const foreignBridgeWithThreeSigs = await ForeignBridge.new()
 
       await foreignBridgeWithThreeSigs.initialize(validatorContractWith3Signatures.address, erc20Token.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT);
@@ -340,8 +341,18 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
 
       let storageProxy = await EternalStorageProxy.new().should.be.fulfilled;
       let foreignBridge =  await ForeignBridge.new();
-      let data = foreignBridge.initialize.request(
-        validatorsAddress, tokenAddress, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT).params[0].data
+      const data = foreignBridge.contract.methods.initialize(
+        validatorsAddress,
+        tokenAddress,
+        requireBlockConfirmations,
+        gasPrice,
+        maxPerTx.toString(),
+        homeDailyLimit.toString(),
+        homeMaxPerTx.toString(),
+        owner,
+        FEE_PERCENT)
+        .encodeABI()
+
       await storageProxy.upgradeToAndCall('1', foreignBridge.address, data).should.be.fulfilled;
       let finalContract = await ForeignBridge.at(storageProxy.address);
       true.should.be.equal(await finalContract.isInitialized());
@@ -381,7 +392,7 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       const validatorContractWith3Signatures = await BridgeValidators.new()
       await validatorContractWith3Signatures.initialize(3, authoritiesFiveAccs, ownerOfValidators)
       const erc20Token = await ERC677BridgeToken.new("Some ERC20", "RSZT", 18);
-      const value = web3.toBigNumber(web3.toWei(0.4, "ether"));
+      const value = web3.utils.toBN(web3.utils.toWei('0.4', "ether"));
       const foreignBridgeWithThreeSigs = await ForeignBridge.new()
 
       await foreignBridgeWithThreeSigs.initialize(validatorContractWith3Signatures.address, erc20Token.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT);
@@ -412,9 +423,9 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
 
       const balanceAfter = await erc20Token.balanceOf(recipient);
       const balanceBridgeAfter = await erc20Token.balanceOf(foreignBridgeWithThreeSigs.address);
-      const feeValue = value.mul(FEE_PERCENT).div(FULL_PERCENT);
-      const particularValidatorValue = feeValue.dividedToIntegerBy(authoritiesFiveAccs.length);
-      const lastValidatorValue = feeValue.sub(particularValidatorValue.mul(authoritiesFiveAccs.length - 1))
+      const feeValue = value.mul(toBN(FEE_PERCENT)).div(toBN(FULL_PERCENT));
+      const particularValidatorValue = feeValue.divn(toBN(authoritiesFiveAccs.length));
+      const lastValidatorValue = feeValue.sub(particularValidatorValue.mul(toBN(authoritiesFiveAccs.length - 1)))
 
       for (const [i, validator] of authoritiesFiveAccs.entries()) {
         const validatorBalanceAfter = await erc20Token.balanceOf(validator);
