@@ -43,4 +43,9 @@ contract HomeBridgeErcToErcWithFee is EternalStorage, HomeBridgeErcToErc, Deposi
 
         return true;
     }
+
+    function callToken(bytes data) onlyOwner payable  external returns (bool) {
+        require(erc677token().call.value(msg.value)(data));
+        return true;
+    }
 }

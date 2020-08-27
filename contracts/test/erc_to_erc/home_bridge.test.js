@@ -31,6 +31,15 @@ function getEvent(contractAbi, name) {
   }
   return abi
 }
+
+function getFunction(contractAbi, name) {
+  const abi = contractAbi.find((j) => j.type === 'function' && j.name === name)
+  if (typeof abi === undefined || abi === undefined) {
+    throw errInvalidEvent
+  }
+  return abi
+}
+
 function abiSignature(web3, abi) {
   const signature = abi.name + '(' + abi.inputs.map((i) => i.type).join(',') + ')'
   return Web3Utils.keccak256(signature)
@@ -663,6 +672,26 @@ contract('HomeBridge_ERC20_to_ERC20', async (accounts) => {
       const upgradeabilityAdmin = await homeBridge.upgradeabilityAdmin()
 
       upgradeabilityAdmin.should.be.equal(proxyOwner)
+    })
+  })
+  describe('#callToken', async () => {
+    it('Mint token from bridge', async() => {
+      let token2sig = await ERC677BridgeToken.new("Some ERC20", "RSZT", 18);
+      let validatorContractWith2Signatures = await BridgeValidators.new()
+      let authoritiesTwoAccs = [accounts[1], accounts[2], accounts[3]];
+      let ownerOfValidators = accounts[0]
+      await validatorContractWith2Signatures.initialize(2, authoritiesTwoAccs, ownerOfValidators)
+      let homeBridgeWithTwoSigs = await HomeBridge.new();
+      await homeBridgeWithTwoSigs.initialize(validatorContractWith2Signatures.address, oneEther, halfEther, minPerTx, gasPrice, requireBlockConfirmations, token2sig.address, foreignDailyLimit, foreignMaxPerTx, owner, FEE_PERCENT);
+      await token2sig.transferOwnership(homeBridgeWithTwoSigs.address) ;
+      let mintReceiver = accounts[6];
+      let funcAbi = getFunction(token2sig.abi, 'mint');
+      let args = web3.eth.abi.encodeFunctionCall(funcAbi, [mintReceiver, pointOneEther.toString()]);
+      await homeBridgeWithTwoSigs.callToken(args);
+      const feeReceivedAfter = await token2sig.balanceOf(mintReceiver);
+      feeReceivedAfter.should.be.bignumber.equal(pointOneEther);
+      const supply = await token2sig.totalSupply();
+      supply.should.be.bignumber.equal(pointOneEther);
     })
   })
   describe('#Fee', async () => {
