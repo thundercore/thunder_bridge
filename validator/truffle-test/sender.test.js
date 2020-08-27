@@ -196,11 +196,12 @@ contract('Test multiple senders', (accounts) => {
     const [s1, s2] = await utils.newSenders(w3, 2)
     const [q1, q2] = await utils.newQueues(2)
 
-    // s1 and s1 vote first
+    // s1, s2 estimate gas at same time
     const info1 = await s1.processEventTask(task)
     const info2 = await s2.processEventTask(task)
     expect(info1.gasEstimate).to.eq(info2.gasEstimate)
 
+    // s1 vote first
     const r1 = await s1.sendTx(info1, q1.sendToQueue)
     await chainOpW3.makeOneBlock(accounts[8])
     expect(r1).to.eq('success')
