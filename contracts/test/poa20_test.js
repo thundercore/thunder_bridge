@@ -2,7 +2,7 @@ const POA20 = artifacts.require("ERC677BridgeToken.sol");
 const ERC677ReceiverTest = artifacts.require("ERC677ReceiverTest.sol")
 
 const { expect } = require('chai')
-const { ERROR_MSG, ERROR_MSG_OPCODE, ZERO_ADDRESS, BN } = require('./setup')
+const { ERROR_MSG, ERROR_MSG_OPCODE, ZERO_ADDRESS, BN, toBN } = require('./setup')
 const { ether, expectEventInLogs } = require('./helpers/helpers')
 
 const Web3Utils = require('web3-utils');
@@ -17,6 +17,9 @@ const halfEther = ether('0.5')
 const executionDailyLimit = oneEther
 const executionMaxPerTx = halfEther
 const ZERO = new BN(0)
+
+const ERC677InitialToken  = artifacts.require("ERC677InitializableToken.sol");
+const TokenProxy = artifacts.require("TokenProxy.sol");
 
 contract('ERC677BridgeToken', async (accounts) => {
   let token
@@ -36,6 +39,32 @@ contract('ERC677BridgeToken', async (accounts) => {
     expect(major).to.be.bignumber.gte(ZERO)
     expect(minor).to.be.bignumber.gte(ZERO)
     expect(patch).to.be.bignumber.gte(ZERO)
+  })
+
+  describe("#TokenProxy", async() => {
+    it('can use a proxy', async() => {
+      const homeTokenImpl = await ERC677InitialToken.new("Implv1", "IMPLv1", 18);
+      const contract = new web3.eth.Contract(homeTokenImpl.abi, homeTokenImpl.address);
+      let owner = accounts[0];
+      let contractOwner = accounts[1];
+      let ordinary = accounts[6];
+      let ordinary2 = accounts[5];
+      let data = contract.methods.initialize("TT-Bitcoin", "TT-BTC", 18, contractOwner).encodeABI();
+      const homeTokenProxy = await TokenProxy.new(homeTokenImpl.address, owner, data);
+      const homeToken = await ERC677InitialToken.at(homeTokenProxy.address);
+      const name = await homeToken.name({from: ordinary});
+      const symbol = await homeToken.symbol({from: ordinary});
+      const decimals = await homeToken.decimals({from: ordinary});
+      name.should.be.equal("TT-Bitcoin");
+      symbol.should.be.equal("TT-BTC");
+      decimals.should.be.bignumber.equal(toBN(18));
+      await homeToken.mint(ordinary, oneEther, {from: contractOwner});
+      await homeToken.transfer(ordinary2, halfEther, {from: ordinary});
+      const firstBalance = await homeToken.balanceOf(ordinary,{from: ordinary});
+      const secondBalance = await homeToken.balanceOf(ordinary2,{from: ordinary});
+      firstBalance.should.be.bignumber.equal(secondBalance);
+      firstBalance.should.be.bignumber.equal(halfEther);
+    })
   })
 
   describe('#bridgeContract', async() => {
@@ -303,3 +332,4 @@ contract('ERC677BridgeToken', async (accounts) => {
     })
   })
 })
+
