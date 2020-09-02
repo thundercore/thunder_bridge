@@ -8,13 +8,13 @@ import "./Ownable.sol";
 contract DepositWithdrawFeeManager is EternalStorage, Ownable {
     using SafeMath for uint256;
 
-    event FeeReceiverChange(address _receiver);
+    event FeeReceiverChange(address receiver);
 
-    event WithdrawFixedFeeChanged(uint _fixedFee);
-    event WithdrawFeePercentChanged(uint  _feePercent);
+    event WithdrawFixedFeeChanged(uint fixedFee);
+    event WithdrawFeePercentChanged(uint feePercent);
 
-    event DepositFixedFeeChanged(uint _fixedFee);
-    event DepositFeePercentChanged(uint _feePercent);
+    event DepositFixedFeeChanged(uint fixedFee);
+    event DepositFeePercentChanged(uint feePercent);
 
     function setFeeReceiver(address _receiver) public onlyOwner {
         addressStorage[keccak256(abi.encodePacked("feeReceiver"))] = _receiver;
@@ -36,7 +36,7 @@ contract DepositWithdrawFeeManager is EternalStorage, Ownable {
 
     function setWithdrawFeePercent(uint256 _fixedFee) public onlyOwner {
         uintStorage[keccak256(abi.encodePacked("withdrawFeePercent"))] = _fixedFee;
-        emit WithdrawFixedFeeChanged(_fixedFee);
+        emit WithdrawFeePercentChanged(_fixedFee);
     }
 
     function withdrawFeePercent() public view returns(uint256) {
@@ -65,7 +65,7 @@ contract DepositWithdrawFeeManager is EternalStorage, Ownable {
 
     function setDepositFeePercent(uint256 _fixedFee) public onlyOwner {
         uintStorage[keccak256(abi.encodePacked("depositFeePercent"))] = _fixedFee;
-        emit DepositFixedFeeChanged(_fixedFee);
+        emit DepositFeePercentChanged(_fixedFee);
     }
 
     function depositFeePercent() public view returns(uint256) {

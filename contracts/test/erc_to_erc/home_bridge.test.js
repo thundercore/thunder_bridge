@@ -696,34 +696,52 @@ contract('HomeBridge_ERC20_to_ERC20', async (accounts) => {
   })
   describe('#Fee', async () => {
     it('Calculate fee as excepted', async() => {
-      let token2sig = await ERC677BridgeToken.new("Some ERC20", "RSZT", 18);
-      let validatorContractWith2Signatures = await BridgeValidators.new()
-      let authoritiesTwoAccs = [accounts[1], accounts[2], accounts[3]];
-      let ownerOfValidators = accounts[0]
-      await validatorContractWith2Signatures.initialize(2, authoritiesTwoAccs, ownerOfValidators)
-      let homeBridgeWithTwoSigs = await HomeBridge.new();
-      await homeBridgeWithTwoSigs.initialize(validatorContractWith2Signatures.address, oneEther, halfEther, minPerTx, gasPrice, requireBlockConfirmations, token2sig.address, foreignDailyLimit, foreignMaxPerTx, owner, FEE_PERCENT);
-      await token2sig.transferOwnership(homeBridgeWithTwoSigs.address);
+      const homeBridge = await HomeBridge.new()
+      const token = await ERC677BridgeToken.new("Some ERC20", "RSZT", 18);
+      await homeBridge.initialize(validatorContract.address, '3', '2', '1', gasPrice, requireBlockConfirmations, token.address, foreignDailyLimit, foreignMaxPerTx, owner, FEE_PERCENT);
 
       // 5% + 5 fixed
       let fiveEther = Web3Utils.toWei('5', 'ether');
-      let fivePercent = 500;
+      let fivePercent = toBN(500);
       let fiftyEther = Web3Utils.toWei('50', 'ether');
       let twoKEther = Web3Utils.toWei('2000', 'ether');
       let hundredEther = Web3Utils.toWei('100', 'ether');
       let fee;
-      await homeBridgeWithTwoSigs.setDepositFixedFee(fiveEther);
-      await homeBridgeWithTwoSigs.setDepositFeePercent(fivePercent);
-      fee = await homeBridgeWithTwoSigs.depositFee(fiftyEther);
+
+      const { logs } = await homeBridge.setDepositFixedFee(fiveEther);
+      logs[0].event.should.be.equal('DepositFixedFeeChanged')
+      logs[0].args.fixedFee.should.be.bignumber.equal(fiveEther);
+      let fixedFeeFromContract = await homeBridge.depositFixedFee();
+      fixedFeeFromContract.should.be.bignumber.equal(fiveEther);
+
+      const { logs: logsDFP } = await homeBridge.setDepositFeePercent(fivePercent);
+      logsDFP[0].event.should.be.equal('DepositFeePercentChanged')
+      logsDFP[0].args.feePercent.should.be.bignumber.equal(fivePercent);
+      let feePercentFromContract = await homeBridge.depositFeePercent();
+      feePercentFromContract.should.be.bignumber.equal(fivePercent);
+
+      fee = await homeBridge.depositFee(fiftyEther);
       fee.should.be.bignumber.equal(fiveEther);
-      fee = await homeBridgeWithTwoSigs.depositFee(twoKEther);
+      fee = await homeBridge.depositFee(twoKEther);
       fee.should.be.bignumber.equal(hundredEther);
 
-      await homeBridgeWithTwoSigs.setWithdrawFixedFee(fiveEther);
-      await homeBridgeWithTwoSigs.setWithdrawFeePercent(fivePercent);
-      fee = await homeBridgeWithTwoSigs.withdrawFee(fiftyEther);
+      await homeBridge.setDepositFixedFee(ZERO);
+      await homeBridge.setDepositFeePercent(ZERO);
+
+      const { logs: logsWFF } = await homeBridge.setWithdrawFixedFee(fiveEther);
+      logsWFF[0].event.should.be.equal('WithdrawFixedFeeChanged')
+      logsWFF[0].args.fixedFee.should.be.bignumber.equal(fiveEther);
+      fixedFeeFromContract = await homeBridge.withdrawFixedFee();
+      fixedFeeFromContract.should.be.bignumber.equal(fiveEther);
+
+      const { logs: logsWFP } =  await homeBridge.setWithdrawFeePercent(fivePercent);
+      logsWFP[0].event.should.be.equal('WithdrawFeePercentChanged')
+      logsWFP[0].args.feePercent.should.be.bignumber.equal(fivePercent);
+      feePercentFromContract = await homeBridge.withdrawFeePercent();
+      feePercentFromContract.should.be.bignumber.equal(fivePercent);
+      fee = await homeBridge.withdrawFee(fiftyEther);
       fee.should.be.bignumber.equal(fiveEther);
-      fee = await homeBridgeWithTwoSigs.withdrawFee(twoKEther);
+      fee = await homeBridge.withdrawFee(twoKEther);
       fee.should.be.bignumber.equal(hundredEther);
     })
     it('test with 2 signatures and fee', async () => {
@@ -790,13 +808,18 @@ contract('HomeBridge_ERC20_to_ERC20', async (accounts) => {
       await homeContract.initialize(validatorContract.address, '3', '2', '1', gasPrice, requireBlockConfirmations, token.address, foreignDailyLimit, foreignMaxPerTx, owner, FEE_PERCENT);
 
       const newFeePercent = web3.utils.toBN('1337');
-      const { logs } = await homeContract.setFeePercent(newFeePercent);
-      logs[0].event.should.be.equal('FeePercentChanged')
-      logs[0].args.newFeePercent.should.be.bignumber.equal(newFeePercent);
-      const feePercentFromContract = await homeContract.feePercent();
+      const { logs } = await homeContract.setWithdrawFeePercent(newFeePercent);
+      logs[0].event.should.be.equal('WithdrawFeePercentChanged')
+      logs[0].args.feePercent.should.be.bignumber.equal(newFeePercent);
+      const feePercentFromContract = await homeContract.withdrawFeePercent();
       feePercentFromContract.should.be.bignumber.equal(newFeePercent);
 
+      await homeContract.setWithdrawFixedFee(newFeePercent, {from: accounts[5]}).should.be.rejectedWith(ERROR_MSG);
+
       await homeContract.setFeePercent(newFeePercent, {from: accounts[5]}).should.be.rejectedWith(ERROR_MSG);
+
+      // deprecated old fee percent
+      await homeContract.setFeePercent(newFeePercent).should.be.rejectedWith("Deprecated");
     })
   })
 })
