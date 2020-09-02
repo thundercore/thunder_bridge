@@ -34,9 +34,10 @@ contract DepositWithdrawFeeManager is EternalStorage, Ownable {
         return uintStorage[keccak256(abi.encodePacked("withdrawFixedFee"))];
     }
 
-    function setWithdrawFeePercent(uint256 _fixedFee) public onlyOwner {
-        uintStorage[keccak256(abi.encodePacked("withdrawFeePercent"))] = _fixedFee;
-        emit WithdrawFeePercentChanged(_fixedFee);
+    function setWithdrawFeePercent(uint256 _feePercent) public onlyOwner {
+        require(_feePercent < 10000, "Invalid fee percent");
+        uintStorage[keccak256(abi.encodePacked("withdrawFeePercent"))] = _feePercent;
+        emit WithdrawFeePercentChanged(_feePercent);
     }
 
     function withdrawFeePercent() public view returns(uint256) {
@@ -63,9 +64,10 @@ contract DepositWithdrawFeeManager is EternalStorage, Ownable {
         return uintStorage[keccak256(abi.encodePacked("depositFixedFee"))];
     }
 
-    function setDepositFeePercent(uint256 _fixedFee) public onlyOwner {
-        uintStorage[keccak256(abi.encodePacked("depositFeePercent"))] = _fixedFee;
-        emit DepositFeePercentChanged(_fixedFee);
+    function setDepositFeePercent(uint256 _feePercent) public onlyOwner {
+        require(_feePercent < 10000, "Invalid fee percent");
+        uintStorage[keccak256(abi.encodePacked("depositFeePercent"))] = _feePercent;
+        emit DepositFeePercentChanged(_feePercent);
     }
 
     function depositFeePercent() public view returns(uint256) {
