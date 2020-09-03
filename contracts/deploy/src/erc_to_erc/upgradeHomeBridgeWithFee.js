@@ -1,35 +1,22 @@
 const assert = require('assert')
 const Web3Utils = require('web3-utils')
 const env = require('../loadEnv')
-const { deployContract, sendRawTxHome } = require('../deploymentUtils')
+const { sendRawTxHome } = require('../deploymentUtils')
+const { deployHomeBridgeImpl } = require('../utils/deployHomeBridgeImpl')
 
 const { web3Home, deploymentPrivateKey, HOME_RPC_URL } = require('../web3')
 
 const {
   DEPLOYMENT_ACCOUNT_ADDRESS,
-  DEPLOYMENT_ACCOUNT_PRIVATE_KEY,
   HOME_FEE_RECEIVER,
   HOME_WITHDRAW_FEE_PERCENT,
   HOME_WITHDRAW_FIXED_FEE,
   HOME_DEPOSIT_FEE_PERCENT,
-  HOME_DEPOSIT_FIXED_FEE
+  HOME_DEPOSIT_FIXED_FEE,
 } = env
 
 const EternalStorageProxy = require('../../..//build/contracts/EternalStorageProxy.json')
-const HomeBridgeWithFee = require('../../../build/contracts/HomeBridgeErcToErcWithFee.json')
 
-async function deployHomeBridgeImpl(bridgeImpl, nonce, version) {
-  console.log(`\ndeploying homeBridge v${version} implementation\n`)
-  console.log(DEPLOYMENT_ACCOUNT_ADDRESS, DEPLOYMENT_ACCOUNT_PRIVATE_KEY)
-  const homeBridgeImplementation = await deployContract(bridgeImpl, [], {
-    from: DEPLOYMENT_ACCOUNT_ADDRESS,
-    nonce
-  })
-  console.log(
-    `[Home] HomeBridge ${version} Implementation: ${homeBridgeImplementation.options.address}`
-  )
-  return homeBridgeImplementation
-}
 
 async function hookupHomeBridge(storageProxy, homeBridgeAddress, version, nonce) {
   console.log('\nhooking up HomeBridge storage to HomeBridge implementation')
@@ -59,18 +46,10 @@ async function setupHomeBridge(homeBridgeAddress, func, value, nonce) {
   assert.strictEqual(Web3Utils.hexToNumber(tx.status), 1, 'Transaction Failed')
 }
 
-async function upgradeHomeBridgeWithFee(homeBridgeAddress) {
-  const version = '2'
+async function setupHomeBridgeWithFee(homeBridgeAddress, homeBridgeWithFeeImpl) {
   let nonce = await web3Home.eth.getTransactionCount(DEPLOYMENT_ACCOUNT_ADDRESS)
-  const homeBridgeWithFeeImpl = await deployHomeBridgeImpl(HomeBridgeWithFee, nonce, version)
-  nonce++
 
-  const homeBridgeStorage = new web3Home.eth.Contract(EternalStorageProxy.abi, homeBridgeAddress)
-  await hookupHomeBridge(homeBridgeStorage, homeBridgeWithFeeImpl.options.address, version, nonce)
-  nonce++
-
-  homeBridgeWithFeeImpl.options.address = homeBridgeStorage.options.address
-
+  console.log(`Set fee receiver: ${HOME_FEE_RECEIVER}`)
   await setupHomeBridge(
     homeBridgeAddress,
     homeBridgeWithFeeImpl.methods.setFeeReceiver,
@@ -80,6 +59,7 @@ async function upgradeHomeBridgeWithFee(homeBridgeAddress) {
   nonce++
 
   if (HOME_WITHDRAW_FEE_PERCENT) {
+    console.log(`Set home withdraw percent fee: ${HOME_WITHDRAW_FEE_PERCENT}`)
     await setupHomeBridge(
       homeBridgeAddress,
       homeBridgeWithFeeImpl.methods.setWithdrawFeePercent,
@@ -89,6 +69,7 @@ async function upgradeHomeBridgeWithFee(homeBridgeAddress) {
     nonce++
   }
   if (HOME_WITHDRAW_FIXED_FEE) {
+    console.log(`Set home withdraw fixed fee: ${HOME_WITHDRAW_FIXED_FEE}`)
     await setupHomeBridge(
       homeBridgeAddress,
       homeBridgeWithFeeImpl.methods.setWithdrawFixedFee,
@@ -98,6 +79,7 @@ async function upgradeHomeBridgeWithFee(homeBridgeAddress) {
     nonce++
   }
   if (HOME_DEPOSIT_FEE_PERCENT) {
+    console.log(`Set home deposit percent fee: ${HOME_DEPOSIT_FEE_PERCENT}`)
     await setupHomeBridge(
       homeBridgeAddress,
       homeBridgeWithFeeImpl.methods.setDepositFeePercent,
@@ -107,6 +89,7 @@ async function upgradeHomeBridgeWithFee(homeBridgeAddress) {
     nonce++
   }
   if (HOME_DEPOSIT_FIXED_FEE) {
+    console.log(`Set home deposit fixed fee: ${HOME_DEPOSIT_FIXED_FEE}`)
     await setupHomeBridge(
       homeBridgeAddress,
       homeBridgeWithFeeImpl.methods.setDepositFixedFee,
@@ -115,10 +98,29 @@ async function upgradeHomeBridgeWithFee(homeBridgeAddress) {
     )
     nonce++
   }
+}
+
+async function upgradeHomeBridgeWithFee(version, homeBridgeAddress) {
+  let nonce = await web3Home.eth.getTransactionCount(DEPLOYMENT_ACCOUNT_ADDRESS)
+
+  const homeBridgeWithFeeImpl = await deployHomeBridgeImpl('HomeBridgeErcToErcWithFee')
+  nonce++
+
+  const homeBridgeStorage = new web3Home.eth.Contract(EternalStorageProxy.abi, homeBridgeAddress)
+  await hookupHomeBridge(homeBridgeStorage, homeBridgeWithFeeImpl.options.address, version, nonce)
+  nonce++
+
+  homeBridgeWithFeeImpl.options.address = homeBridgeAddress
+
+  setupHomeBridgeWithFee(homeBridgeAddress, homeBridgeWithFeeImpl)
 
   console.log('\nUpgrade Home Bridge With Fee Finished\n')
+  return homeBridgeWithFeeImpl.options.address
 }
 
 module.exports = {
-  upgradeHomeBridgeWithFee
+  upgradeHomeBridgeWithFee,
+  hookupHomeBridge,
+  deployHomeBridgeImpl,
+  setupHomeBridgeWithFee
 }
