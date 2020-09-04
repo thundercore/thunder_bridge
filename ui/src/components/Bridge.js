@@ -213,7 +213,7 @@ export class Bridge extends React.Component {
       return
     }
 
-    const { foreignStore, web3Store, homeStore } = this.props.RootStore
+    const { foreignStore, web3Store, homeStore, alertStore } = this.props.RootStore
 
     if (
       (web3Store.metamaskNotSetted && web3Store.metamaskNet.name === '') ||
@@ -239,6 +239,15 @@ export class Bridge extends React.Component {
       if (!fee.isZero()) {
         finalAmount = finalAmount.minus(fee)
       }
+    }
+
+    if (finalAmount.lte(new BN(0))) {
+      alertStore.pushError(
+        `The amount is less than minimum fee amount.\nThe minimum transaction fee is: ${
+          fee
+        } ${homeStore.symbol}`
+      )
+      return
     }
 
     const confirmationData = {
