@@ -1,14 +1,15 @@
 const { upgradeHomeBridgeWithFee } = require('../deploy/src/erc_to_erc/upgradeHomeBridgeWithFee')
-const deployErc20 = require('../deploy/src/utils/deployERC20Token')
 const fs = require('fs')
 
-module.exports = function(deployer, network) {
+module.exports = async function(deployer, network, accounts) {
   if (network === 'contract_test' || network === 'pala_single') {
     return
   }
 
   const deployed = require(process.cwd() + '/data/deployed.json')
-  deployer.then(async () => {
-    await upgradeHomeBridgeWithFee(deployed.homeBridge.address)
-  })
+  if (deployed.homeBridge.implemeation && Number(deployed.homeBridge.implemeation) >= 2) {
+    return
+  }
+
+  return await upgradeHomeBridgeWithFee('2', deployed.homeBridge.address)
 };

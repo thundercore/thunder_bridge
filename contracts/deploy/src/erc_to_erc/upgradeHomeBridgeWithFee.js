@@ -112,7 +112,7 @@ async function upgradeHomeBridgeWithFee(version, homeBridgeAddress) {
 
   homeBridgeWithFeeImpl.options.address = homeBridgeAddress
 
-  setupHomeBridgeWithFee(homeBridgeAddress, homeBridgeWithFeeImpl)
+  await setupHomeBridgeWithFee(homeBridgeAddress, homeBridgeWithFeeImpl)
 
   console.log('\nUpgrade Home Bridge With Fee Finished\n')
   return homeBridgeWithFeeImpl.options.address

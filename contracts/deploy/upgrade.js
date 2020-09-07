@@ -9,7 +9,7 @@ const deployedFile = fs.existsSync(process.argv[2])
 const deployed = require(deployedFile)
 
 async function checkUpgrade(version, upgradeFunc, contractName) {
-  if (!deployed.homeBridge.implemeation || deployed.homeBridge.implemeation.version < version) {
+  if (!deployed.homeBridge.implemeation || Number(deployed.homeBridge.implemeation.version) < Number(version)) {
     console.log(`Upgrade home bridge v${version}: ${contractName}`)
     const address = await upgradeFunc(version, deployed.homeBridge.address)
     deployed.homeBridge.implemeation = {
@@ -25,7 +25,7 @@ async function checkUpgrade(version, upgradeFunc, contractName) {
 
 async function main() {
   console.log(`Home bridge address: ${deployed.homeBridge.address}`)
-  await checkUpgrade(2, upgradeHomeBridgeWithFee, 'HomeBridgeErcToErcWithFee')
+  await checkUpgrade('2', upgradeHomeBridgeWithFee, 'HomeBridgeErcToErcWithFee')
 
   fs.writeFileSync(deployedFile, JSON.stringify(deployed, null, 4))
 }
