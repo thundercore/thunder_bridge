@@ -295,7 +295,7 @@ export class Sender {
   async newReceiptTask(task: EventTask, txHash: string, nonce: number): Promise<ReceiptTask> {
     const receiptTask: ReceiptTask = {
       eventTask: task,
-      timestamp: Date.now() / 1000,
+      timestamp: Date.now(),
       nonce: nonce,
       transactionHash: txHash,
       sentBlock: await this.web3.getCurrentBlock(),

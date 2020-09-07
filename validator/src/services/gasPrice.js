@@ -174,8 +174,13 @@ function getPrice(timestamp) {
   } else if (speed == 1) {
     gasPrice = cachedGasPrice.fast
   } else if (speed >= 2) {
-    // gasPrice = instant + (instant - fast) * (speed-2)
-    const diff = Web3Utils.toBN(cachedGasPrice.instant).sub(Web3Utils.toBN(cachedGasPrice.fast))
+    // diff = (instant-fast) > 0 ? (instant-fast) : 10
+    let diff = Web3Utils.toBN(cachedGasPrice.instant).sub(Web3Utils.toBN(cachedGasPrice.fast))
+    if (diff.lte(Web3Utils.toBN(0))) {
+      diff = Web3Utils.toBN(Web3Utils.toWei('10', 'gwei'))
+    }
+    logger.debug({gasPrice: cachedGasPrice.instant, speed, diff: diff.toString()}, `bump gas price`)
+    // gasPrice = instant + diff * (speed-2)
     gasPrice = Web3Utils.toBN(cachedGasPrice.instant).add(diff.mul(Web3Utils.toBN(speed - 2)))
     gasPrice = BN.min(
       Web3Utils.toBN(Web3Utils.toWei(config.maxGasPriceLimit.toString(), 'gwei')),

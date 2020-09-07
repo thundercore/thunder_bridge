@@ -5,7 +5,7 @@
   "main": "deploy.js",
   "scripts": {
     "lint": "eslint .",
-    "deploy": "node deploy.js"
+    "deploy": "node deploy.js && node upgrade.js"
   },
   "author": "",
   "license": "ISC",

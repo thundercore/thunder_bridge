@@ -1,4 +1,4 @@
-import HOME_ERC_TO_ERC_ABI from '../../../abis/HomeBridgeErcToErc.abi'
+import HOME_ERC_TO_ERC_ABI from '../../../abis/HomeBridgeErcToErcWithFee.abi'
 import FOREIGN_ERC_TO_ERC_ABI from '../../../abis/ForeignBridgeErcToErc.abi'
 
 

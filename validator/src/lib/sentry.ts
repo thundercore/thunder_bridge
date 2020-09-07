@@ -39,9 +39,6 @@ export default function init() {
     category: 'init service',
     message: `init service ${config.name}`,
     level: Sentry.Severity.Debug,
-    data: {
-      env: process.env
-    }
   })
 
   Sentry.captureMessage(`Init ${config.SENTRY_ENVIRONMENT} validator: ${config.name}`, Sentry.Severity.Debug)

@@ -47,6 +47,7 @@ async function deployContract(contractJson, args, { from, network, nonce }) {
     gasPrice
   })
   if (Web3Utils.hexToNumber(tx.status) !== 1) {
+    console.error(tx)
     throw new Error('Tx failed')
   }
   instance.options.address = tx.contractAddress
