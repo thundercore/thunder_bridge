@@ -9,7 +9,7 @@ async function main() {
     } catch (e) {
       console.log(e)
     } finally {
-      await sleep(10 * 60 * 1000)
+      await sleep(60 * 1000)
     }
   }
 }

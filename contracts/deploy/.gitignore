@@ -1,3 +1,5 @@
 build
 .env
 bridgeDeploymentResults.json
+env.venus.*
+env.zeus.*

@@ -31,10 +31,14 @@ describe('erc to erc', () => {
   it('should convert tokens in foreign to tokens in home', async () => {
     const balance = await erc20Token.methods.balanceOf(user.address).call()
     assert(!toBN(balance).isZero(), 'Account should have tokens')
+    console.log("foreign origin balance:", balance)
+
+    const homeBalance = await erc677Token.methods.balanceOf(user.address).call()
+    console.log("home origin balance:", homeBalance)
 
     // send tokens to foreign bridge
-    await erc20Token.methods
-      .transfer(FOREIGN_BRIDGE_ADDRESS, homeWeb3.utils.toWei('0.1'))
+    const tx = await erc20Token.methods
+      .transfer(FOREIGN_BRIDGE_ADDRESS, homeWeb3.utils.toWei('5'))
       .send({
         from: user.address,
         gas: '1000000'
@@ -43,6 +47,9 @@ describe('erc to erc', () => {
         console.error(e)
       })
 
+    const foreignNewBalance = await erc20Token.methods.balanceOf(user.address).call()
+    console.log("foreign new balance:", foreignNewBalance)
+
     // Send a trivial transaction to generate a new block since the watcher
     // is configured to wait 1 confirmation block
     await generateNewBlock(foreignWeb3, user.address)
@@ -50,6 +57,7 @@ describe('erc to erc', () => {
     // check that balance increases
     await promiseRetry(async retry => {
       const balance = await erc677Token.methods.balanceOf(user.address).call()
+      console.log("home new balance:", balance)
       if (toBN(balance).isZero()) {
         retry()
       }
@@ -57,17 +65,19 @@ describe('erc to erc', () => {
   })
   it('should convert tokens in home to tokens in foreign', async () => {
     const originalBalance = await erc20Token.methods.balanceOf(user.address).call()
+    console.log("foreign origin balance:", originalBalance)
 
     // check that account has tokens in home chain
     const balance = await erc677Token.methods.balanceOf(user.address).call()
     assert(!toBN(balance).isZero(), 'Account should have tokens')
+    console.log("home origin balance:", balance)
 
     let status = false
     let depositTx;
     while (!status) {
       // send transaction to home bridge
       depositTx = await erc677Token.methods
-        .transferAndCall(HOME_BRIDGE_ADDRESS, homeWeb3.utils.toWei('0.01'), '0x')
+        .transferAndCall(HOME_BRIDGE_ADDRESS, homeWeb3.utils.toWei('1'), '0x')
         .send({
           from: user.address,
           gas: '10000000'
@@ -81,6 +91,9 @@ describe('erc to erc', () => {
     // Send a trivial transaction to generate a new block since the watcher
     // is configured to wait 1 confirmation block
     await generateNewBlock(homeWeb3, user.address)
+
+    const homeNewBalance = await erc677Token.methods.balanceOf(user.address).call()
+    console.log("home new balance:", homeNewBalance)
 
     // The bridge should create a new transaction with a CollectedSignatures
     // event so we generate another trivial transaction
@@ -103,6 +116,7 @@ describe('erc to erc', () => {
     // check that balance increases
     await promiseRetry(async retry => {
       const balance = await erc20Token.methods.balanceOf(user.address).call()
+      console.log("foreign new balance:", balance)
       if (toBN(balance).lte(toBN(originalBalance))) {
         retry()
       }

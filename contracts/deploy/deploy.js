@@ -4,7 +4,6 @@ const deployErc20 = require('./src/utils/deployERC20Token')
 
 let { ERC20_TOKEN_ADDRESS } = env
 
-
 async function main() {
   if (!ERC20_TOKEN_ADDRESS) {
     ERC20_TOKEN_ADDRESS = (await deployErc20()).erc677tokenAddress

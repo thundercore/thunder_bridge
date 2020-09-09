@@ -28,5 +28,9 @@ export function ReadValidators(resp, tokenName, network) {
 }
 
 export async function LoadPrometheusFile() {
+  if (process.env.NODE_ENV === 'development') {
+    // return require('./status.json')
+    return
+  }
   return (await fetch(process.env.REACT_APP_MONITOR_STATUS_FILE)).json()
 }

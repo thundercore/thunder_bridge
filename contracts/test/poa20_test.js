@@ -2,7 +2,7 @@ const POA20 = artifacts.require("ERC677BridgeToken.sol");
 const ERC677ReceiverTest = artifacts.require("ERC677ReceiverTest.sol")
 
 const { expect } = require('chai')
-const { ERROR_MSG, ERROR_MSG_OPCODE, ZERO_ADDRESS, BN, toBN } = require('./setup')
+const { ERROR_MSG, ERROR_MSG_OPCODE, ZERO_ADDRESS, BN } = require('./setup')
 const { ether, expectEventInLogs } = require('./helpers/helpers')
 
 const Web3Utils = require('web3-utils');

@@ -179,7 +179,7 @@ function getPrice(timestamp) {
     if (diff.lte(Web3Utils.toBN(0))) {
       diff = Web3Utils.toBN(Web3Utils.toWei('10', 'gwei'))
     }
-    logger.debug({speed, diff: diff.toString()}, `bump gas price`)
+    logger.debug({gasPrice: cachedGasPrice.instant, speed, diff: diff.toString()}, `bump gas price`)
     // gasPrice = instant + diff * (speed-2)
     gasPrice = Web3Utils.toBN(cachedGasPrice.instant).add(diff.mul(Web3Utils.toBN(speed - 2)))
     gasPrice = BN.min(
