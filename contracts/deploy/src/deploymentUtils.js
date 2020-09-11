@@ -9,7 +9,8 @@ const {
   deploymentPrivateKey,
   FOREIGN_RPC_URL,
   HOME_RPC_URL,
-  GAS_LIMIT,
+  HOME_DEPLOYMENT_GAS_LIMIT,
+  FOREIGN_DEPLOYMENT_GAS_LIMIT,
   HOME_DEPLOYMENT_GAS_PRICE,
   FOREIGN_DEPLOYMENT_GAS_PRICE,
   GET_RECEIPT_INTERVAL_IN_MILLISECONDS
@@ -23,10 +24,12 @@ async function deployContract(contractJson, args, { from, network, nonce }) {
     web3 = web3Foreign
     url = FOREIGN_RPC_URL
     gasPrice = FOREIGN_DEPLOYMENT_GAS_PRICE
+    gasLimit = FOREIGN_DEPLOYMENT_GAS_LIMIT
   } else {
     web3 = web3Home
     url = HOME_RPC_URL
     gasPrice = HOME_DEPLOYMENT_GAS_PRICE
+    gasLimit = HOME_DEPLOYMENT_GAS_LIMIT
   }
   const options = {
     from
@@ -44,7 +47,8 @@ async function deployContract(contractJson, args, { from, network, nonce }) {
     to: null,
     privateKey: deploymentPrivateKey,
     url,
-    gasPrice
+    gasPrice,
+    gasLimit
   })
   if (Web3Utils.hexToNumber(tx.status) !== 1) {
     console.error(tx)
@@ -58,23 +62,25 @@ async function deployContract(contractJson, args, { from, network, nonce }) {
 async function sendRawTxHome(options) {
   return sendRawTx({
     ...options,
-    gasPrice: HOME_DEPLOYMENT_GAS_PRICE
+    gasPrice: HOME_DEPLOYMENT_GAS_PRICE,
+    gasLimit: HOME_DEPLOYMENT_GAS_LIMIT
   })
 }
 
 async function sendRawTxForeign(options) {
   return sendRawTx({
     ...options,
-    gasPrice: FOREIGN_DEPLOYMENT_GAS_PRICE
+    gasPrice: FOREIGN_DEPLOYMENT_GAS_PRICE,
+    gasLimit: FOREIGN_DEPLOYMENT_GAS_LIMIT
   })
 }
 
-async function sendRawTx({ data, nonce, to, privateKey, url, gasPrice, value }) {
+async function sendRawTx({ data, nonce, to, privateKey, url, gasPrice, value, gasLimit }) {
   try {
     const rawTx = {
       nonce,
       gasPrice: Web3Utils.toHex(gasPrice),
-      gasLimit: Web3Utils.toHex(GAS_LIMIT),
+      gasLimit: Web3Utils.toHex(gasLimit),
       to,
       data,
       value

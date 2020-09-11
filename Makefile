@@ -56,7 +56,7 @@ test-e2e: deploy-e2e run-v1
 	cd $(E2E_DIR) && docker-compose -f docker-compose-e2e.yaml run e2e
 
 test-truffle: build-deployer
-	cd $(VALIDATOR_DIR) && docker-compose run --rm truffle-test
+	cd $(VALIDATOR_DIR) && docker-compose build truffle-test && docker-compose run --rm truffle-test
 	cd $(VALIDATOR_DIR) && docker-compose down
 
 test-truffle-pala: build-deployer

@@ -16,6 +16,9 @@ const foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.ad
 const home = new w3.eth.Contract(HomeBridge.abi, deployed.homeBridge.address)
 const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address)
 
+// In home bridge v2, we changed reduce the gas. Set extra price percentage to 0 for race condition case.
+process.env.EXTRA_GAS_PERCENTAGE = 0
+
 const makeTransfer = async (account) => {
   return utils.makeTransfer(w3, erc20, account, foreign.options.address)
 }

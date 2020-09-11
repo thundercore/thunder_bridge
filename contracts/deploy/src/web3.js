@@ -16,7 +16,7 @@ const foreignProvider = new Web3.providers.HttpProvider(FOREIGN_RPC_URL)
 const web3Foreign = new Web3(foreignProvider)
 
 const { HOME_DEPLOYMENT_GAS_PRICE, FOREIGN_DEPLOYMENT_GAS_PRICE } = env
-const GAS_LIMIT = env.DEPLOYMENT_GAS_LIMIT
+const { HOME_DEPLOYMENT_GAS_LIMIT, FOREIGN_DEPLOYMENT_GAS_LIMIT } = env
 
 const deploymentPrivateKey = Buffer.from(DEPLOYMENT_ACCOUNT_PRIVATE_KEY, 'hex')
 
@@ -26,7 +26,8 @@ module.exports = {
   deploymentPrivateKey,
   HOME_RPC_URL,
   FOREIGN_RPC_URL,
-  GAS_LIMIT,
+  HOME_DEPLOYMENT_GAS_LIMIT,
+  FOREIGN_DEPLOYMENT_GAS_LIMIT,
   HOME_DEPLOYMENT_GAS_PRICE,
   FOREIGN_DEPLOYMENT_GAS_PRICE,
   GET_RECEIPT_INTERVAL_IN_MILLISECONDS
