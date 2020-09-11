@@ -57,7 +57,7 @@ contract('ERC677BridgeToken', async (accounts) => {
       const decimals = await homeToken.decimals({from: ordinary});
       name.should.be.equal("TT-Bitcoin");
       symbol.should.be.equal("TT-BTC");
-      decimals.should.be.bignumber.equal(toBN(18));
+      decimals.should.be.bignumber.equal(web3.utils.toBN(18));
       await homeToken.mint(ordinary, oneEther, {from: contractOwner});
       await homeToken.transfer(ordinary2, halfEther, {from: ordinary});
       const firstBalance = await homeToken.balanceOf(ordinary,{from: ordinary});

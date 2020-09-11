@@ -1,4 +1,4 @@
-const ForeignBridge = artifacts.require("ForeignBridgeErcToErc.sol");
+const ForeignBridge = artifacts.require("ForeignBridgeErcToErcV2.sol");
 const ForeignBridgeV2 = artifacts.require("ForeignBridgeV2.sol");
 const BridgeValidators = artifacts.require("BridgeValidators.sol");
 const EternalStorageProxy = artifacts.require("EternalStorageProxy.sol");
@@ -177,44 +177,6 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message2).should.be.rejectedWith(ERROR_MSG)
     })
 
-    it('should not allow withdraw over home max tx limit', async () => {
-      const recipientAccount = accounts[3];
-      const invalidValue = web3.utils.toBN(web3.utils.toWei('0.75', "ether"));
-      await token.mint(foreignBridge.address, web3.utils.toBN(web3.utils.toWei('5', "ether")));
-
-      const transactionHash = "0x35d3818e50234655f6aebb2a1cfbf30f59568d8a4ec72066fac5a25dbe7b8121";
-      const message = createMessage(recipientAccount, invalidValue, transactionHash, foreignBridge.address);
-      const signature = await sign(authorities[0], message)
-      const vrs = signatureToVRS(signature);
-
-      await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message).should.be.rejectedWith(ERROR_MSG)
-    })
-
-    it('should not allow withdraw over daily home limit', async () => {
-      const recipientAccount = accounts[3];
-      await token.mint(foreignBridge.address, web3.utils.toBN(web3.utils.toWei('5', "ether")));
-
-      const transactionHash = "0x35d3818e50234655f6aebb2a1cfbf30f59568d8a4ec72066fac5a25dbe7b8121";
-      const message = createMessage(recipientAccount, halfEther, transactionHash, foreignBridge.address);
-      const signature = await sign(authorities[0], message)
-      const vrs = signatureToVRS(signature);
-
-      await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message).should.be.fulfilled
-
-      const transactionHash2 = "0x69debd8fd1923c9cb3cd8ef6461e2740b2d037943b941729d5a47671a2bb8712";
-      const message2 = createMessage(recipientAccount, halfEther, transactionHash2, foreignBridge.address);
-      const signature2 = await sign(authorities[0], message2)
-      const vrs2 = signatureToVRS(signature2);
-
-      await foreignBridge.executeSignatures([vrs2.v], [vrs2.r], [vrs2.s], message2).should.be.fulfilled
-
-      const transactionHash3 = "0x022695428093bb292db8e48bd1417c5e1b84c0bf673bd0fff23ed0fb6495b872";
-      const message3 = createMessage(recipientAccount, halfEther, transactionHash3, foreignBridge.address);
-      const signature3 = await sign(authorities[0], message3)
-      const vrs3 = signatureToVRS(signature3);
-
-      await foreignBridge.executeSignatures([vrs3.v], [vrs3.r], [vrs3.s], message3).should.be.rejectedWith(ERROR_MSG)
-    })
   })
 
   describe('#withdraw with 2 minimum signatures', async () => {
@@ -384,60 +346,44 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
 
     })
   })
-  describe('#Fee', async () => {
-    it('works with 5 validators and 3 required signatures', async () => {
-      const recipient = accounts[8]
-      const authoritiesFiveAccs = [accounts[1], accounts[2], accounts[3], accounts[4], accounts[5], accounts[6]]
-      const ownerOfValidators = accounts[0]
-      const validatorContractWith3Signatures = await BridgeValidators.new()
-      await validatorContractWith3Signatures.initialize(3, authoritiesFiveAccs, ownerOfValidators)
-      const erc20Token = await ERC677BridgeToken.new("Some ERC20", "RSZT", 18);
-      const value = web3.utils.toBN(web3.utils.toWei('0.4', "ether"));
-      const foreignBridgeWithThreeSigs = await ForeignBridge.new()
 
-      await foreignBridgeWithThreeSigs.initialize(validatorContractWith3Signatures.address, erc20Token.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT);
-      await erc20Token.mint(foreignBridgeWithThreeSigs.address, value);
+  describe('# test foreign bridge v2', () => {
+    var value = web3.utils.toBN(web3.utils.toWei('0.25', "ether"));
+    let foreignBridge
+    beforeEach(async () => {
+      foreignBridge = await ForeignBridge.new()
+      token = await ERC677BridgeToken.new("Some ERC20", "RSZT", 18);
+      const feePercent = '0';
+      await foreignBridge.initialize(validatorContract.address, token.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, feePercent);
+      await token.mint(foreignBridge.address,value);
+    })
+    it('home daily limit was remove in v2', async () => {
+      const recipientAccount = accounts[3];
+      await token.mint(foreignBridge.address, web3.utils.toBN(web3.utils.toWei('5', "ether")));
 
-      const txHash = "0x35d3818e50234655f6aebb2a1cfbf30f59568d8a4ec72066fac5a25dbe7b8121";
-      const message = createMessage(recipient, value, txHash, foreignBridgeWithThreeSigs.address);
-
-      // signature 1
-      const signature = await sign(authoritiesFiveAccs[0], message)
+      const transactionHash = "0x35d3818e50234655f6aebb2a1cfbf30f59568d8a4ec72066fac5a25dbe7b8121";
+      const message = createMessage(recipientAccount, halfEther, transactionHash, foreignBridge.address);
+      const signature = await sign(authorities[0], message)
       const vrs = signatureToVRS(signature);
 
-      // signature 2
-      const signature2 = await sign(authoritiesFiveAccs[1], message)
+      await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message).should.be.fulfilled
+
+      const transactionHash2 = "0x69debd8fd1923c9cb3cd8ef6461e2740b2d037943b941729d5a47671a2bb8712";
+      const message2 = createMessage(recipientAccount, halfEther, transactionHash2, foreignBridge.address);
+      const signature2 = await sign(authorities[0], message2)
       const vrs2 = signatureToVRS(signature2);
 
-      // signature 3
-      const signature3 = await sign(authoritiesFiveAccs[2], message)
+      await foreignBridge.executeSignatures([vrs2.v], [vrs2.r], [vrs2.s], message2).should.be.fulfilled
+
+      const transactionHash3 = "0x022695428093bb292db8e48bd1417c5e1b84c0bf673bd0fff23ed0fb6495b872";
+      const message3 = createMessage(recipientAccount, halfEther, transactionHash3, foreignBridge.address);
+      const signature3 = await sign(authorities[0], message3)
       const vrs3 = signatureToVRS(signature3);
 
-      const balanceBefore = await erc20Token.balanceOf(recipient);
-      const balanceBridgeBefore = await erc20Token.balanceOf(foreignBridgeWithThreeSigs.address);
-      const authoritiesBalancesBefore = []
-      for (const validator of authoritiesFiveAccs) {
-        authoritiesBalancesBefore.push(await erc20Token.balanceOf(validator))
-      }
-      await foreignBridgeWithThreeSigs.executeSignatures([vrs.v, vrs2.v, vrs3.v], [vrs.r, vrs2.r, vrs3.r], [vrs.s, vrs2.s, vrs3.s], message).should.be.fulfilled;
-
-      const balanceAfter = await erc20Token.balanceOf(recipient);
-      const balanceBridgeAfter = await erc20Token.balanceOf(foreignBridgeWithThreeSigs.address);
-      const feeValue = value.mul(toBN(FEE_PERCENT)).div(toBN(FULL_PERCENT));
-      const particularValidatorValue = feeValue.divn(toBN(authoritiesFiveAccs.length));
-      const lastValidatorValue = feeValue.sub(particularValidatorValue.mul(toBN(authoritiesFiveAccs.length - 1)))
-
-      for (const [i, validator] of authoritiesFiveAccs.entries()) {
-        const validatorBalanceAfter = await erc20Token.balanceOf(validator);
-        if (i !== authoritiesFiveAccs.length - 1) {
-          validatorBalanceAfter.should.be.bignumber.equal(authoritiesBalancesBefore[i].add(particularValidatorValue));
-        } else {
-          validatorBalanceAfter.should.be.bignumber.equal(authoritiesBalancesBefore[i].add(lastValidatorValue));
-        }
-      }
-
-      balanceAfter.should.be.bignumber.equal(balanceBefore.add(value).sub(feeValue));
-      balanceBridgeAfter.should.be.bignumber.equal(balanceBridgeBefore.sub(value))
+      await foreignBridge.executeSignatures([vrs3.v], [vrs3.r], [vrs3.s], message3).should.be.fulfilled
+    })
+    it('setExecutionDailyLimit was deprecated', async () => {
+      await foreignBridge.setExecutionDailyLimit('10000').should.be.rejectedWith(ERROR_MSG)
     })
   })
 })

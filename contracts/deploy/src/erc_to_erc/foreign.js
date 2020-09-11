@@ -7,7 +7,7 @@ const { web3Foreign, deploymentPrivateKey, FOREIGN_RPC_URL } = require('../web3'
 
 const EternalStorageProxy = require('../../../build/contracts/EternalStorageProxy.json')
 const BridgeValidators = require('../../../build/contracts/BridgeValidators.json')
-const ForeignBridge = require('../../../build/contracts/ForeignBridgeErcToErc.json')
+const ForeignBridge = require('../../../build/contracts/ForeignBridgeErcToErcV2.json')
 
 const VALIDATORS = env.VALIDATORS.split(' ')
 
