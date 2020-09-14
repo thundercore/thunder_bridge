@@ -88,7 +88,7 @@ const G_STATUSBRIDGES = mkGaugedataRow(
   ["totalSupply", "deposits", "depositValue", "depositUsers", "withdrawals", "withdrawalValue", "withdrawalUsers", "requiredSignatures"],
   ["network", "token"]
 );
-const G_STATUS = mkGaugedataRow(["balanceDiff", "lastChecked", "requiredSignaturesMatch", "validatorsMatch"], ["token"]);
+const G_STATUS = mkGaugedataRow(["balanceDiff", "balanceDiffAlignDecimal6", "decimals", "lastChecked", "requiredSignaturesMatch", "validatorsMatch"], ["token"]);
 const G_VALIDATORS = mkGaugedataRow(["balance", "leftTx", "gasPrice"], ["network", "token", "validator"]);
 
 
