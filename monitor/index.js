@@ -3,6 +3,7 @@ if (process.env.NODE_ENV !== "production")
 
 const express = require('express');
 const client = require('prom-client');
+const fetch = require('node-fetch');
 const HttpRetryProvider = require('./utils/httpRetryProvider')
 const { newRedis } = require('./utils/redisClient')
 
@@ -197,12 +198,52 @@ async function checkVBalances(token) {
   }
 }
 
+async function updateGasPrice() {
+  const resp = await fetch(process.env.GAS_PRICE_ORACLE_URL || 'https://gasprice.poa.network/')
+  const gasPrice = await resp.json()
+  await redis.updateGasPrice(gasPrice)
+}
+
 
 for(let token in config) {
   if (!(token in exportStatus)) exportStatus[token] = {}
   const updater = ((token)=>()=>{checkStatus(token); checkVBalances(token)})(token);
   updater();
   setInterval(updater, config[token].UPDATE_PERIOD);
+}
+
+updateGasPrice()
+setInterval(updateGasPrice, process.env.GAS_PRICE_INTERVAL || 60 * 1000)
+
+
+function jsonResponse(res, json) {
+  res.set('Content-Type', 'application/json');
+  res.end(JSONbig.stringify(json))
+}
+
+function errorResponse(res, msg) {
+  res.status(404).send(msg)
+}
+
+async function setGasPrice(req, res) {
+  if (req.query.network === 'home' || req.query.network === 'foreign') {
+    if (!req.query.value || isNaN(req.query.value)) {
+      return errorResponse(res, 'Unknown value type')
+    }
+    const value = parseInt(req.query.value)
+    await redis.setGasPrice(req.query.network, value)
+  } else {
+    return errorResponse(res, 'Unknown network type')
+  }
+  return jsonResponse(res, {message: `set ${req.query.network} gas price success, value: ${req.query.value}`})
+}
+
+async function getGasPrice(req, res) {
+  if (req.query.network === 'home' || req.query.network === 'foreign') {
+    return jsonResponse(res, await redis.getGasPrice(req.query.network))
+  } else {
+    return errorResponse(res, 'Unknown network type')
+  }
 }
 
 
@@ -215,4 +256,7 @@ server.get('/status', (req, res) => {
   res.set('Content-Type', 'application/json');
   res.end(JSONbig.stringify(exportStatus));
 });
+server.get('/gasPrice', getGasPrice)
+server.post('/gasPrice', setGasPrice)
+
 server.listen(3000);
