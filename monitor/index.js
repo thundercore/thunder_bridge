@@ -41,10 +41,14 @@ let config = existsSync("config.json") ? JSON.parse(readFileSync("config.json", 
   mkDict(env.TOKEN_LABELS.split(" ").filter(s => s.length > 2).map(L => [L, {
     "HOME_RPC_URL": env.HOME_RPC_URL,
     "FOREIGN_RPC_URL": env.FOREIGN_RPC_URL,
+    "TOKEN_PRICE_RPC_URL": env.TOKEN_PRICE_RPC_URL,
     "HOME_BRIDGE_ADDRESS": env[`${L}_HOME_BRIDGE_ADDRESS`],
     "FOREIGN_BRIDGE_ADDRESS": env[`${L}_FOREIGN_BRIDGE_ADDRESS`],
     "HOME_DEPLOYMENT_BLOCK": env[`${L}_HOME_DEPLOYMENT_BLOCK`],
     "FOREIGN_DEPLOYMENT_BLOCK": env[`${L}_FOREIGN_DEPLOYMENT_BLOCK`],
+    "UNISWAP_PAIR_ADDRESS": env[`${L}_UNISWAP_PAIR_ADDRESS`],
+    "TOKEN_ADDRESS": env[`${L}_TOKEN_ADDRESS`],
+    "STABLE_TOKEN_ADDRESS": env[`${L}_STABLE_TOKEN_ADDRESS`],
     "GAS_PRICE_SPEED_TYPE": env.GAS_PRICE_SPEED_TYPE,
     "GAS_LIMIT": env.GAS_LIMIT,
     "GAS_PRICE_FALLBACK": env.GAS_PRICE_FALLBACK,
@@ -89,7 +93,7 @@ const G_STATUSBRIDGES = mkGaugedataRow(
   ["totalSupply", "deposits", "depositValue", "depositUsers", "withdrawals", "withdrawalValue", "withdrawalUsers", "requiredSignatures"],
   ["network", "token"]
 );
-const G_STATUS = mkGaugedataRow(["balanceDiff", "balanceDiffAlignDecimal6", "decimals", "lastChecked", "requiredSignaturesMatch", "validatorsMatch"], ["token"]);
+const G_STATUS = mkGaugedataRow(["balanceDiff", "balanceDiffAlignDecimal6", "decimals", "lastChecked", "requiredSignaturesMatch", "validatorsMatch", "price"], ["token"]);
 const G_VALIDATORS = mkGaugedataRow(["balance", "leftTx", "gasPrice"], ["network", "token", "validator"]);
 
 
@@ -147,15 +151,17 @@ async function checkStatus(token) {
     const web3Home = new Web3(homeProvider)
     const HOME_ERC_TO_ERC_ABI = require('./abis/HomeBridgeErcToErc.abi')
     const getBalances = require('./getBalances')(context)
+    const getTokenPrice = require('./getTokenPrice')(context)
     const getShortEventStats = require('./getShortEventStats')(context)
     const homeBridge = new web3Home.eth.Contract(HOME_ERC_TO_ERC_ABI, HOME_BRIDGE_ADDRESS)
     const bridgeModeHash = await homeBridge.methods.getBridgeMode().call()
     const bridgeMode = decodeBridgeMode(bridgeModeHash)
     const balances = await getBalances(bridgeMode)
     const events = await getShortEventStats(bridgeMode)
+    const price = await getTokenPrice()
     const home = Object.assign({}, balances.home, events.home)
     const foreign = Object.assign({}, balances.foreign, events.foreign)
-    const status = Object.assign({}, balances, events, { home }, { foreign })
+    const status = Object.assign({}, balances, price, events, { home }, { foreign })
     exportStatus[token]['status'] = status
     if (!status) throw new Error('status is empty: ' + JSON.stringify(status))
     updateAllData(status, token)
