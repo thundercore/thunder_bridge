@@ -1,12 +1,13 @@
 const fs = require('fs')
-const { deployContract } = require('../deploymentUtils')
+const { deployContract, privateKeyToAddress } = require('../deploymentUtils')
 const { web3Home } = require('../web3')
 const env = require('../loadEnv')
 
 const {
   DEPLOYMENT_ACCOUNT_PRIVATE_KEY,
-  DEPLOYMENT_ACCOUNT_ADDRESS,
 } = env
+
+const DEPLOYMENT_ACCOUNT_ADDRESS = privateKeyToAddress(DEPLOYMENT_ACCOUNT_PRIVATE_KEY)
 
 async function deployHomeBridgeImpl(contractName) {
   const contract = require(`../../../build/contracts/${contractName}.json`)
