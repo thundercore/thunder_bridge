@@ -9,7 +9,11 @@
     "GAS_PRICE_SPEED_TYPE":"standard",
     "GAS_LIMIT":300000,
     "GAS_PRICE_FALLBACK":21,
-    "UPDATE_PERIOD":120000
+    "UPDATE_PERIOD":120000,
+    "TOKEN_PRICE_RPC_URL": "https://mainnet.infura.io/",
+    "UNISWAP_PAIR_ADDRESS": "0xb20..05",
+    "TOKEN_ADDRESS": "0x6b..0f",
+    "STABLE_TOKEN_ADDRESS": "0xda..c7"
   },
   "DAI" : {
     "HOME_RPC_URL":"https://rinkeby.infura.io/",
@@ -21,6 +25,10 @@
     "GAS_PRICE_SPEED_TYPE":"standard",
     "GAS_LIMIT":300000,
     "GAS_PRICE_FALLBACK":21,
-    "UPDATE_PERIOD":120000
+    "UPDATE_PERIOD":120000,
+    "TOKEN_PRICE_RPC_URL": "https://mainnet.infura.io/",
+    "UNISWAP_PAIR_ADDRESS": "0xb20..05",
+    "TOKEN_ADDRESS": "0x6b..0f",
+    "STABLE_TOKEN_ADDRESS": "0xda..c7"
   }
 }

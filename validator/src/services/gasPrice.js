@@ -63,6 +63,12 @@ async function fetchGasPriceFromOracle(oracleUrl) {
     const gasPrice = gasPriceWithinLimits(price)
     oracleGasPrice[speedType] = Web3Utils.toWei(gasPrice.toString(), 'gwei')
   }
+
+  // For devops operation
+  if (json['thunder'] && Number(json['thunder']) > 0 ){
+    oracleGasPrice['thunder'] = Web3Utils.toWei(json.thunder.toString(), 'gwei')
+  }
+
   return oracleGasPrice
 }
 
@@ -160,8 +166,8 @@ function getSpeedBase() {
 }
 
 function getPrice(timestamp) {
-  if (process.env.SET_GAS_PRICE) {
-    return process.env.SET_GAS_PRICE.toString()
+  if (cachedGasPrice.thunder) {
+    return cachedGasPrice.thunder.toString()
   }
 
   let gasPrice = '0'

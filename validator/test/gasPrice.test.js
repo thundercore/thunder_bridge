@@ -218,7 +218,13 @@ describe('gasPrice', () => {
     })
 
     it('set price from env', async () => {
-      process.env.SET_GAS_PRICE = 1000
+      setTestCachedGasPrice({
+        standard: 5,
+        fast: 10,
+        instant: 20,
+        thunder: 1000
+      })
+
       const now = Math.floor(Date.now())
       expect(getPrice(now)).to.equal('1000', 'should use gas price from env')
       expect(getPrice(now - 350 * 1000)).to.equal('1000', 'should use gas price from env')
