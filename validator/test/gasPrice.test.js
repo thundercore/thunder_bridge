@@ -95,6 +95,27 @@ describe('gasPrice', () => {
       // then
       expect(gasPrice).to.deep.equal({ standard: '2', fast: '3', instant: '5' })
     })
+
+    it('should return fixed value if both the oracle and the contract success plus fixed is flaged', async () => {
+      // given
+      const oracleFnMock = () => Promise.resolve({ standard: '1', fast: '3', instant: '5', fixed: '1000' })
+      const bridgeContractMock = {
+        methods: {
+          gasPrice: sinon.stub().returns({
+            call: sinon.stub().returns('2'),
+          }),
+        },
+      }
+
+      // when
+      const gasPrice = await fetchGasPrice({
+        bridgeContract: bridgeContractMock,
+        oracleFn: oracleFnMock,
+      })
+
+      // then
+      expect(gasPrice).to.deep.equal({ standard: '2', fast: '3', instant: '5', fixed: '1000' })
+    })
   })
   describe('get price', () => {
     it('get price without speed base', async () => {
@@ -222,7 +243,7 @@ describe('gasPrice', () => {
         standard: 5,
         fast: 10,
         instant: 20,
-        thunder: 1000
+        fixed: 1000
       })
 
       const now = Math.floor(Date.now())

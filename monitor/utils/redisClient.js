@@ -51,7 +51,7 @@ Redis.prototype.getGasPrice = async function (network) {
   const lastGasPrice = JSON.parse(await this.get(gasPriceKey))
   const thunderGasPrice = await this.get(`${network}_${thunderGasPriceKey}`)
   if (thunderGasPrice && Number(thunderGasPrice) > 0) {
-    lastGasPrice['thunder'] = Number(thunderGasPrice)
+    lastGasPrice['fixed'] = Number(thunderGasPrice)
   }
   return lastGasPrice
 }
