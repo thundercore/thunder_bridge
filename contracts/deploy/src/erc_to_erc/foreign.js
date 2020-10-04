@@ -7,7 +7,15 @@ const { web3Foreign, deploymentPrivateKey, FOREIGN_RPC_URL } = require('../web3'
 
 const EternalStorageProxy = require('../../../build/contracts/EternalStorageProxy.json')
 const BridgeValidators = require('../../../build/contracts/BridgeValidators.json')
-const ForeignBridge = require('../../../build/contracts/ForeignBridgeErcToErcV2.json')
+
+let ForeignBridge
+if (env.BRIDGE_MODE === 'NATIVE_TO_ERC') {
+  console.log('Deploy ForeignBridgeWithNativeToken contract')
+  ForeignBridge = require('../../../build/contracts/ForeignBridgeWithNativeToken.json')
+} else if (env.BRIDGE_MODE === 'ERC_TO_ERC') {
+  console.log('Deploy ForeignBridgeErcToErcV2 contract')
+  ForeignBridge = require('../../../build/contracts/ForeignBridgeErcToErcV2.json')
+}
 
 const VALIDATORS = env.VALIDATORS.split(' ')
 
@@ -22,15 +30,13 @@ const {
   FOREIGN_MAX_AMOUNT_PER_TX,
   HOME_DAILY_LIMIT,
   HOME_MAX_AMOUNT_PER_TX,
-  FOREIGN_FEE_PERCENT
+  FOREIGN_FEE_PERCENT,
+  BRIDGE_MODE
 } = env
 
 const DEPLOYMENT_ACCOUNT_ADDRESS = privateKeyToAddress(DEPLOYMENT_ACCOUNT_PRIVATE_KEY)
 
 async function deployForeign(erc20TokenAddress) {
-  if (!Web3Utils.isAddress(erc20TokenAddress)) {
-    throw new Error('ERC20_TOKEN_ADDRESS env var is not defined')
-  }
   let foreignNonce = await web3Foreign.eth.getTransactionCount(DEPLOYMENT_ACCOUNT_ADDRESS)
   console.log('========================================')
   console.log('deploying ForeignBridge')
@@ -150,6 +156,8 @@ async function deployForeign(erc20TokenAddress) {
   )
   foreignNonce++
 
+  const erc20 = BRIDGE_MODE === 'NATIVE_TO_ERC' ? foreignBridgeStorage.options.address : erc20TokenAddress
+
   console.log('\ninitializing Foreign Bridge with following parameters:\n')
   console.log(`Foreign Validators: ${storageValidatorsForeign.options.address},
   `)
@@ -157,7 +165,7 @@ async function deployForeign(erc20TokenAddress) {
   const initializeFBridgeData = await foreignBridgeImplementation.methods
     .initialize(
       storageValidatorsForeign.options.address,
-      erc20TokenAddress,
+      erc20,
       FOREIGN_REQUIRED_BLOCK_CONFIRMATIONS,
       FOREIGN_GAS_PRICE,
       FOREIGN_MAX_AMOUNT_PER_TX,
@@ -195,6 +203,9 @@ async function deployForeign(erc20TokenAddress) {
     foreignBridge: {
       address: foreignBridgeStorage.options.address,
       deployedBlockNumber: Web3Utils.hexToNumber(foreignBridgeStorage.deployedBlockNumber)
+    },
+    erc20Token: {
+      address: erc20
     }
   }
 }

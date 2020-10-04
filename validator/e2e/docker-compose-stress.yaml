@@ -6,6 +6,7 @@ services:
       network_mode: host
       tty: true
       environment:
+        - BRIDGE_MODE=ws://127.0.0.1:8540
         - HOME_RPC_URL=ws://127.0.0.1:8540
         - FOREIGN_RPC_URL=http://127.0.0.1:8542
         - USER_ADDRESS=0x5Cb2C2Cd74CC26b1eF8Bf30AE62C90fEa5BFCc8C

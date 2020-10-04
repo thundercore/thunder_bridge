@@ -9,7 +9,6 @@ services:
       - /contracts
       - ../contracts/contracts:/contracts/contracts
       - ../contracts/migrations:/contracts/migrations
-      - ../contracts/deploy/env.local:/contracts/deploy/.env
 
   truffle:
     image: "trufflesuite/ganache-cli:latest"
@@ -27,32 +26,44 @@ services:
   truffle-test:
     network_mode: host
     build: .
-    volumes_from:
-      - contracts:rw
     stdin_open: true
     tty: true
     volumes:
       - ./truffle-test:/app/truffle-test
-      - ./env.test:/app/.env
+      - ./data:/app/data
     command: npm run truffle-test
+
+  truffle-erc-to-erc:
+    extends: truffle-test
+    volumes_from:
+      - contracts:rw
+    env_file:
+      - ./envs/erc-to-erc.env
+    depends_on:
+      - truffle
+      - contracts
+
+  truffle-native-to-erc:
+    extends: truffle-test
+    volumes_from:
+      - contracts:rw
+    env_file:
+      - ./envs/native-to-erc.env
     depends_on:
       - truffle
       - contracts
 
   truffle-test-pala:
-    network_mode: host
-    build: .
+    extends: truffle-test
     volumes_from:
       - contracts:rw
-    volumes:
-      - ./truffle-test:/app/truffle-test
-      - ./env.test:/app/.env
-    stdin_open: true
-    tty: true
+    env_file:
+      - ./envs/erc_to_erc.env
     command: npm run truffle-test:pala
     depends_on:
       - pala
       - contracts
+
   redis:
     image: "redis:4"
     ports:

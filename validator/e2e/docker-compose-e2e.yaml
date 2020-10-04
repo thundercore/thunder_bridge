@@ -1,6 +1,6 @@
 version: '2'
 services:
-  e2e:
+  test-e2e:
     build: .
     image: e2e
     network_mode: host
@@ -10,3 +10,9 @@ services:
       - ../data:/stuff/data
       - ../abis:/stuff/abis
       - ./test:/stuff/test
+  e2e-erc-to-erc:
+    extends: test-e2e
+    command: npx mocha test/ercToErc.js
+  e2e-native-to-erc:
+    extends: test-e2e
+    command: npx mocha test/nativeToErc.js

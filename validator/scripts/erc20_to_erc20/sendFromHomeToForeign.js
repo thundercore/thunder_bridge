@@ -25,7 +25,7 @@ const HOME_BRIDGE_ADDRESS = deployed.homeBridge.address
 const RETRY_LIMIT = process.env.RETRY_LIMIT || 50
 
 const BRIDGE_ABI = require('../../abis/HomeBridgeErcToErc.abi')
-const ERC677_ABI = require('../../abis/ERC677BridgeToken.json').abi
+const ERC677_ABI = require('../../abis/ERC677BridgeToken.abi')
 
 let [SENT, SUCCESS] = [0, 0]
 

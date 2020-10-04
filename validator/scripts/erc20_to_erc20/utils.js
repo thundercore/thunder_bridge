@@ -19,7 +19,7 @@ const web3Home = new Web3(new Web3WsProvider(HOME_RPC_URL, options))
 
 const HOME_BRIDGE_ABI = require('../../abis/HomeBridgeErcToErc.abi')
 const FOREIGN_BRIDGE_ABI = require('../../abis/ForeignBridgeErcToErc.abi')
-const ERC677_ABI = require('../../abis/ERC677BridgeToken.json').abi
+const ERC677_ABI = require('../../abis/ERC677BridgeToken.abi')
 
 const HOME_BRIDGE_ADDRESS = deployed.homeBridge.address
 const FOREIGN_BRIDGE_ADDRESS = deployed.foreignBridge.address

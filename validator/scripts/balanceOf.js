@@ -2,7 +2,7 @@ const Web3 = require('web3')
 
 var web3 = new Web3('https://testnet-rpc.thundercore.com/');
 var deployed = require('../../data-testnet/deployed.json')
-const ERC677_ABI = require('../abis/ERC677BridgeToken.json').abi
+const ERC677_ABI = require('../abis/ERC677BridgeToken.abi')
 
 const erc677Token = new web3.eth.Contract(
   ERC677_ABI,

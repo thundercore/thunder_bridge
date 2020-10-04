@@ -17,14 +17,14 @@ const { toBN } = foreignWeb3.utils
 homeWeb3.eth.accounts.wallet.add(user.privateKey)
 foreignWeb3.eth.accounts.wallet.add(user.privateKey)
 
-const tokenAbi = require('../abis/ERC677BridgeToken.json').abi
+const tokenAbi = require('../abis/ERC677BridgeToken.abi')
 const erc20Token = new foreignWeb3.eth.Contract(
   tokenAbi,
   deployed.erc20Token.address,
 )
 
 // Skip test because thunder only deploy `erc-to-erc` bridge.
-describe.skip('erc to native', () => {
+describe('erc to native', () => {
   it('should convert tokens in foreign to coins in home', async () => {
     const balance = await erc20Token.methods.balanceOf(user.address).call()
     const originalBalanceOnHome = await homeWeb3.eth.getBalance(user.address)

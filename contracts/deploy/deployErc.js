@@ -1,13 +1,11 @@
 const fs = require('fs')
-const path = require('path')
-const env = require('./src/loadEnv')
 
 async function deployErcToErc(erc20TokenAddress) {
   const deployHome = require('./src/erc_to_erc/home')
   const deployForeign = require('./src/erc_to_erc/foreign')
 
   const { homeBridge, erc677 } = await deployHome()
-  const { foreignBridge } = await deployForeign(erc20TokenAddress)
+  const { foreignBridge, erc20Token } = await deployForeign(erc20TokenAddress)
   console.log('\nDeployment has been completed.\n\n')
   console.log(
     `[   Home  ] HomeBridge: ${homeBridge.address} at block ${homeBridge.deployedBlockNumber}`
@@ -18,7 +16,7 @@ async function deployErcToErc(erc20TokenAddress) {
       foreignBridge.deployedBlockNumber
     }`
   )
-  console.log(`[ Foreign ] ERC20 Token: ${erc20TokenAddress}`)
+  console.log(`[ Foreign ] ERC20 Token: ${erc20Token.address}`)
   if (!fs.existsSync('data'))
     fs.mkdirSync('data', {recursive: true})
   fs.writeFileSync(
@@ -32,9 +30,7 @@ async function deployErcToErc(erc20TokenAddress) {
         foreignBridge: {
           ...foreignBridge
         },
-        erc20Token: {
-          address: erc20TokenAddress
-        }
+        erc20Token
       },
       null,
       4

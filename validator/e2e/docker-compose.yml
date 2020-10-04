@@ -35,6 +35,7 @@ services:
       - ../src:/app/src
       - ../config:/app/config
       - ../scripts:/app/scripts
+      - ../data:/app/data
       - ../test:/app/test
     env_file:
       - ./validator.env

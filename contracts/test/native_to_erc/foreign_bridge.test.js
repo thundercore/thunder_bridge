@@ -422,8 +422,9 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       const balance = await foreignBridge.balanceOf(foreignBridge.address)
       balance.should.be.bignumber.equal(value)
 
-      const balance1 = await foreignBridge.balanceOf(accounts[3])
-      balance1.should.be.bignumber.equal(ZERO)
+      const ethBalance = await web3.eth.getBalance(accounts[3])
+      const tokenBalance = await foreignBridge.balanceOf(accounts[3])
+      ethBalance.should.be.bignumber.equal(toBN(tokenBalance))
     })
 
     it('test total supply', async () => {

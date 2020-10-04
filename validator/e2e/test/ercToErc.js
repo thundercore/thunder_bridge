@@ -17,7 +17,7 @@ const { toBN } = foreignWeb3.utils
 homeWeb3.eth.accounts.wallet.add(user.privateKey)
 foreignWeb3.eth.accounts.wallet.add(user.privateKey)
 
-const tokenAbi = require('../abis/ERC677BridgeToken.json').abi
+const tokenAbi = require('../abis/ERC677BridgeToken.abi')
 const erc20Token = new foreignWeb3.eth.Contract(
   tokenAbi,
   deployed.erc20Token.address,
