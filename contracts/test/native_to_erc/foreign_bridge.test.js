@@ -432,27 +432,32 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       supply.should.be.bignumber.equal(value)
     })
 
-    it('if send eth failed, redirect eth to the sender (validator)', async () => {
+    it('if send eth failed, redirect eth to the fallback recipient', async () => {
       let foreignImplV2 = await ForeignBridgeV2.new();
       const recipient = foreignImplV2.address
       const validator = authorities[0]
+      const fallbackRecipient = accounts[6]
 
       var transactionHash = "0x1045bfe274b88120a6b1e5d01b5ec00ab5d01098346e90e7c7a3c9b8f0181c80";
       var message = createMessage(recipient, value, transactionHash, foreignBridge.address);
       var signature = await sign(validator, message)
       var vrs = signatureToVRS(signature);
       false.should.be.equal(await foreignBridge.relayedMessages(transactionHash))
+
+      // revert if fallback recipient was not assigned
+      await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message, {from: validator}).should.be.rejectedWith(ERROR_MSG)
+
+      await foreignBridge.setFallbackRecipient(fallbackRecipient)
       const {logs} = await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message, {from: validator}).should.be.fulfilled
-      console.log(logs)
 
       // ForeignBridgeV2 will revert this transfer, so contract will redirect to the sender.
       logs[0].event.should.be.equal("RecipientRedirected")
       logs[0].args.from.should.be.equal(recipient)
-      logs[0].args.to.should.be.equal(validator)
+      logs[0].args.to.should.be.equal(fallbackRecipient)
 
       logs[1].event.should.be.equal("Transfer")
       logs[1].args.from.should.be.equal(foreignBridge.address)
-      logs[1].args.to.should.be.equal(validator)
+      logs[1].args.to.should.be.equal(fallbackRecipient)
       logs[1].args.value.should.be.bignumber.equal(value)
 
       logs[2].event.should.be.equal("RelayedMessage")

@@ -9,6 +9,8 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
   string public constant symbol = "BETH";
   uint8 public constant decimals = 18;
 
+  address public fallbackRecipient;
+
   event Transfer(
     address indexed from,
     address indexed to,
@@ -20,6 +22,10 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
     address indexed to
   );
 
+  function setFallbackRecipient(address _recipient) public {
+    fallbackRecipient = _recipient;
+  }
+
   function erc20token() public view returns(ERC20Basic) {
     if (this.isInitialized()) {
       return ERC20Basic(this);
@@ -28,7 +34,7 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
   }
 
   function totalSupply() public view returns (uint256) {
-    return this.balance;
+    return address(this).balance;
   }
 
   /**
@@ -64,7 +70,7 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
   */
   function transfer(address to, uint256 value) public payable returns (bool) {
     if (to != address(this) || value != msg.value) {
-      revert("BETH reverted");
+      revert("reverted");
     }
     emit Transfer(msg.sender, this, msg.value);
   }
@@ -79,7 +85,7 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
    * @param value The amount of tokens to be spent.
    */
   function approve(address spender, uint256 value) public returns (bool) {
-    revert("BETH reverted");
+    revert("reverted");
   }
 
   /**
@@ -96,7 +102,7 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
     public
     returns (bool)
   {
-    revert("BETH reverted");
+    revert("reverted");
   }
 
   function tokenTransfer(address _recipient, uint256 _amount) internal returns(bool) {
@@ -105,10 +111,10 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
 
   function onExecuteMessage(address _recipient, uint256 _amount) internal returns(bool){
       if (!tokenTransfer(_recipient, _amount)) {
+        require(fallbackRecipient != address(0), "fallback recipient was not assigned");
         msg.sender.transfer(_amount);
-        emit RecipientRedirected(_recipient, msg.sender);
-        // TODO: add a fallback receiver.
-        emit Transfer(this, msg.sender, _amount);
+        emit RecipientRedirected(_recipient, fallbackRecipient);
+        emit Transfer(this, fallbackRecipient, _amount);
         return true;
       }
       emit Transfer(this, _recipient, _amount);
