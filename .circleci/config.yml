@@ -47,6 +47,14 @@ jobs:
           name: Run e2e native-to-erc tests
           command: make test-e2e-native-to-erc
 
+  contracttests:
+    executor: builder
+    steps:
+      - checkout
+      - run:
+          name: Run contract tests
+          command: make test-contracts
+
 workflows:
 
   github-pull-request:
