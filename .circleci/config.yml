@@ -30,8 +30,22 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Run truffle tests
-          command: make test-truffle
+          name: Run truffle erc-to-erc tests
+          command: make test-truffle-erc-to-erc
+      - run:
+          name: Run truffle native-to-erc tests
+          command: make test-truffle-native-to-erc
+
+  e2etests:
+    executor: builder
+    steps:
+      - checkout
+      - run:
+          name: Run e2e erc-to-erc tests
+          command: make test-e2e-erc-to-erc
+      - run:
+          name: Run e2e native-to-erc tests
+          command: make test-e2e-native-to-erc
 
 workflows:
 
