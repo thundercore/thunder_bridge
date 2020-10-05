@@ -143,7 +143,7 @@ async function deployHome() {
       BRIDGEABLE_TOKEN_NAME,
       BRIDGEABLE_TOKEN_SYMBOL,
       BRIDGEABLE_TOKEN_DECIMALS,
-      HOME_BRIDGE_OWNER
+      DEPLOYMENT_ACCOUNT_ADDRESS
     )
     .encodeABI({ from: DEPLOYMENT_ACCOUNT_ADDRESS })
   const txInitializeToken = await sendRawTxHome({
@@ -231,6 +231,9 @@ async function deployHome() {
   assert.strictEqual(Web3Utils.hexToNumber(txInitializeHomeBridge.status), 1, 'Transaction Failed')
   homeNonce++
 
+  console.log('\nSetup home bridge with fee')
+  await setupHomeBridgeWithFee(homeBridgeStorage.options.address, homeBridgeImplementation)
+
   console.log('transferring proxy ownership to multisig for Home bridge Proxy contract')
   const homeBridgeProxyData = await homeBridgeStorage.methods
     .transferProxyOwnership(HOME_UPGRADEABLE_ADMIN)
@@ -244,9 +247,6 @@ async function deployHome() {
   })
   assert.strictEqual(Web3Utils.hexToNumber(txhomeBridgeProxyData.status), 1, 'Transaction Failed')
   homeNonce++
-
-  console.log('\nSetup home bridge with fee')
-  await setupHomeBridgeWithFee(homeBridgeStorage.options.address, homeBridgeImplementation)
 
   console.log('\nHome Deployment Bridge completed\n')
   return {

@@ -49,7 +49,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
             erc20Balance: new BN(foreignErc20Balance).idiv(base).toString()
           },
           decimals: new BN(decimals).toString(),
-          balanceDiff: diff,
+          balanceDiff: Number(new BN(diff).idiv(base).toString()),
           balanceDiffAlignDecimal6: Number(new BN(diff).idiv(alignBase).toString()),
           lastChecked: Math.floor(Date.now() / 1000)
         }
