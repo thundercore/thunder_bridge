@@ -4,10 +4,8 @@ const sender = require(path.join(__dirname, '../src/lib/sender'))
 const receiptor = require(path.join(__dirname, '../src/lib/receiptor'))
 const locker = require(path.join(__dirname, '../src/lib/locker'))
 const storage = require(path.join(__dirname, '../src/lib/storage'))
+const deployed = require(path.join(__dirname, '../../data/deployed.json'))
 const Web3 = require('web3')
-
-const tokenAbi = require('../abis/ERC677BridgeToken.abi')
-const token = new homeWeb3.eth.Contract(tokenAbi, deployed.homeBridge.erc677.address)
 
 const { expect } = require('chai')
 
@@ -24,8 +22,8 @@ async function makeTransfer(w3, erc20, from, to) {
   const value = w3.utils.toWei('0.01')
   if (BRIDGE_MODE === 'NATIVE_TO_ERC') {
     // data = sig + to + amount + dataLength + data + zeros padding + recipient.strip('0x')
-    let data = await token.methods.transfer(FOREIGN_BRIDGE_ADDRESS, value).encodeABI()
-    data += '0'.repeat(12 * 2) + account2.address.slice(2)
+    let data = await erc20.methods.transfer(deployed.foreignBridge.address, value).encodeABI()
+    data += '0'.repeat(12 * 2) + to.slice(2)
     const receipt = await w3.eth.sendTransaction({
       from,
       to: erc20.options.address,

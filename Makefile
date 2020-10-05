@@ -8,7 +8,7 @@ build-deployer:
 
 
 deploy-truffle-% : build-deployer
-	cd $(VALIDATOR_DIR) && docker-compose up -d truffle
+	cd $(VALIDATOR_DIR) && docker-compose up -d truffle && sleep 3
 	docker run --rm --network=host \
 		-v $(PWD)/contracts/deploy/envs/$*.env:/contracts/deploy/.env \
 		-v $(PWD)/validator/data:/contracts/deploy/data \
@@ -16,7 +16,7 @@ deploy-truffle-% : build-deployer
 
 
 deploy-pala: build-deployer
-	cd $(VALIDATOR_DIR) && docker-compose up -d pala
+	cd $(VALIDATOR_DIR) && docker-compose up -d pala && sleep 3
 	docker run --rm --network=host \
 		-v $(PWD)/contracts/deploy/envs/env.local:/contracts/deploy/.env \
 		-v $(PWD)/validator/data:/contracts/deploy/data \
@@ -52,7 +52,8 @@ clean-%:
 	cd $(E2E_DIR) && cp envs/$*.env validator.env
 	cd $(E2E_DIR) && docker-compose -p $* down
 
-test-e2e-%: deploy-e2e-% run-v1
+test-e2e-%: deploy-e2e-%
+	$(MAKE) run-v1
 	cd $(E2E_DIR) && docker-compose -f docker-compose-e2e.yaml run e2e-$*
 
 test-truffle-%: deploy-truffle-%
