@@ -8,13 +8,13 @@ import "./Ownable.sol";
 contract DepositWithdrawFeeManager is EternalStorage, Ownable {
     using SafeMath for uint256;
 
-    event FeeReceiverChange(address _receiver);
+    event FeeReceiverChange(address receiver);
 
-    event WithdrawFixedFeeChanged(uint _fixedFee);
-    event WithdrawFeePercentChanged(uint  _feePercent);
+    event WithdrawFixedFeeChanged(uint fixedFee);
+    event WithdrawFeePercentChanged(uint feePercent);
 
-    event DepositFixedFeeChanged(uint _fixedFee);
-    event DepositFeePercentChanged(uint _feePercent);
+    event DepositFixedFeeChanged(uint fixedFee);
+    event DepositFeePercentChanged(uint feePercent);
 
     function setFeeReceiver(address _receiver) public onlyOwner {
         addressStorage[keccak256(abi.encodePacked("feeReceiver"))] = _receiver;
@@ -34,9 +34,10 @@ contract DepositWithdrawFeeManager is EternalStorage, Ownable {
         return uintStorage[keccak256(abi.encodePacked("withdrawFixedFee"))];
     }
 
-    function setWithdrawFeePercent(uint256 _fixedFee) public onlyOwner {
-        uintStorage[keccak256(abi.encodePacked("withdrawFeePercent"))] = _fixedFee;
-        emit WithdrawFixedFeeChanged(_fixedFee);
+    function setWithdrawFeePercent(uint256 _feePercent) public onlyOwner {
+        require(_feePercent < 10000, "Invalid fee percent");
+        uintStorage[keccak256(abi.encodePacked("withdrawFeePercent"))] = _feePercent;
+        emit WithdrawFeePercentChanged(_feePercent);
     }
 
     function withdrawFeePercent() public view returns(uint256) {
@@ -63,9 +64,10 @@ contract DepositWithdrawFeeManager is EternalStorage, Ownable {
         return uintStorage[keccak256(abi.encodePacked("depositFixedFee"))];
     }
 
-    function setDepositFeePercent(uint256 _fixedFee) public onlyOwner {
-        uintStorage[keccak256(abi.encodePacked("depositFeePercent"))] = _fixedFee;
-        emit DepositFixedFeeChanged(_fixedFee);
+    function setDepositFeePercent(uint256 _feePercent) public onlyOwner {
+        require(_feePercent < 10000, "Invalid fee percent");
+        uintStorage[keccak256(abi.encodePacked("depositFeePercent"))] = _feePercent;
+        emit DepositFeePercentChanged(_feePercent);
     }
 
     function depositFeePercent() public view returns(uint256) {
