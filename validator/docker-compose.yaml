@@ -58,7 +58,7 @@ services:
     volumes_from:
       - contracts:rw
     env_file:
-      - ./envs/erc_to_erc.env
+      - ./envs/erc-to-erc.env
     command: npm run truffle-test:pala
     depends_on:
       - pala

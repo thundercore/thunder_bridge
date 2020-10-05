@@ -60,12 +60,10 @@ workflows:
   github-pull-request:
     jobs:
       - unittests
-          filters:
-            branches:
-              only:
-                - master
       - truffletests
-          filters:
-            branches:
-              only:
-                - master
+      - contracttests
+      - e2etests
+        # filters:
+        #    branches:
+        #      only:
+        #        - master
