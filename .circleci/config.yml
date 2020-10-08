@@ -59,11 +59,23 @@ workflows:
 
   github-pull-request:
     jobs:
-      - unittests
-      - truffletests
-      - contracttests
-      - e2etests
-        # filters:
-        #    branches:
-        #      only:
-        #        - master
+      - unittests:
+        filters:
+           branches:
+             only:
+               - master
+      - truffletests:
+        filters:
+           branches:
+             only:
+               - master
+      - contracttests:
+        filters:
+           branches:
+             only:
+               - master
+      - e2etests:
+        filters:
+           branches:
+             only:
+               - master
