@@ -79,11 +79,11 @@ async function sendFromHomeToForeign(numberToSend) {
         data,
         nonce,
         gasPrice: HOME_TEST_TX_GAS_PRICE,
-        amount: '0',
+        value: web3Home.utils.toWei('0'),
         gasLimit,
         to: BRIDGEABLE_TOKEN_ADDRESS,
         web3: web3Home,
-        chainId: homeChainId,
+        chainId: homeChainId
       }
       const txHash = await sendTx(tx)
       if (txHash !== undefined) {

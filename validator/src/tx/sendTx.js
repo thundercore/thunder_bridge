@@ -26,14 +26,14 @@ async function sendRawTx({ web3, params, method }) {
 }
 
 // eslint-disable-next-line consistent-return
-async function sendTx({ privateKey, data, nonce, gasPrice, amount, gasLimit, to, chainId, web3 }) {
+async function sendTx({ privateKey, data, nonce, gasPrice, value, gasLimit, to, chainId, web3 }) {
   const serializedTx = await web3.eth.accounts.signTransaction(
     {
       nonce: Number(nonce),
       chainId,
       to,
       data,
-      value: Web3Utils.toWei(amount),
+      value,
       gasPrice,
       gas: gasLimit,
     },

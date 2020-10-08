@@ -27,41 +27,17 @@ services:
     network_mode: host
     build: .
     stdin_open: true
+    env_file:
+      - ./envs/truffle.env
     tty: true
+    volumes_from:
+      - contracts:rw
     volumes:
       - ./truffle-test:/app/truffle-test
       - ./data:/app/data
     command: npm run truffle-test
-
-  truffle-erc-to-erc:
-    extends: truffle-test
-    volumes_from:
-      - contracts:rw
-    env_file:
-      - ./envs/erc-to-erc.env
     depends_on:
       - truffle
-      - contracts
-
-  truffle-native-to-erc:
-    extends: truffle-test
-    volumes_from:
-      - contracts:rw
-    env_file:
-      - ./envs/native-to-erc.env
-    depends_on:
-      - truffle
-      - contracts
-
-  truffle-test-pala:
-    extends: truffle-test
-    volumes_from:
-      - contracts:rw
-    env_file:
-      - ./envs/erc-to-erc.env
-    command: npm run truffle-test:pala
-    depends_on:
-      - pala
       - contracts
 
   redis:

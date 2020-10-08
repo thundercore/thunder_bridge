@@ -3,6 +3,9 @@ VALIDATOR_DIR=validator/
 CONTRACT_DIR=contracts/
 E2E_DIR=validator/e2e/
 
+BRIDGE_MODE = $(shell echo '$*' | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+ENVFILE = "/tmp/thunder_bridge.env"
+
 build-deployer:
 	cd $(CONTRACT_DIR) && docker build -t thunder_bridge_deployer .
 
@@ -10,7 +13,8 @@ build-deployer:
 deploy-truffle-% : build-deployer
 	cd $(VALIDATOR_DIR) && docker-compose up -d truffle && sleep 3
 	docker run --rm --network=host \
-		-v $(PWD)/contracts/deploy/envs/$*.env:/contracts/deploy/.env \
+		-e BRIDGE_MODE=${BRIDGE_MODE} \
+		-v $(PWD)/contracts/deploy/envs/truffle.env:/contracts/deploy/.env \
 		-v $(PWD)/validator/data:/contracts/deploy/data \
 		thunder_bridge_deployer
 
@@ -26,15 +30,17 @@ deploy-pala: build-deployer
 deploy-e2e-%: build-deployer
 	cd $(E2E_DIR) && docker-compose -f docker-compose-infra.yaml up -d --build
 	docker run --rm --network=host \
-		-v $(PWD)/contracts/deploy/envs/$*.e2e.env:/contracts/deploy/.env \
+		-e BRIDGE_MODE=${BRIDGE_MODE} \
+		-v $(PWD)/contracts/deploy/envs/e2e.env:/contracts/deploy/.env \
 		-v $(PWD)/validator/data:/contracts/deploy/data \
 		thunder_bridge_deployer
 
 
-deploy-stress: build-deployer
+deploy-stress-%: build-deployer
 	cd $(E2E_DIR) && docker-compose -f docker-compose-infra.yaml up -d --build
 	docker run --rm --network=host \
-		-v $(PWD)/contracts/deploy/envs/env.stress:/contracts/deploy/.env \
+		-e BRIDGE_MODE=${BRIDGE_MODE} \
+		-v $(PWD)/contracts/deploy/envs/stress.env:/contracts/deploy/.env \
 		-v $(PWD)/validator/data:/contracts/deploy/data \
 		thunder_bridge_deployer
 
@@ -54,12 +60,14 @@ clean-%:
 
 test-e2e-%: deploy-e2e-%
 	$(MAKE) run-v1
-	cd $(E2E_DIR) && docker-compose -f docker-compose-e2e.yaml run e2e-$*
+	cd $(E2E_DIR) && \
+	docker-compose -f docker-compose-e2e.yaml build e2e-$* && \
+	docker-compose -f docker-compose-e2e.yaml run e2e-$*
 
 test-truffle-%: deploy-truffle-%
 	cd $(VALIDATOR_DIR) && \
 		docker-compose build truffle-test && \
-		docker-compose run --rm truffle-$*
+		docker-compose run -e BRIDGE_MODE=${BRIDGE_MODE} --rm truffle-test
 	cd $(VALIDATOR_DIR) && docker-compose down
 
 test-truffle-pala: build-deployer
@@ -77,10 +85,14 @@ test-contracts:
 run-all: run-v1 run-v2 run-v3
 	echo "All validator are deployed."
 
-stress: deploy-stress run-all
-	cd $(E2E_DIR) && docker-compose -f docker-compose-stress.yaml up -d
+stress-%: deploy-stress-%
+	$(MAKE) run-all
+	cd $(E2E_DIR) && \
+	docker-compose -f docker-compose-stress.yaml run -e BRIDGE_MODE=${BRIDGE_MODE} -d stress-home && \
+	docker-compose -f docker-compose-stress.yaml run -e BRIDGE_MODE=${BRIDGE_MODE} -d stress-foreign
 
-crash: deploy-stress run-all
+crash: deploy-stress
+	$(MAKE) run-all
 	cd $(VALIDATOR_DIR) && python scripts/crash-test.py | tee crash.log
 
 test-all: test-e2e test-unittest test-truffle clean
