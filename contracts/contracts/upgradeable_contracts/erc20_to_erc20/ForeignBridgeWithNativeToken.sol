@@ -20,7 +20,7 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
     address indexed to
   );
 
-  function setFallbackRecipient(address _recipient) public onlyIfOwnerOfProxy {
+  function setFallbackRecipient(address _recipient) public onlyOwner {
     require(_recipient != address(0));
     addressStorage[keccak256(abi.encodePacked("fallbackRecipient"))] = _recipient;
   }
