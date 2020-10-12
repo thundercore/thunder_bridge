@@ -95,6 +95,27 @@ describe('gasPrice', () => {
       // then
       expect(gasPrice).to.deep.equal({ standard: '2', fast: '3', instant: '5' })
     })
+
+    it('should return fixed value if both the oracle and the contract success plus fixed is flaged', async () => {
+      // given
+      const oracleFnMock = () => Promise.resolve({ standard: '1', fast: '3', instant: '5', fixed: '1000' })
+      const bridgeContractMock = {
+        methods: {
+          gasPrice: sinon.stub().returns({
+            call: sinon.stub().returns('2'),
+          }),
+        },
+      }
+
+      // when
+      const gasPrice = await fetchGasPrice({
+        bridgeContract: bridgeContractMock,
+        oracleFn: oracleFnMock,
+      })
+
+      // then
+      expect(gasPrice).to.deep.equal({ standard: '2', fast: '3', instant: '5', fixed: '1000' })
+    })
   })
   describe('get price', () => {
     it('get price without speed base', async () => {
@@ -218,7 +239,13 @@ describe('gasPrice', () => {
     })
 
     it('set price from env', async () => {
-      process.env.SET_GAS_PRICE = 1000
+      setTestCachedGasPrice({
+        standard: 5,
+        fast: 10,
+        instant: 20,
+        fixed: 1000
+      })
+
       const now = Math.floor(Date.now())
       expect(getPrice(now)).to.equal('1000', 'should use gas price from env')
       expect(getPrice(now - 350 * 1000)).to.equal('1000', 'should use gas price from env')

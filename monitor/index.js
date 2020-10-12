@@ -3,6 +3,7 @@ if (process.env.NODE_ENV !== "production")
 
 const express = require('express');
 const client = require('prom-client');
+const fetch = require('node-fetch');
 const HttpRetryProvider = require('./utils/httpRetryProvider')
 const { newRedis } = require('./utils/redisClient')
 
@@ -40,10 +41,14 @@ let config = existsSync("config.json") ? JSON.parse(readFileSync("config.json", 
   mkDict(env.TOKEN_LABELS.split(" ").filter(s => s.length > 2).map(L => [L, {
     "HOME_RPC_URL": env.HOME_RPC_URL,
     "FOREIGN_RPC_URL": env.FOREIGN_RPC_URL,
+    "TOKEN_PRICE_RPC_URL": env.TOKEN_PRICE_RPC_URL,
     "HOME_BRIDGE_ADDRESS": env[`${L}_HOME_BRIDGE_ADDRESS`],
     "FOREIGN_BRIDGE_ADDRESS": env[`${L}_FOREIGN_BRIDGE_ADDRESS`],
     "HOME_DEPLOYMENT_BLOCK": env[`${L}_HOME_DEPLOYMENT_BLOCK`],
     "FOREIGN_DEPLOYMENT_BLOCK": env[`${L}_FOREIGN_DEPLOYMENT_BLOCK`],
+    "UNISWAP_PAIR_ADDRESS": env[`${L}_UNISWAP_PAIR_ADDRESS`],
+    "TOKEN_ADDRESS": env[`${L}_TOKEN_ADDRESS`],
+    "STABLE_TOKEN_ADDRESS": env[`${L}_STABLE_TOKEN_ADDRESS`],
     "GAS_PRICE_SPEED_TYPE": env.GAS_PRICE_SPEED_TYPE,
     "GAS_LIMIT": env.GAS_LIMIT,
     "GAS_PRICE_FALLBACK": env.GAS_PRICE_FALLBACK,
@@ -88,7 +93,7 @@ const G_STATUSBRIDGES = mkGaugedataRow(
   ["totalSupply", "deposits", "depositValue", "depositUsers", "withdrawals", "withdrawalValue", "withdrawalUsers", "requiredSignatures"],
   ["network", "token"]
 );
-const G_STATUS = mkGaugedataRow(["balanceDiff", "lastChecked", "requiredSignaturesMatch", "validatorsMatch"], ["token"]);
+const G_STATUS = mkGaugedataRow(["balanceDiff", "balanceDiffAlignDecimal6", "decimals", "lastChecked", "requiredSignaturesMatch", "validatorsMatch", "price"], ["token"]);
 const G_VALIDATORS = mkGaugedataRow(["balance", "leftTx", "gasPrice"], ["network", "token", "validator"]);
 
 
@@ -146,15 +151,17 @@ async function checkStatus(token) {
     const web3Home = new Web3(homeProvider)
     const HOME_ERC_TO_ERC_ABI = require('./abis/HomeBridgeErcToErc.abi')
     const getBalances = require('./getBalances')(context)
+    const getTokenPrice = require('./getTokenPrice')(context)
     const getShortEventStats = require('./getShortEventStats')(context)
     const homeBridge = new web3Home.eth.Contract(HOME_ERC_TO_ERC_ABI, HOME_BRIDGE_ADDRESS)
     const bridgeModeHash = await homeBridge.methods.getBridgeMode().call()
     const bridgeMode = decodeBridgeMode(bridgeModeHash)
     const balances = await getBalances(bridgeMode)
     const events = await getShortEventStats(bridgeMode)
+    const price = await getTokenPrice()
     const home = Object.assign({}, balances.home, events.home)
     const foreign = Object.assign({}, balances.foreign, events.foreign)
-    const status = Object.assign({}, balances, events, { home }, { foreign })
+    const status = Object.assign({}, balances, price, events, { home }, { foreign })
     exportStatus[token]['status'] = status
     if (!status) throw new Error('status is empty: ' + JSON.stringify(status))
     updateAllData(status, token)
@@ -197,12 +204,52 @@ async function checkVBalances(token) {
   }
 }
 
+async function updateGasPrice() {
+  const resp = await fetch(process.env.GAS_PRICE_ORACLE_URL || 'https://gasprice.poa.network/')
+  const gasPrice = await resp.json()
+  await redis.updateGasPrice(gasPrice)
+}
+
 
 for(let token in config) {
   if (!(token in exportStatus)) exportStatus[token] = {}
   const updater = ((token)=>()=>{checkStatus(token); checkVBalances(token)})(token);
   updater();
   setInterval(updater, config[token].UPDATE_PERIOD);
+}
+
+updateGasPrice()
+setInterval(updateGasPrice, process.env.GAS_PRICE_INTERVAL || 60 * 1000)
+
+
+function jsonResponse(res, json) {
+  res.set('Content-Type', 'application/json');
+  res.end(JSONbig.stringify(json))
+}
+
+function errorResponse(res, msg) {
+  res.status(404).send(msg)
+}
+
+async function setGasPrice(req, res) {
+  if (req.query.network === 'home' || req.query.network === 'foreign') {
+    if (!req.query.value || isNaN(req.query.value)) {
+      return errorResponse(res, 'Unknown value type')
+    }
+    const value = parseInt(req.query.value)
+    await redis.setGasPrice(req.query.network, value)
+  } else {
+    return errorResponse(res, 'Unknown network type')
+  }
+  return jsonResponse(res, {message: `set ${req.query.network} gas price success, value: ${req.query.value}`})
+}
+
+async function getGasPrice(req, res) {
+  if (req.query.network === 'home' || req.query.network === 'foreign') {
+    return jsonResponse(res, await redis.getGasPrice(req.query.network))
+  } else {
+    return errorResponse(res, 'Unknown network type')
+  }
 }
 
 
@@ -215,4 +262,7 @@ server.get('/status', (req, res) => {
   res.set('Content-Type', 'application/json');
   res.end(JSONbig.stringify(exportStatus));
 });
+server.get('/gasPrice', getGasPrice)
+server.post('/gasPrice', setGasPrice)
+
 server.listen(3000);

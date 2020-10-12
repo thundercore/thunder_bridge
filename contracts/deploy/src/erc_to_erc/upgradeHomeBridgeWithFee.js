@@ -1,13 +1,14 @@
 const assert = require('assert')
 const Web3Utils = require('web3-utils')
 const env = require('../loadEnv')
-const { sendRawTxHome } = require('../deploymentUtils')
+const { sendRawTxHome, privateKeyToAddress } = require('../deploymentUtils')
 const { deployHomeBridgeImpl } = require('../utils/deployHomeBridgeImpl')
 
 const { web3Home, deploymentPrivateKey, HOME_RPC_URL } = require('../web3')
+const EternalStorageProxy = require('../../..//build/contracts/EternalStorageProxy.json')
 
 const {
-  DEPLOYMENT_ACCOUNT_ADDRESS,
+  DEPLOYMENT_ACCOUNT_PRIVATE_KEY,
   HOME_FEE_RECEIVER,
   HOME_WITHDRAW_FEE_PERCENT,
   HOME_WITHDRAW_FIXED_FEE,
@@ -15,8 +16,7 @@ const {
   HOME_DEPOSIT_FIXED_FEE,
 } = env
 
-const EternalStorageProxy = require('../../..//build/contracts/EternalStorageProxy.json')
-
+const DEPLOYMENT_ACCOUNT_ADDRESS = privateKeyToAddress(DEPLOYMENT_ACCOUNT_PRIVATE_KEY)
 
 async function hookupHomeBridge(storageProxy, homeBridgeAddress, version, nonce) {
   console.log('\nhooking up HomeBridge storage to HomeBridge implementation')

@@ -3,6 +3,8 @@ const JSONbig = require('json-bigint')
 
 const prefix = 'monitor'
 const lastProcessedBlockKey = 'lastProcessedBlock'
+const gasPriceKey = 'poa.gasPrice'
+const thunderGasPriceKey = 'thunder.GasPrice'
 
 Redis.prototype.getProcessedResult = async function (token, name) {
   const key = `${prefix}-cache-${token}-${name}`
@@ -35,6 +37,23 @@ Redis.prototype.getProcessedBlock = async function (token) {
   const foreign = await this.get(`${token}-${lastProcessedBlockKey}-foreign`)
   console.log(`${token} getProcessedBlock home:${home} foreign:${foreign}`)
   return [home, foreign]
+}
+
+Redis.prototype.updateGasPrice = async function (gasPriceJson) {
+  await this.set(gasPriceKey, JSON.stringify(gasPriceJson))
+}
+
+Redis.prototype.setGasPrice = async function (network, gasPrice) {
+  await this.set(`${network}_${thunderGasPriceKey}`, gasPrice)
+}
+
+Redis.prototype.getGasPrice = async function (network) {
+  const lastGasPrice = JSON.parse(await this.get(gasPriceKey))
+  const thunderGasPrice = await this.get(`${network}_${thunderGasPriceKey}`)
+  if (thunderGasPrice && Number(thunderGasPrice) > 0) {
+    lastGasPrice['fixed'] = Number(thunderGasPrice)
+  }
+  return lastGasPrice
 }
 
 function newRedis(url) {

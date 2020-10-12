@@ -63,6 +63,12 @@ async function fetchGasPriceFromOracle(oracleUrl) {
     const gasPrice = gasPriceWithinLimits(price)
     oracleGasPrice[speedType] = Web3Utils.toWei(gasPrice.toString(), 'gwei')
   }
+
+  // For devops operation
+  if (json['fixed'] && Number(json['fixed']) > 0 ){
+    oracleGasPrice['fixed'] = Web3Utils.toWei(json.fixed.toString(), 'gwei')
+  }
+
   return oracleGasPrice
 }
 
@@ -96,7 +102,7 @@ async function fetchGasPrice({ bridgeContract, oracleFn }) {
     return gasPriceFromOracle
   }
 
-  return {
+  const ret = {
     standard: BN.max(
       Web3Utils.toBN(gasPriceFromOracle.standard),
       Web3Utils.toBN(gasPriceFromBridgeContract.standard),
@@ -107,6 +113,11 @@ async function fetchGasPrice({ bridgeContract, oracleFn }) {
       Web3Utils.toBN(gasPriceFromBridgeContract.instant),
     ).toString(),
   }
+
+  if (gasPriceFromOracle.fixed) {
+    ret.fixed = gasPriceFromOracle.fixed
+  }
+  return ret
 }
 
 let fetchGasPriceInterval = null
@@ -160,8 +171,8 @@ function getSpeedBase() {
 }
 
 function getPrice(timestamp) {
-  if (process.env.SET_GAS_PRICE) {
-    return process.env.SET_GAS_PRICE.toString()
+  if (cachedGasPrice.fixed) {
+    return cachedGasPrice.fixed.toString()
   }
 
   let gasPrice = '0'
