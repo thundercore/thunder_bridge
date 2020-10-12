@@ -9,8 +9,6 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
   string public constant symbol = "BETH";
   uint8 public constant decimals = 18;
 
-  address public fallbackRecipient;
-
   event Transfer(
     address indexed from,
     address indexed to,
@@ -22,8 +20,13 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
     address indexed to
   );
 
-  function setFallbackRecipient(address _recipient) public {
-    fallbackRecipient = _recipient;
+  function setFallbackRecipient(address _recipient) public onlyIfOwnerOfProxy {
+    require(_recipient != address(0));
+    addressStorage[keccak256(abi.encodePacked("fallbackRecipient"))] = _recipient;
+  }
+
+  function fallbackRecipient() public view returns(address) {
+    return addressStorage[keccak256(abi.encodePacked("fallbackRecipient"))];
   }
 
   function erc20token() public view returns(ERC20Basic) {
@@ -111,10 +114,11 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
 
   function onExecuteMessage(address _recipient, uint256 _amount) internal returns(bool){
       if (!tokenTransfer(_recipient, _amount)) {
-        require(fallbackRecipient != address(0), "fallback recipient was not assigned");
+        address _fallbackRecipient = fallbackRecipient();
+        require(_fallbackRecipient != address(0), "fallback recipient was not assigned");
         msg.sender.transfer(_amount);
-        emit RecipientRedirected(_recipient, fallbackRecipient);
-        emit Transfer(this, fallbackRecipient, _amount);
+        emit RecipientRedirected(_recipient, _fallbackRecipient);
+        emit Transfer(this, _fallbackRecipient, _amount);
         return true;
       }
       emit Transfer(this, _recipient, _amount);
