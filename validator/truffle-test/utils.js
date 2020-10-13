@@ -4,10 +4,12 @@ const sender = require(path.join(__dirname, '../src/lib/sender'))
 const receiptor = require(path.join(__dirname, '../src/lib/receiptor'))
 const locker = require(path.join(__dirname, '../src/lib/locker'))
 const storage = require(path.join(__dirname, '../src/lib/storage'))
+const deployed = require(path.join(__dirname, '../../data/deployed.json'))
 const Web3 = require('web3')
 
 const { expect } = require('chai')
-const { StorageGateway } = require('aws-sdk')
+
+const { BRIDGE_MODE } = process.env
 
 const gasPriceService = {
   getPrice: async (timestamp) => {
@@ -16,11 +18,33 @@ const gasPriceService = {
 }
 
 async function makeTransfer(w3, erc20, from, to) {
-  const nonce = await w3.eth.getTransactionCount(from)
-  const receipt = await erc20.methods.transfer(to, w3.utils.toWei('0.01')).send({ from, gas: 1000000, nonce })
+  let event
+  const value = w3.utils.toWei('0.01')
+  if (BRIDGE_MODE === 'NATIVE_TO_ERC') {
+    // data = sig + to + amount + dataLength + data + zeros padding + recipient.strip('0x')
+    let data = await erc20.methods.transfer(deployed.foreignBridge.address, value).encodeABI()
+    data += '0'.repeat(12 * 2) + to.slice(2)
+    const receipt = await w3.eth.sendTransaction({
+      from,
+      to: erc20.options.address,
+      data,
+      value
+    })
+    const logs = await erc20.getPastEvents('Transfer', {
+      filter: {from, to: erc20.options.address, value},
+      fromBlock: receipt.blockNumber,
+      toBlock:  receipt.blockNumber
+    })
+    event = logs[0]
+  } else {
+    const nonce = await w3.eth.getTransactionCount(from)
+    const receipt = await erc20.methods.transfer(to, value).send({ from, gas: 1000000, nonce })
+    event = receipt.events.Transfer
+  }
+
   return {
     eventType: 'erc-erc-affirmation-request',
-    event: receipt.events.Transfer,
+    event
   }
 }
 

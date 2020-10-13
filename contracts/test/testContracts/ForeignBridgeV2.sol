@@ -10,4 +10,8 @@ contract ForeignBridgeV2 is ForeignBridgeErcToErc {
     function doSomething(address _newTokenOwner) public onlyOwner {
         something = _newTokenOwner;
     }
+
+    function () public payable {
+      revert("not accept native token");
+    }
 }

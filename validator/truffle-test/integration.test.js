@@ -1,19 +1,25 @@
-const ForeignBridge = artifacts.require('ForeignBridgeErcToErc')
-const HomeBridge = artifacts.require('HomeBridgeErcToErc')
-const ERC677BridgeToken = artifacts.require('ERC677BridgeToken')
+const { BRIDGE_MODE } = process.env
+
 const path = require('path')
 
 const config = require(path.join(__dirname, '../config'))
 const utils = require('./utils')
 const { expect } = require('chai')
-const { stub } = require('sinon')
 
 const w3 = utils.newWeb3()
 
 const deployed = require(path.join(__dirname, '../../data/deployed.json'))
 
-const foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address);
-const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address);
+let foreign, erc20
+if (BRIDGE_MODE === 'NATIVE_TO_ERC') {
+  const ForeignBridge = artifacts.require('ForeignBridgeWithNativeToken')
+  erc20 = foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address)
+} else {
+  const ForeignBridge = artifacts.require('ForeignBridgeErcToErcV2')
+  const ERC677BridgeToken = artifacts.require('ERC677BridgeToken')
+  foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address)
+  erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address)
+}
 
 const makeTransfer = async (account) => {
     return await utils.makeTransfer(w3, erc20, account, foreign.options.address)

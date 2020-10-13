@@ -6,10 +6,11 @@ services:
       network_mode: host
       tty: true
       environment:
-        - HOME_RPC_URL=ws://127.0.0.1:8540
+        - BRIDGE_MODE=ERC_TO_ERC
+        - HOME_RPC_URL=http://127.0.0.1:8541
         - FOREIGN_RPC_URL=http://127.0.0.1:8542
-        - USER_ADDRESS=0x5Cb2C2Cd74CC26b1eF8Bf30AE62C90fEa5BFCc8C
-        - USER_ADDRESS_PRIVATE_KEY=c472464a8fbede4ee4bcfbc5d5d554269405b76a04e24f6281276e38584c6138
+        - USER_ADDRESS=0x9039dD6D7189CE1F9cF8b098d18358e4e41B19BD
+        - USER_ADDRESS_PRIVATE_KEY=2c3b2a410d5153214e97c814a300f8e7beb31485d0843f5b28826bab1918a61f
         - FOREIGN_CUSTOM_RECIPIENT=0x9039dD6D7189CE1F9cF8b098d18358e4e41B19BD
         - HOME_MIN_AMOUNT_PER_TX=0.01
         - HOME_TEST_TX_GAS_PRICE=1000000000
@@ -19,14 +20,15 @@ services:
         - HOME_BLOCK_TIME=1
       volumes:
         - ../scripts:/app/scripts
+        - ../src:/app/src
         - ../data:/app/data
       command: npm run stressHome 10
     stress-foreign:
       extends: stress-home
       environment:
-        - USER_ADDRESS=0x9039dD6D7189CE1F9cF8b098d18358e4e41B19BD
-        - USER_ADDRESS_PRIVATE_KEY=2c3b2a410d5153214e97c814a300f8e7beb31485d0843f5b28826bab1918a61f
-        - HOME_CUSTOM_RECIPIENT=0x5Cb2C2Cd74CC26b1eF8Bf30AE62C90fEa5BFCc8C
+        - USER_ADDRESS=0x2a30eD689b42c969348BFEE105eF4354FA8A2EDB
+        - USER_ADDRESS_PRIVATE_KEY=7231006c2f561a57931e75461a3b39c96b18d64b8569c368234e452d65dcc480
+        - HOME_CUSTOM_RECIPIENT=0x2a30eD689b42c969348BFEE105eF4354FA8A2EDB
       command: npm run stressForeign 10
     monitor-balances:
       extends: stress-home

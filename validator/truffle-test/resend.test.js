@@ -1,5 +1,5 @@
-const ForeignBridge = artifacts.require('ForeignBridgeErcToErc')
-const ERC677BridgeToken = artifacts.require('ERC677BridgeToken')
+const { BRIDGE_MODE } = process.env
+
 const path = require('path')
 
 const sender = require(path.join(__dirname, '../src/lib/sender'))
@@ -11,8 +11,16 @@ const utils = require('./utils')
 
 const w3 = utils.newWeb3()
 
-const foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address)
-const erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address)
+let foreign, erc20
+if (BRIDGE_MODE === 'NATIVE_TO_ERC') {
+  const ForeignBridge = artifacts.require('ForeignBridgeWithNativeToken')
+  erc20 = foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address)
+} else {
+  const ForeignBridge = artifacts.require('ForeignBridgeErcToErcV2')
+  const ERC677BridgeToken = artifacts.require('ERC677BridgeToken')
+  foreign = new w3.eth.Contract(ForeignBridge.abi, deployed.foreignBridge.address)
+  erc20 = new w3.eth.Contract(ERC677BridgeToken.abi, deployed.erc20Token.address)
+}
 
 const sandbox = createSandbox()
 

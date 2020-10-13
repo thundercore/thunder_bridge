@@ -25,7 +25,7 @@ const HOME_BRIDGE_ADDRESS = deployed.homeBridge.address
 const RETRY_LIMIT = process.env.RETRY_LIMIT || 50
 
 const BRIDGE_ABI = require('../../abis/HomeBridgeErcToErc.abi')
-const ERC677_ABI = require('../../abis/ERC677BridgeToken.json').abi
+const ERC677_ABI = require('../../abis/ERC677BridgeToken.abi')
 
 let [SENT, SUCCESS] = [0, 0]
 
@@ -79,11 +79,11 @@ async function sendFromHomeToForeign(numberToSend) {
         data,
         nonce,
         gasPrice: HOME_TEST_TX_GAS_PRICE,
-        amount: '0',
+        value: web3Home.utils.toWei('0'),
         gasLimit,
         to: BRIDGEABLE_TOKEN_ADDRESS,
         web3: web3Home,
-        chainId: homeChainId,
+        chainId: homeChainId
       }
       const txHash = await sendTx(tx)
       if (txHash !== undefined) {

@@ -10,6 +10,7 @@ function loadDeployedContract() {
     process.env.HOME_BRIDGE_ADDRESS = deployed.homeBridge.address
     process.env.FOREIGN_BRIDGE_ADDRESS = deployed.foreignBridge.address
     process.env.ERC20_TOKEN_ADDRESS = deployed.erc20Token.address
+    console.log(`load deployed contract from ${deployedFile}`, deployed)
   }
 }
 

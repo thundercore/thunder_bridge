@@ -10,6 +10,7 @@ const logger = rootLogger.child({ module: 'foreign->home'})
 const Sentry = require('@sentry/node')
 
 const {
+  BRIDGE_MODE,
   USER_ADDRESS,
   USER_ADDRESS_PRIVATE_KEY,
   FOREIGN_MIN_AMOUNT_PER_TX,
@@ -59,11 +60,7 @@ async function sendFromForeignToHome(numberToSend) {
       }
 
       logger.info(`user: ${USER_ADDRESS}, balance: ${balance}`)
-      let gasLimit = await poa20.methods
-        .transfer(FOREIGN_BRIDGE_ADDRESS, transferValue)
-        .estimateGas({ from: USER_ADDRESS })
-      gasLimit *= 2
-      logger.info(`user: ${USER_ADDRESS}, gasLimit: ${gasLimit}`)
+      let gasLimit = 100000
       let data = await poa20.methods
         .transfer(FOREIGN_BRIDGE_ADDRESS, transferValue)
         .encodeABI({ from: USER_ADDRESS })
@@ -71,13 +68,14 @@ async function sendFromForeignToHome(numberToSend) {
         data += `000000000000000000000000${HOME_CUSTOM_RECIPIENT.slice(2)}`
         gasLimit += 50000
       }
+      const value = BRIDGE_MODE === 'NATIVE_TO_ERC'? transferValue: web3Foreign.utils.toWei('0')
       const txConfig = {
         chain: 'foreign',
         privateKey: USER_ADDRESS_PRIVATE_KEY,
         data,
         nonce,
         gasPrice: FOREIGN_TEST_TX_GAS_PRICE,
-        amount: '0',
+        value,
         gasLimit,
         to: ERC20_TOKEN_ADDRESS,
         web3: web3Foreign,

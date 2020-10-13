@@ -5,7 +5,7 @@ const { web3Home, web3Foreign } = require('../src/services/web3')
 const homeNativeErcAbi = require('../abis/HomeBridgeNativeToErc.abi.json')
 const foreignNativeErcAbi = require('../abis/ForeignBridgeNativeToErc.abi.json')
 
-const homeErcErcAbi = require('../abis/HomeBridgeErcToErcWithFee.json').abi
+const homeErcErcAbi = require('../abis/HomeBridgeErcToErcWithFee.abi.json')
 const foreignErcErcAbi = require('../abis/ForeignBridgeErcToErc.abi.json')
 
 const homeErcNativeAbi = require('../abis/HomeBridgeErcToNative.abi.json')

@@ -49,14 +49,16 @@ async function setupHomeBridge(homeBridgeAddress, func, value, nonce) {
 async function setupHomeBridgeWithFee(homeBridgeAddress, homeBridgeWithFeeImpl) {
   let nonce = await web3Home.eth.getTransactionCount(DEPLOYMENT_ACCOUNT_ADDRESS)
 
-  console.log(`Set fee receiver: ${HOME_FEE_RECEIVER}`)
-  await setupHomeBridge(
-    homeBridgeAddress,
-    homeBridgeWithFeeImpl.methods.setFeeReceiver,
-    HOME_FEE_RECEIVER,
-    nonce
-  )
-  nonce++
+  if (HOME_FEE_RECEIVER) {
+    console.log(`Set fee receiver: ${HOME_FEE_RECEIVER}`)
+    await setupHomeBridge(
+      homeBridgeAddress,
+      homeBridgeWithFeeImpl.methods.setFeeReceiver,
+      HOME_FEE_RECEIVER,
+      nonce
+    )
+    nonce++
+  }
 
   if (HOME_WITHDRAW_FEE_PERCENT) {
     console.log(`Set home withdraw percent fee: ${HOME_WITHDRAW_FEE_PERCENT}`)

@@ -1,25 +1,16 @@
 const Web3 = require('web3')
 const BN = require('bignumber.js')
 const Sentry = require('@sentry/node')
-const Web3WsProvider = require('web3-providers-ws');
 const deployed = require('../../data/deployed.json')
 const { web3Foreign } = require('../../src/services/web3')
 const pino = require('pino')
 
-const options = {
-  reconnect: {
-    auto: true,
-    delay: 5000, // ms
-    maxAttempts: 5,
-    onTimeout: false
-  }
-}
 const { HOME_RPC_URL } = process.env
-const web3Home = new Web3(new Web3WsProvider(HOME_RPC_URL, options))
+const web3Home = new Web3(HOME_RPC_URL)
 
 const HOME_BRIDGE_ABI = require('../../abis/HomeBridgeErcToErc.abi')
 const FOREIGN_BRIDGE_ABI = require('../../abis/ForeignBridgeErcToErc.abi')
-const ERC677_ABI = require('../../abis/ERC677BridgeToken.json').abi
+const ERC677_ABI = require('../../abis/ERC677BridgeToken.abi')
 
 const HOME_BRIDGE_ADDRESS = deployed.homeBridge.address
 const FOREIGN_BRIDGE_ADDRESS = deployed.foreignBridge.address

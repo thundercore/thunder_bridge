@@ -1,16 +1,28 @@
+const Web3Utils = require('web3-utils')
+
 const env = require('./src/loadEnv')
 const deployErcToErc = require('./deployErc')
 const deployErc20 = require('./src/utils/deployERC20Token')
 
-let { ERC20_TOKEN_ADDRESS } = env
+const { BRIDGE_MODE, ERC20_TOKEN_ADDRESS } = env
 
 async function main() {
-  if (!ERC20_TOKEN_ADDRESS) {
-    ERC20_TOKEN_ADDRESS = (await deployErc20()).erc677tokenAddress
-    console.log(`deploy erc20: ${ERC20_TOKEN_ADDRESS}`)
+  let erc20Token = ERC20_TOKEN_ADDRESS
+  if (BRIDGE_MODE === 'ERC_TO_ERC') {
+    if (!ERC20_TOKEN_ADDRESS) {
+      erc20Token = (await deployErc20()).erc677tokenAddress
+      console.log(`deploy erc20: ${ERC20_TOKEN_ADDRESS}`)
+    } else if (!Web3Utils.isAddress(ERC20_TOKEN_ADDRESS)) {
+      throw new Error('Invalid erc20 token address')
+    }
+    console.log(`deploy ${BRIDGE_MODE} contract with erc20 token address: ${erc20Token}`)
+    return deployErcToErc(erc20Token)
   }
-  console.log(`deploy erc_to_erc contract with erc20 token address: ${ERC20_TOKEN_ADDRESS}`)
-  await deployErcToErc(ERC20_TOKEN_ADDRESS)
+
+  if (BRIDGE_MODE === 'NATIVE_TO_ERC') {
+    console.log(`deploy ${BRIDGE_MODE} contract`)
+    return deployErcToErc(erc20Token)
+  }
 }
 
 main().catch(e => console.log('Error:', e))

@@ -29,6 +29,7 @@ if (!validBridgeModes.includes(BRIDGE_MODE)) {
 }
 
 let validations = {
+  BRIDGE_MODE: envalid.str(),
   DEPLOYMENT_ACCOUNT_PRIVATE_KEY: envalid.str(),
   HOME_DEPLOYMENT_GAS_LIMIT: bigNumValidator(),
   FOREIGN_DEPLOYMENT_GAS_LIMIT: bigNumValidator(),
