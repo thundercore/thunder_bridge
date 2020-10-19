@@ -5,8 +5,8 @@ import "./ForeignBridgeErcToErcV2.sol";
 
 contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
 
-  string public constant name = "Bridged ETH";
-  string public constant symbol = "BETH";
+  string public constant name = "Thunder Wrapped ETH";
+  string public constant symbol = "TWETH";
   uint8 public constant decimals = 18;
 
   event Transfer(
@@ -116,7 +116,7 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
       if (!tokenTransfer(_recipient, _amount)) {
         address _fallbackRecipient = fallbackRecipient();
         require(_fallbackRecipient != address(0), "fallback recipient was not assigned");
-        msg.sender.transfer(_amount);
+        _fallbackRecipient.transfer(_amount);
         emit RecipientRedirected(_recipient, _fallbackRecipient);
         emit Transfer(this, _fallbackRecipient, _amount);
         return true;

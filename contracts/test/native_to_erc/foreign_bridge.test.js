@@ -437,6 +437,7 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       const recipient = foreignImplV2.address
       const validator = authorities[0]
       const fallbackRecipient = accounts[6]
+      const originBalance = await balanceOf(fallbackRecipient)
 
       var transactionHash = "0x1045bfe274b88120a6b1e5d01b5ec00ab5d01098346e90e7c7a3c9b8f0181c80";
       var message = createMessage(recipient, value, transactionHash, foreignBridge.address);
@@ -464,6 +465,8 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       logs[2].args.recipient.should.be.equal(recipient)
       logs[2].args.value.should.be.bignumber.equal(value)
 
+      const newBalance = await balanceOf(accounts[6])
+      newBalance.should.be.bignumber.equal(originBalance.add(value))
     })
 
     it('claim native token should be revert', async () => {
