@@ -5,27 +5,27 @@ export const SocialIcons = () => {
   const socialItems = [
     {
       icon: <IconTwitter />,
-      link: '#'
+      link: 'https://twitter.com/ThunderProtocol'
     },
     {
       icon: <IconReddit />,
-      link: '#'
+      link: 'https://www.reddit.com/r/thunder_official/'
     },
     {
       icon: <IconMedium />,
-      link: '#'
+      link: 'https://medium.com/thunderofficial'
     },
     {
       icon: <IconDiscord />,
-      link: '#'
+      link: 'https://discordapp.com/invite/5EbxXfw'
     },
     {
       icon: <IconTelegram />,
-      link: '#'
+      link: 'https://t.me/thunder_official'
     },
     {
       icon: <IconGithub />,
-      link: '#'
+      link: 'https://github.com/thundercore'
     }
   ]
 
