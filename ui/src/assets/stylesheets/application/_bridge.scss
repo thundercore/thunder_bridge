@@ -61,7 +61,6 @@
             border-radius: 10px;
             display: flex;
             flex-direction: column;
-            width: 880px;
 
             @media screen and (max-width: $tablet-width) {
                 border-radius: 8px;
@@ -389,7 +388,7 @@
     }
     .bridge-choose {
         display: flex;
-        justify-content: space-between;
+        justify-content: start;
         border-top: 1px solid #eef2f9;
         margin: 0 40px;
         padding: 40px 0;
@@ -445,9 +444,10 @@
             justify-content: center;
             border-radius: 4px;
             background-color: #f9f9fa;
-            padding: 18px;
+            padding: 11px;
             border: solid 1px transparent;
             position: relative;
+            width: 230px;
 
             &:after {
                 content: '';
@@ -479,7 +479,7 @@
                 height: 40px;
                 border: solid 2px #f3f4f6;
                 background-color: #ffffff;
-                display: inline-flex;
+                display: flex;
                 justify-content: center;
                 align-items: center;
                 border-radius: 40px;
@@ -489,7 +489,7 @@
         &-text {
             font-size: 12px;
             padding: 0 10px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
         }
 
@@ -918,5 +918,29 @@
 
     &-usdt {
         background-image: url(#{$base-images-path + '/logos/logo-tether.svg'});
+    }
+
+    &-tt-wbtc {
+        background-image: url(#{$base-images-path + '/logos/tt-btc.png'});
+    }
+
+    &-wbtc {
+        background-image: url(#{$base-images-path + '/logos/wbtc.png'});
+    }
+
+    &-tt-usdc {
+        background-image: url(#{$base-images-path + '/logos/tt-usdc.png'});
+    }
+
+    &-usdc {
+        background-image: url(#{$base-images-path + '/logos/usdc.png'});
+    }
+
+    &-tt-eth {
+        background-image: url(#{$base-images-path + '/logos/tt-eth.png'});
+    }
+
+    &-eth {
+        background-image: url(#{$base-images-path + '/logos/eth.png'});
     }
 }

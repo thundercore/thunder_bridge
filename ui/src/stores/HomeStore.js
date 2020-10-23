@@ -2,6 +2,7 @@ import { action, observable } from 'mobx'
 import BRIDGE_VALIDATORS_ABI from '../../abis/BridgeValidators.abi'
 import ERC677_ABI from '../../abis/ERC677BridgeToken.abi'
 import { getBlockNumber, getBalance } from './utils/web3'
+import { getBridgeAddress } from './utils/getBridgeAddress'
 import { fromDecimals } from './utils/decimals'
 import {
   getMaxPerTxLimit,
@@ -167,12 +168,11 @@ class HomeStore {
     setInterval(async () => {
       this.status = await LoadPrometheusFile()
     }, 10000)
+    if (!tokenName)
+      tokenName = "USDT"
 
-    if (tokenName === 'DAI') {
-      this.HOME_BRIDGE_ADDRESS = process.env.REACT_APP_HOME_DAI_BRIDGE_ADDRESS
-    } else {
-      this.HOME_BRIDGE_ADDRESS = process.env.REACT_APP_HOME_USDT_BRIDGE_ADDRESS
-    }
+    this.HOME_BRIDGE_ADDRESS = getBridgeAddress(tokenName, 'home')
+
     if (!this.rootStore.bridgeModeInitialized) {
       setTimeout(() => this.setHome(tokenName), 200)
       return
