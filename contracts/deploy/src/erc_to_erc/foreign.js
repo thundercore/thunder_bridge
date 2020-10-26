@@ -31,7 +31,8 @@ const {
   HOME_DAILY_LIMIT,
   HOME_MAX_AMOUNT_PER_TX,
   FOREIGN_FEE_PERCENT,
-  BRIDGE_MODE
+  BRIDGE_MODE,
+  FOREIGN_ETH_FALLBACK_RECIPIENT
 } = env
 
 const DEPLOYMENT_ACCOUNT_ADDRESS = privateKeyToAddress(DEPLOYMENT_ACCOUNT_PRIVATE_KEY)
@@ -184,6 +185,26 @@ async function deployForeign(erc20TokenAddress) {
   })
   assert.strictEqual(Web3Utils.hexToNumber(txInitializeBridge.status), 1, 'Transaction Failed')
   foreignNonce++
+
+  if (BRIDGE_MODE === 'NATIVE_TO_ERC' && FOREIGN_ETH_FALLBACK_RECIPIENT) {
+    console.log(`\nSet foreign ETH fallback recipient ${FOREIGN_ETH_FALLBACK_RECIPIENT}\n`)
+    const setFallbackRecipientData = await foreignBridgeImplementation.methods
+      .setFallbackRecipient(FOREIGN_ETH_FALLBACK_RECIPIENT)
+      .encodeABI({ from: DEPLOYMENT_ACCOUNT_ADDRESS })
+    const setFallbackRecipientTx = await sendRawTxForeign({
+      data: setFallbackRecipientData,
+      nonce: foreignNonce,
+      to: foreignBridgeStorage.options.address,
+      privateKey: deploymentPrivateKey,
+      url: FOREIGN_RPC_URL
+    })
+    assert.strictEqual(
+      Web3Utils.hexToNumber(setFallbackRecipientTx.status),
+      1,
+      'Transaction Failed'
+    )
+    foreignNonce++
+  }
 
   const bridgeOwnershipData = await foreignBridgeStorage.methods
     .transferProxyOwnership(FOREIGN_UPGRADEABLE_ADMIN)
