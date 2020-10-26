@@ -30,7 +30,7 @@ export class Header extends React.Component {
             <Link to="/" onClick={showMobileMenu ? onMenuToggle : null} className="header-logo-container">
               <TTIcon height={28} width={28}/>
               <TTLogoIcon className="header-logo"/>
-              <span className="header-title">Stablecoin</span>
+              <span className="header-title">ThunderBridge</span>
             </Link>
             <MobileMenuButton onMenuToggle={onMenuToggle} showMobileMenu={showMobileMenu} />
           </div>
