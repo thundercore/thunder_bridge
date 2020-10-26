@@ -177,6 +177,14 @@ export class Bridge extends React.Component {
     } else {
       try {
         alertStore.setLoading(true)
+        if (foreignStore.symbol.includes('ETH')) {
+          return await txStore.ethTransfer({
+            to: foreignStore.FOREIGN_BRIDGE_ADDRESS,
+            from: web3Store.defaultAccount.address,
+            value: toDecimals(amount, foreignStore.tokenDecimals),
+            recipient
+          })
+        }
         if (isExternalErc20) {
           return await txStore.erc20transfer({
             to: foreignStore.FOREIGN_BRIDGE_ADDRESS,

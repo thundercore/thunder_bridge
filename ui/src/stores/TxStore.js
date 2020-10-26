@@ -77,6 +77,33 @@ class TxStore {
   }
 
   @action
+  async ethTransfer({ to, from, value, recipient }) {
+    try {
+      return this.web3Store.getWeb3Promise.then(async () => {
+        if (this.web3Store.defaultAccount.address) {
+          let data = await this.foreignStore.tokenContract.methods
+            .transfer(to, value)
+            .encodeABI({ from: this.web3Store.defaultAccount.address })
+          data += `000000000000000000000000${recipient.slice(2)}`
+
+          return this.doSend({
+            to: this.foreignStore.tokenAddress,
+            from,
+            value,
+            data,
+            sentValue: value,
+            recipient
+          })
+        } else {
+          this.alertStore.pushError('Please unlock wallet')
+        }
+      })
+    } catch (e) {
+      this.alertStore.pushError(e)
+    }
+  }
+
+  @action
   async erc20transfer({ to, from, value, recipient }) {
     try {
       return this.web3Store.getWeb3Promise.then(async () => {
