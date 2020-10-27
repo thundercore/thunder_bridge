@@ -501,10 +501,7 @@
             height: 12px;
             display: inline-block;
             margin: 0 10px;
-            @media screen and (max-height: 720px) {
-                position: relative;
-                left: 50%;
-            }
+            flex: 1;
         }
     }
     .bridge-statistics-container {
@@ -761,6 +758,7 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         row-gap: 10px;
+        font-size: 16px;
 
         @media screen and (max-width: $mobile-width) {
             grid-template-columns: 1fr;

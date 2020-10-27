@@ -51,20 +51,12 @@ export class NoWallet extends Component {
                 Metamask
               </a>
               <a
-                className="noWallet-niftyWallet"
-                href="https://forum.poa.network/t/nifty-wallet-guide/1789"
+                className="noWallet-metamask"
+                href="https://www.thundercore.com/thundercore-hub"
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                Nifty Wallet
-              </a>
-              <a
-                className="noWallet-alphawallet"
-                href="https://alphawallet.github.io/AlphaWallet-Download-Page/"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                AlphaWallet
+                ThunderCore Hub
               </a>
               <button className="noWallet-cancel" onClick={this.handleCancel}>
                 Cancel
