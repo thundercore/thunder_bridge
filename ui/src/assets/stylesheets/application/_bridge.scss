@@ -472,7 +472,7 @@
             background-repeat: no-repeat;
             background-size: contain;
             display: inline-block;
-            filter: grayscale(1);
+            // filter: grayscale(1);
 
             &-container {
                 width: 40px;
@@ -491,6 +491,7 @@
             padding: 0 10px;
             display: inline-flex;
             align-items: center;
+            flex: 1;
         }
 
         &-arrow {
@@ -500,6 +501,10 @@
             height: 12px;
             display: inline-block;
             margin: 0 10px;
+            @media screen and (max-height: 720px) {
+                position: relative;
+                left: 50%;
+            }
         }
     }
     .bridge-statistics-container {
@@ -909,11 +914,11 @@
     }
 
     &-tt-sai {
-        background-image: url(#{$base-images-path + '/logos/tt-sai.svg'});
+        background-image: url(#{$base-images-path + '/logos/tt-sai.png'});
     }
 
     &-tt-usdt {
-        background-image: url(#{$base-images-path + '/logos/tt-usdt.svg'});
+        background-image: url(#{$base-images-path + '/logos/tt-usdt.png'});
     }
 
     &-usdt {

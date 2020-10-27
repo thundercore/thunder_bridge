@@ -14,6 +14,7 @@ import { NetworkDetails } from './NetworkDetails'
 import { TransferAlert } from './TransferAlert'
 import { inject, observer } from 'mobx-react'
 import { toDecimals } from '../stores/utils/decimals'
+import { RenameToken } from './utils/renameToken'
 
 @inject('RootStore')
 @observer
@@ -414,7 +415,7 @@ export class Bridge extends React.Component {
         <div className="bridge">
           <div className="bridge-transfer">
             <div className="bridge-transfer-content">
-              <div className="bridge-title">Bridge</div>
+              <div className="bridge-title"></div>
               <div className="bridge-transfer-content-background">
                 <BridgeNetwork
                   balance={reverse ? foreignStore.balance : homeStore.getDisplayedBalance()}
