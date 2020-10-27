@@ -1,6 +1,10 @@
+import ForeignStore from '../ForeignStore';
 
 function readPrometheusStatus(resp, field, tokenName, network, name, fallbackValue, formatter) {
-  const token = tokenName.includes('USD')? 'USDT': 'DAI'
+  const token = tokenName
+    .replace('TT-', '')
+    .replace('TW', '')  // TWETH...
+    .replace('DAI', 'SAI')
   let ret;
   try {
     ret = resp[token][field][network][name]
@@ -29,7 +33,7 @@ export function ReadValidators(resp, tokenName, network) {
 
 export async function LoadPrometheusFile() {
   if (process.env.NODE_ENV === 'development') {
-    // return require('./status.json')
+    // return require('/tmp/status.json')
     return
   }
   return (await fetch(process.env.REACT_APP_MONITOR_STATUS_FILE)).json()

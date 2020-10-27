@@ -120,14 +120,19 @@ class ForeignStore {
   }
 
   readStatistics(name, defaultVal, formatter) {
-    return ReadPrometheusStatus(this.status, this.tokenName, 'foreign', name, defaultVal, formatter)
+    return ReadPrometheusStatus(this.status, this.symbol, 'foreign', name, defaultVal, formatter)
   }
 
   readValidators() {
-    return ReadValidators(this.status, this.tokenName, 'foreign')
+    return ReadValidators(this.status, this.symbol, 'foreign')
   }
 
   async setForeign(tokenName) {
+    if (!this.rootStore.bridgeModeInitialized) {
+      setTimeout(() => this.setForeign(tokenName), 200)
+      return
+    }
+
     // Load status file every 10s
     this.status = await LoadPrometheusFile()
     setInterval(async () => {
@@ -139,10 +144,6 @@ class ForeignStore {
 
     this.FOREIGN_BRIDGE_ADDRESS = getBridgeAddress(tokenName, "foreign")
 
-    if (!this.rootStore.bridgeModeInitialized) {
-      setTimeout(() => this.setForeign(tokenName), 200)
-      return
-    }
     const { FOREIGN_ABI } = getBridgeABIs(this.rootStore.bridgeMode)
     this.foreignBridge = new this.foreignWeb3.eth.Contract(FOREIGN_ABI, this.FOREIGN_BRIDGE_ADDRESS)
     await this.getBlockNumber()
