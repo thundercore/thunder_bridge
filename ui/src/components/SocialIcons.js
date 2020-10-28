@@ -8,10 +8,6 @@ export const SocialIcons = () => {
       link: 'https://twitter.com/ThunderProtocol'
     },
     {
-      icon: <IconReddit />,
-      link: 'https://www.reddit.com/r/thunder_official/'
-    },
-    {
       icon: <IconMedium />,
       link: 'https://medium.com/thunderofficial'
     },

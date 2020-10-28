@@ -2,7 +2,7 @@ import React from 'react'
 import numeral from 'numeral'
 import { CopyIcon } from './icons/CopyIcon'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { DAI2SAI } from './utils/dai2sai'
+import { RenameToken } from './utils/renameToken'
 
 export const NetworkDetails = ({
   isHome,
@@ -27,7 +27,7 @@ export const NetworkDetails = ({
   feePercent,
   feeCurrency
 }) => {
-  const displayCurrency = DAI2SAI(currency)
+  const displayCurrency = RenameToken(currency)
   const networkTitle = isHome ? 'Bridge Home' : 'Bridge Foreign'
   const logoClass = isHome ? 'home-logo home-logo-modal' : 'foreign-logo foreign-logo-modal'
   const totalTitle = isHome
@@ -95,7 +95,7 @@ export const NetworkDetails = ({
           <p className="details-data-container">
             <span className="details-label">Minimum Fee</span>
             <span className="details-description-black">
-              {numeral(fixedFee).format('0,0.000', Math.floor)} {DAI2SAI(feeCurrency)}
+              {numeral(fixedFee).format('0,0.000', Math.floor)} {RenameToken(feeCurrency)}
             </span>
           </p>
         )}
@@ -129,7 +129,7 @@ export const NetworkDetails = ({
         {displayTokenAddress && (
           <p className="details-data-container">
             <span className="details-label">Token Name</span>
-            <span className="details-description-black">{DAI2SAI(tokenName) || 'No token name'}</span>
+            <span className="details-description-black">{RenameToken(tokenName) || 'No token name'}</span>
           </p>
         )}
         <p className="details-data-container">

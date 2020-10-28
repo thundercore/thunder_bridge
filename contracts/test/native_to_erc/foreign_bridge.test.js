@@ -391,8 +391,8 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
     })
 
     it('test DetailedERC20', async () => {
-      expect(await foreignBridge.name()).to.be.equal('Bridged ETH')
-      expect(await foreignBridge.symbol()).to.be.equal('BETH')
+      expect(await foreignBridge.name()).to.be.equal('Thunder Wrapped ETH')
+      expect(await foreignBridge.symbol()).to.be.equal('TWETH')
       expect(await foreignBridge.decimals()).to.be.bignumber.equal(toBN(18))
     })
 

@@ -1,7 +1,7 @@
 import React from 'react'
 import numeral from 'numeral'
 import { DataBlock } from './DataBlock'
-import { DAI2SAI } from './utils/dai2sai'
+import { RenameToken } from './utils/renameToken'
 
 export const Configuration = ({
   requiredSignatures,
@@ -29,7 +29,7 @@ export const Configuration = ({
     {maxSingleDeposit &&
       maxSingleDeposit !== '0' && <div className="separator" /> && (
         <DataBlock
-          description={`Remaining Daily ${DAI2SAI(symbol)} Quota`}
+          description={`Remaining Daily ${RenameToken(symbol)} Quota`}
           value={numeral(maxTotalBalance).format('0.00 a', Math.floor)}
           type={symbol}
         />

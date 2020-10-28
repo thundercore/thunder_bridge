@@ -67,7 +67,7 @@ contract('test resend task', (accounts) => {
     // Send a transaction to occupy nonce
     const nonce = await s.readNonce()
     // currNonce++
-    s.web3.sendToSelf(nonce)
+    await s.web3.sendToSelf(nonce)
     await chainOpW3.makeOneBlock(dummy)
 
     // currNonce = nonce+1, taskNonce = nocne, taskNone < currNonce
@@ -125,7 +125,7 @@ contract('test resend task', (accounts) => {
 
     // Send a transaction to occupy nonce
     const nonce = await s.readNonce()
-    s.web3.sendToSelf(nonce)
+    await s.web3.sendToSelf(nonce)
     await chainOpW3.makeOneBlock(dummy)
 
     sandbox.stub(s, 'processEventTask').resolves(null)

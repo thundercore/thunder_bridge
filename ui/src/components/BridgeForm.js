@@ -1,5 +1,5 @@
 import React from 'react'
-import { DAI2SAI } from './utils/dai2sai'
+import { RenameToken } from './utils/renameToken'
 
 export const BridgeForm = ({ reverse, currency, onTransfer, onAmountInputChange, onRecipientInputChange, displayArrow, recipient }) => (
   <div className="form-container">
@@ -24,7 +24,7 @@ export const BridgeForm = ({ reverse, currency, onTransfer, onAmountInputChange,
                 placeholder="0"
               />
               <label htmlFor="amount" className="bridge-form-label">
-                {DAI2SAI(currency)}
+                {RenameToken(currency)}
               </label>
             </div>
           </div>

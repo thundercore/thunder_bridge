@@ -2,6 +2,7 @@ import { action, observable } from 'mobx'
 import BRIDGE_VALIDATORS_ABI from '../../abis/BridgeValidators.abi'
 import ERC677_ABI from '../../abis/ERC677BridgeToken.abi'
 import { getBlockNumber, getBalance } from './utils/web3'
+import { getBridgeAddress } from './utils/getBridgeAddress'
 import { fromDecimals } from './utils/decimals'
 import {
   getMaxPerTxLimit,
@@ -154,29 +155,30 @@ class HomeStore {
   }
 
   readStatistics(name, defaultVal, formatter) {
-    return ReadPrometheusStatus(this.status, this.tokenName, 'home', name, defaultVal, formatter)
+    return ReadPrometheusStatus(this.status, this.symbol, 'home', name, defaultVal, formatter)
   }
 
-  readValidators(tokenName) {
-    return ReadValidators(this.status, tokenName, 'home')
+  readValidators(symbol) {
+    return ReadValidators(this.status, symbol, 'home')
   }
 
   async setHome(tokenName) {
+    if (!this.rootStore.bridgeModeInitialized) {
+      setTimeout(() => this.setHome(tokenName), 200)
+      return
+    }
+
     // Load status file every 10s
     this.status = await LoadPrometheusFile()
     setInterval(async () => {
       this.status = await LoadPrometheusFile()
     }, 10000)
 
-    if (tokenName === 'DAI') {
-      this.HOME_BRIDGE_ADDRESS = process.env.REACT_APP_HOME_DAI_BRIDGE_ADDRESS
-    } else {
-      this.HOME_BRIDGE_ADDRESS = process.env.REACT_APP_HOME_USDT_BRIDGE_ADDRESS
-    }
-    if (!this.rootStore.bridgeModeInitialized) {
-      setTimeout(() => this.setHome(tokenName), 200)
-      return
-    }
+    if (!tokenName)
+      tokenName = "USDT"
+
+    this.HOME_BRIDGE_ADDRESS = getBridgeAddress(tokenName, 'home')
+
     const { HOME_ABI } = getBridgeABIs(this.rootStore.bridgeMode)
     this.homeBridge = new this.homeWeb3.eth.Contract(HOME_ABI, this.HOME_BRIDGE_ADDRESS)
     if (this.rootStore.bridgeMode === BRIDGE_MODES.ERC_TO_ERC) {

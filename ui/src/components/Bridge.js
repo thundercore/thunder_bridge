@@ -14,6 +14,7 @@ import { NetworkDetails } from './NetworkDetails'
 import { TransferAlert } from './TransferAlert'
 import { inject, observer } from 'mobx-react'
 import { toDecimals } from '../stores/utils/decimals'
+import { RenameToken } from './utils/renameToken'
 
 @inject('RootStore')
 @observer
@@ -177,6 +178,14 @@ export class Bridge extends React.Component {
     } else {
       try {
         alertStore.setLoading(true)
+        if (foreignStore.symbol.includes('ETH')) {
+          return await txStore.ethTransfer({
+            to: foreignStore.FOREIGN_BRIDGE_ADDRESS,
+            from: web3Store.defaultAccount.address,
+            value: toDecimals(amount, foreignStore.tokenDecimals),
+            recipient
+          })
+        }
         if (isExternalErc20) {
           return await txStore.erc20transfer({
             to: foreignStore.FOREIGN_BRIDGE_ADDRESS,
@@ -406,7 +415,7 @@ export class Bridge extends React.Component {
         <div className="bridge">
           <div className="bridge-transfer">
             <div className="bridge-transfer-content">
-              <div className="bridge-title">Bridge</div>
+              <div className="bridge-title"></div>
               <div className="bridge-transfer-content-background">
                 <BridgeNetwork
                   balance={reverse ? foreignStore.balance : homeStore.getDisplayedBalance()}

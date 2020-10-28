@@ -30,6 +30,7 @@ import BN from 'bignumber.js'
 import { processLargeArrayAsync } from './utils/array'
 import { fromDecimals } from './utils/decimals'
 import { ReadPrometheusStatus, ReadValidators, LoadPrometheusFile } from './utils/PrometheusStatus'
+import { getBridgeAddress } from './utils/getBridgeAddress'
 
 class ForeignStore {
   @observable
@@ -119,29 +120,30 @@ class ForeignStore {
   }
 
   readStatistics(name, defaultVal, formatter) {
-    return ReadPrometheusStatus(this.status, this.tokenName, 'foreign', name, defaultVal, formatter)
+    return ReadPrometheusStatus(this.status, this.symbol, 'foreign', name, defaultVal, formatter)
   }
 
   readValidators() {
-    return ReadValidators(this.status, this.tokenName, 'foreign')
+    return ReadValidators(this.status, this.symbol, 'foreign')
   }
 
   async setForeign(tokenName) {
+    if (!this.rootStore.bridgeModeInitialized) {
+      setTimeout(() => this.setForeign(tokenName), 200)
+      return
+    }
+
     // Load status file every 10s
     this.status = await LoadPrometheusFile()
     setInterval(async () => {
       this.status = await LoadPrometheusFile()
     }, 10000)
 
-    if (tokenName === 'DAI') {
-      this.FOREIGN_BRIDGE_ADDRESS = process.env.REACT_APP_FOREIGN_DAI_BRIDGE_ADDRESS
-    } else {
-      this.FOREIGN_BRIDGE_ADDRESS = process.env.REACT_APP_FOREIGN_USDT_BRIDGE_ADDRESS
-    }
-    if (!this.rootStore.bridgeModeInitialized) {
-      setTimeout(() => this.setForeign(tokenName), 200)
-      return
-    }
+    if (!tokenName)
+      tokenName = "USDT"
+
+    this.FOREIGN_BRIDGE_ADDRESS = getBridgeAddress(tokenName, "foreign")
+
     const { FOREIGN_ABI } = getBridgeABIs(this.rootStore.bridgeMode)
     this.foreignBridge = new this.foreignWeb3.eth.Contract(FOREIGN_ABI, this.FOREIGN_BRIDGE_ADDRESS)
     await this.getBlockNumber()

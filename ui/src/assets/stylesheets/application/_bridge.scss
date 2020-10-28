@@ -61,7 +61,6 @@
             border-radius: 10px;
             display: flex;
             flex-direction: column;
-            width: 880px;
 
             @media screen and (max-width: $tablet-width) {
                 border-radius: 8px;
@@ -389,7 +388,7 @@
     }
     .bridge-choose {
         display: flex;
-        justify-content: space-between;
+        justify-content: start;
         border-top: 1px solid #eef2f9;
         margin: 0 40px;
         padding: 40px 0;
@@ -445,9 +444,10 @@
             justify-content: center;
             border-radius: 4px;
             background-color: #f9f9fa;
-            padding: 18px;
+            padding: 11px;
             border: solid 1px transparent;
             position: relative;
+            width: 230px;
 
             &:after {
                 content: '';
@@ -472,14 +472,14 @@
             background-repeat: no-repeat;
             background-size: contain;
             display: inline-block;
-            filter: grayscale(1);
+            // filter: grayscale(1);
 
             &-container {
                 width: 40px;
                 height: 40px;
                 border: solid 2px #f3f4f6;
                 background-color: #ffffff;
-                display: inline-flex;
+                display: flex;
                 justify-content: center;
                 align-items: center;
                 border-radius: 40px;
@@ -489,8 +489,9 @@
         &-text {
             font-size: 12px;
             padding: 0 10px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
+            flex: 1;
         }
 
         &-arrow {
@@ -500,6 +501,7 @@
             height: 12px;
             display: inline-block;
             margin: 0 10px;
+            flex: 1;
         }
     }
     .bridge-statistics-container {
@@ -756,6 +758,7 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         row-gap: 10px;
+        font-size: 16px;
 
         @media screen and (max-width: $mobile-width) {
             grid-template-columns: 1fr;
@@ -904,19 +907,43 @@
 }
 
 .logo {
-    &-dai {
-        background-image: url(#{$base-images-path + '/logos/logo-dai.svg'});
+    &-sai {
+        background-image: url(#{$base-images-path + '/logos/logo-sai.svg'});
     }
 
-    &-tt-dai {
-        background-image: url(#{$base-images-path + '/logos/tt-dai.svg'});
+    &-tt-sai {
+        background-image: url(#{$base-images-path + '/logos/tt-sai.png'});
     }
 
     &-tt-usdt {
-        background-image: url(#{$base-images-path + '/logos/tt-usdt.svg'});
+        background-image: url(#{$base-images-path + '/logos/tt-usdt.png'});
     }
 
     &-usdt {
         background-image: url(#{$base-images-path + '/logos/logo-tether.svg'});
+    }
+
+    &-tt-wbtc {
+        background-image: url(#{$base-images-path + '/logos/tt-btc.png'});
+    }
+
+    &-wbtc {
+        background-image: url(#{$base-images-path + '/logos/wbtc.png'});
+    }
+
+    &-tt-usdc {
+        background-image: url(#{$base-images-path + '/logos/tt-usdc.png'});
+    }
+
+    &-usdc {
+        background-image: url(#{$base-images-path + '/logos/usdc.png'});
+    }
+
+    &-tt-eth {
+        background-image: url(#{$base-images-path + '/logos/tt-eth.png'});
+    }
+
+    &-eth {
+        background-image: url(#{$base-images-path + '/logos/eth.png'});
     }
 }
