@@ -44,16 +44,15 @@ export const BridgeChoose = (props) => {
 
   const handleChecked = (item) => {
     if (props.isHome) {
-      if (item.to === props.foreignStore.symbol) {
+      if (item.to === RenameToken(props.foreignStore.symbol)) {
         return true
       }
     } else {
-      if (item.from === props.foreignStore.symbol) {
+      if (item.from === RenameToken(props.foreignStore.symbol)) {
         return true
       }
     }
   }
-
 
   return (
     <div className="bridge-choose">
