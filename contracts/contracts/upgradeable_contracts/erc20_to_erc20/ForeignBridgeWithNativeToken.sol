@@ -20,9 +20,40 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
     address indexed to
   );
 
-  function setFallbackRecipient(address _recipient) public onlyOwner {
+  function initialize(
+      address _validatorContract,
+      address _erc20token,
+      uint256 _requiredBlockConfirmations,
+      uint256 _gasPrice,
+      uint256 _maxPerTx,
+      uint256 _homeDailyLimit,
+      uint256 _homeMaxPerTx,
+      address _owner,
+      uint256 _feePercent,
+      address _fallbackRecipient
+  ) public returns(bool) {
+    _setFallbackRecipient(_fallbackRecipient);
+
+    return ForeignBridgeErcToErc.initialize(
+      _validatorContract,
+      _erc20token,
+      _requiredBlockConfirmations,
+      _gasPrice,
+      _maxPerTx,
+      _homeDailyLimit,
+      _homeMaxPerTx,
+      _owner,
+      _feePercent
+    );
+  }
+
+  function _setFallbackRecipient(address _recipient) internal {
     require(_recipient != address(0));
     addressStorage[keccak256(abi.encodePacked("fallbackRecipient"))] = _recipient;
+  }
+
+  function setFallbackRecipient(address _recipient) public onlyOwner {
+    _setFallbackRecipient(_recipient);
   }
 
   function fallbackRecipient() public view returns(address) {
@@ -72,9 +103,8 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
   * @param value The amount to be transferred.
   */
   function transfer(address to, uint256 value) public payable returns (bool) {
-    if (to != address(this) || value != msg.value) {
-      revert("reverted");
-    }
+    require(to == address(this), "to address must be foreign bridge address");
+    require(value == msg.value, "transfer value must equal to eth amount");
     emit Transfer(msg.sender, this, msg.value);
   }
 
@@ -113,23 +143,23 @@ contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
   }
 
   function onExecuteMessage(address _recipient, uint256 _amount) internal returns(bool){
-      if (!tokenTransfer(_recipient, _amount)) {
-        address _fallbackRecipient = fallbackRecipient();
-        require(_fallbackRecipient != address(0), "fallback recipient was not assigned");
-        _fallbackRecipient.transfer(_amount);
-        emit RecipientRedirected(_recipient, _fallbackRecipient);
-        emit Transfer(this, _fallbackRecipient, _amount);
-        return true;
-      }
-      emit Transfer(this, _recipient, _amount);
+    if (!tokenTransfer(_recipient, _amount)) {
+      address _fallbackRecipient = fallbackRecipient();
+      require(_fallbackRecipient != address(0), "fallback recipient was not assigned");
+      _fallbackRecipient.transfer(_amount);
+      emit RecipientRedirected(_recipient, _fallbackRecipient);
+      emit Transfer(this, _fallbackRecipient, _amount);
       return true;
+    }
+    emit Transfer(this, _recipient, _amount);
+    return true;
   }
 
   function claimTokens(address _token, address _to) public onlyIfOwnerOfProxy {
     // If _token is 0x0, super.claimTokens will transfer all balance of this contract
     // to target address. `require(_token != address(0))` can avoid this.
-      require(_token != address(0));
-      super.claimTokens(_token, _to);
+    require(_token != address(0));
+    super.claimTokens(_token, _to);
   }
 
   function () public payable {

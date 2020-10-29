@@ -1,4 +1,6 @@
 
+[![CircleCI](https://circleci.com/gh/thundercore/thunder_bridge.svg?style=svg)](https://circleci.com/gh/thundercore/thunder_bridge)
+
 ## General Bridge Overview
 
 The Bridge allows users to transfer assets between two chains in the Ethereum ecosystem. This is a customized version of [POA network Bridge](https://github.com/poanetwork/tokenbridge).
@@ -16,7 +18,7 @@ The Bridge allows users to transfer assets between two chains in the Ethereum ec
 
  * **Home** - is a network with fast and inexpensive operations. All bridge operations to collect validator confirmations are performed on this side of the bridge.
 
-* **Foreign** can be any chain; generally it refers to the Ethereum mainnet. 
+* **Foreign** can be any chain; generally it refers to the Ethereum mainnet.
 
 ## Operational Modes
 
@@ -32,7 +34,7 @@ The TokenBridge provides next operational mode:
 
 Go to [deployment](./deployment) folder and follow instructions in **Contracts** section.
 
-### Run Validator software 
+### Run Validator software
 
 Go to [deployment](./deployment) folder and follow instructions in **Validator** section.
 
@@ -49,7 +51,7 @@ Go to [deployment](./deployment) folder and follow instructions in **User interf
 ### Watcher
 A watcher listens for a certain event and creates proper jobs in the queue. These jobs contain the transaction data (without the nonce) and the transaction hash for the related event. The watcher runs on a given frequency, keeping track of the last processed block.
 
-If the watcher observes that the transaction data cannot be prepared, which generally means that the corresponding method of the bridge contract cannot be invoked, it inspects the contract state to identify the potential reason for failure and records this in the logs. 
+If the watcher observes that the transaction data cannot be prepared, which generally means that the corresponding method of the bridge contract cannot be invoked, it inspects the contract state to identify the potential reason for failure and records this in the logs.
 
 There are three Watchers:
 - **Signature Request Watcher**: Listens to `UserRequestForSignature` events on the Home network.

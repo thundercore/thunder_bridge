@@ -42,6 +42,7 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
   describe('#initialize', async () => {
     it('should initialize', async () => {
       let foreignBridge =  await ForeignBridge.new();
+      const fallbackRecipient = accounts[7]
 
       expect(await foreignBridge.erc20token()).to.be.equal(ZERO_ADDRESS)
       expect(await foreignBridge.validatorContract()).to.be.equal(ZERO_ADDRESS)
@@ -49,14 +50,14 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       expect(await foreignBridge.isInitialized()).to.be.equal(false)
       expect(await foreignBridge.requiredBlockConfirmations()).to.be.bignumber.equal(ZERO)
 
-      await foreignBridge.initialize(ZERO_ADDRESS, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT).should.be.rejectedWith(ERROR_MSG);
-      await foreignBridge.initialize(validatorContract.address, ZERO_ADDRESS, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT).should.be.rejectedWith(ERROR_MSG);
-      await foreignBridge.initialize(validatorContract.address, owner, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT).should.be.rejectedWith(ERROR_MSG);
-      await foreignBridge.initialize(validatorContract.address, foreignBridge.address, 0, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT).should.be.rejectedWith(ERROR_MSG);
-      await foreignBridge.initialize(validatorContract.address, foreignBridge.address, requireBlockConfirmations, 0, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT).should.be.rejectedWith(ERROR_MSG);
-      await foreignBridge.initialize(owner, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT).should.be.rejectedWith(ERROR_MSG);
+      await foreignBridge.initialize(ZERO_ADDRESS, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient).should.be.rejectedWith(ERROR_MSG);
+      await foreignBridge.initialize(validatorContract.address, ZERO_ADDRESS, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient).should.be.rejectedWith(ERROR_MSG);
+      await foreignBridge.initialize(validatorContract.address, owner, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient).should.be.rejectedWith(ERROR_MSG);
+      await foreignBridge.initialize(validatorContract.address, foreignBridge.address, 0, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient).should.be.rejectedWith(ERROR_MSG);
+      await foreignBridge.initialize(validatorContract.address, foreignBridge.address, requireBlockConfirmations, 0, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient).should.be.rejectedWith(ERROR_MSG);
+      await foreignBridge.initialize(owner, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient).should.be.rejectedWith(ERROR_MSG);
 
-      const { logs } = await foreignBridge.initialize(validatorContract.address, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT);
+      const { logs } = await foreignBridge.initialize(validatorContract.address, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient);
 
       expect(await foreignBridge.erc20token()).to.be.equal(foreignBridge.address)
       expect(await foreignBridge.isInitialized()).to.be.equal(true)
@@ -174,6 +175,7 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
     var value = web3.utils.toBN(web3.utils.toWei('0.5', "ether"));
 
     beforeEach(async () => {
+      const fallbackRecipient = accounts[7]
       multisigValidatorContract = await BridgeValidators.new()
       twoAuthorities = [accounts[0], accounts[1]];
       ownerOfValidatorContract = accounts[3]
@@ -222,12 +224,13 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       const recipient = accounts[8]
       const authoritiesFiveAccs = [accounts[1], accounts[2], accounts[3], accounts[4], accounts[5]]
       const ownerOfValidators = accounts[0]
+      const fallbackRecipient = accounts[7]
       const validatorContractWith3Signatures = await BridgeValidators.new()
       await validatorContractWith3Signatures.initialize(3, authoritiesFiveAccs, ownerOfValidators)
       const value = web3.utils.toBN(web3.utils.toWei('0.5', "ether"));
       const foreignBridgeWithThreeSigs = await ForeignBridge.new()
 
-      await foreignBridgeWithThreeSigs.initialize(validatorContractWith3Signatures.address, foreignBridgeWithThreeSigs.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT);
+      await foreignBridgeWithThreeSigs.initialize(validatorContractWith3Signatures.address, foreignBridgeWithThreeSigs.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient);
       await mint(foreignBridgeWithThreeSigs.address, value);
 
       const txHash = "0x35d3818e50234655f6aebb2a1cfbf30f59568d8a4ec72066fac5a25dbe7b8121";
@@ -264,6 +267,7 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       const REQUIRED_NUMBER_OF_VALIDATORS = 1
       const VALIDATORS = [accounts[1]]
       const PROXY_OWNER  = accounts[0]
+      const fallbackRecipient = accounts[7]
       // Validators Contract
       let validatorsProxy = await EternalStorageProxy.new().should.be.fulfilled;
       const validatorsContractImpl = await BridgeValidators.new().should.be.fulfilled;
@@ -280,7 +284,7 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       await foreignBridgeProxy.upgradeTo('1', foreignBridgeImpl.address).should.be.fulfilled;
 
       foreignBridgeProxy = await ForeignBridge.at(foreignBridgeProxy.address);
-      await foreignBridgeProxy.initialize(validatorsProxy.address, foreignBridgeProxy.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT)
+      await foreignBridgeProxy.initialize(validatorsProxy.address, foreignBridgeProxy.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient)
 
       // Deploy V2
       let foreignImplV2 = await ForeignBridgeV2.new();
@@ -295,6 +299,7 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
     })
     it('can be deployed via upgradeToAndCall', async () => {
       const validatorsAddress = validatorContract.address
+      const fallbackRecipient = accounts[7]
 
       let storageProxy = await EternalStorageProxy.new().should.be.fulfilled;
       let foreignBridge =  await ForeignBridge.new();
@@ -307,7 +312,8 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
         homeDailyLimit.toString(),
         homeMaxPerTx.toString(),
         owner,
-        FEE_PERCENT)
+        FEE_PERCENT,
+        fallbackRecipient)
         .encodeABI()
 
       await storageProxy.upgradeToAndCall('1', foreignBridge.address, data).should.be.fulfilled;
@@ -320,11 +326,12 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
   describe('#claimTokens', async () => {
     it('can send erc20', async () => {
       const owner = accounts[0];
+      const fallbackRecipient = accounts[7]
       const foreignBridgeImpl = await ForeignBridge.new();
       const storageProxy = await EternalStorageProxy.new().should.be.fulfilled;
       await storageProxy.upgradeTo('1', foreignBridgeImpl.address).should.be.fulfilled
       const foreignBridge = await ForeignBridge.at(storageProxy.address);
-      await foreignBridge.initialize(validatorContract.address, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT);
+      await foreignBridge.initialize(validatorContract.address, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient);
 
       let tokenSecond = await ERC677BridgeToken.new("Roman Token", "RST", 18);
 
@@ -378,6 +385,7 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
   describe('# test foreign bridge with native token', () => {
     var value = web3.utils.toBN(web3.utils.toWei('0.25', "ether"));
     const owner = accounts[0];
+    const fallbackRecipient = accounts[7]
 
     let foreignBridge
     beforeEach(async () => {
@@ -386,7 +394,7 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       await storageProxy.upgradeTo('1', foreignBridgeImpl.address).should.be.fulfilled
 
       foreignBridge = await ForeignBridge.at(storageProxy.address);
-      await foreignBridge.initialize(validatorContract.address, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT);
+      await foreignBridge.initialize(validatorContract.address, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient);
       await mint(foreignBridge.address, value)
     })
 
@@ -436,7 +444,6 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       let foreignImplV2 = await ForeignBridgeV2.new();
       const recipient = foreignImplV2.address
       const validator = authorities[0]
-      const fallbackRecipient = accounts[6]
       const originBalance = await balanceOf(fallbackRecipient)
 
       var transactionHash = "0x1045bfe274b88120a6b1e5d01b5ec00ab5d01098346e90e7c7a3c9b8f0181c80";
@@ -444,9 +451,6 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       var signature = await sign(validator, message)
       var vrs = signatureToVRS(signature);
       false.should.be.equal(await foreignBridge.relayedMessages(transactionHash))
-
-      // revert if fallback recipient was not assigned
-      await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message, {from: validator}).should.be.rejectedWith(ERROR_MSG)
 
       await foreignBridge.setFallbackRecipient(fallbackRecipient)
       const {logs} = await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message, {from: validator}).should.be.fulfilled
@@ -465,17 +469,52 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       logs[2].args.recipient.should.be.equal(recipient)
       logs[2].args.value.should.be.bignumber.equal(value)
 
-      const newBalance = await balanceOf(accounts[6])
+      const newBalance = await balanceOf(fallbackRecipient)
+      newBalance.should.be.bignumber.equal(originBalance.add(value))
+    })
+
+    it('test setFallbackRecipient', async () => {
+      let foreignImplV2 = await ForeignBridgeV2.new();
+      const recipient = foreignImplV2.address
+      const validator = authorities[0]
+      const newRecipient = accounts[6]
+      const originBalance = await balanceOf(newRecipient)
+
+      var transactionHash = "0x1045bfe274b88120a6b1e5d01b5ec00ab5d01098346e90e7c7a3c9b8f0181c80";
+      var message = createMessage(recipient, value, transactionHash, foreignBridge.address);
+      var signature = await sign(validator, message)
+      var vrs = signatureToVRS(signature);
+      false.should.be.equal(await foreignBridge.relayedMessages(transactionHash))
+
+      await foreignBridge.setFallbackRecipient(newRecipient)
+      const {logs} = await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message, {from: validator}).should.be.fulfilled
+
+      // ForeignBridgeV2 will revert this transfer, so contract will redirect to the sender.
+      logs[0].event.should.be.equal("RecipientRedirected")
+      logs[0].args.from.should.be.equal(recipient)
+      logs[0].args.to.should.be.equal(newRecipient)
+
+      logs[1].event.should.be.equal("Transfer")
+      logs[1].args.from.should.be.equal(foreignBridge.address)
+      logs[1].args.to.should.be.equal(newRecipient)
+      logs[1].args.value.should.be.bignumber.equal(value)
+
+      logs[2].event.should.be.equal("RelayedMessage")
+      logs[2].args.recipient.should.be.equal(recipient)
+      logs[2].args.value.should.be.bignumber.equal(value)
+
+      const newBalance = await balanceOf(newRecipient)
       newBalance.should.be.bignumber.equal(originBalance.add(value))
     })
 
     it('claim native token should be revert', async () => {
       const owner = accounts[0];
+      const fallbackRecipient = accounts[7]
       const foreignBridgeImpl = await ForeignBridge.new();
       const storageProxy = await EternalStorageProxy.new().should.be.fulfilled;
       await storageProxy.upgradeTo('1', foreignBridgeImpl.address).should.be.fulfilled
       const foreignBridge = await ForeignBridge.at(storageProxy.address);
-      await foreignBridge.initialize(validatorContract.address, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT);
+      await foreignBridge.initialize(validatorContract.address, foreignBridge.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, FEE_PERCENT, fallbackRecipient);
 
       let tokenSecond = await ERC677BridgeToken.new("Roman Token", "RST", 18);
 

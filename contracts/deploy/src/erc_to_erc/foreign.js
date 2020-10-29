@@ -157,25 +157,44 @@ async function deployForeign(erc20TokenAddress) {
   )
   foreignNonce++
 
-  const erc20 = BRIDGE_MODE === 'NATIVE_TO_ERC' ? foreignBridgeStorage.options.address : erc20TokenAddress
 
   console.log('\ninitializing Foreign Bridge with following parameters:\n')
   console.log(`Foreign Validators: ${storageValidatorsForeign.options.address},
   `)
   foreignBridgeImplementation.options.address = foreignBridgeStorage.options.address
-  const initializeFBridgeData = await foreignBridgeImplementation.methods
-    .initialize(
-      storageValidatorsForeign.options.address,
-      erc20,
-      FOREIGN_REQUIRED_BLOCK_CONFIRMATIONS,
-      FOREIGN_GAS_PRICE,
-      FOREIGN_MAX_AMOUNT_PER_TX,
-      HOME_DAILY_LIMIT,
-      HOME_MAX_AMOUNT_PER_TX,
-      FOREIGN_BRIDGE_OWNER,
-      FOREIGN_FEE_PERCENT
-    )
+
+  let initializeFBridgeData
+  if (BRIDGE_MODE === 'NATIVE_TO_ERC') {
+    initializeFBridgeData = await foreignBridgeImplementation.methods
+      .initialize(
+        storageValidatorsForeign.options.address,
+        foreignBridgeStorage.options.address,
+        FOREIGN_REQUIRED_BLOCK_CONFIRMATIONS,
+        FOREIGN_GAS_PRICE,
+        FOREIGN_MAX_AMOUNT_PER_TX,
+        HOME_DAILY_LIMIT,
+        HOME_MAX_AMOUNT_PER_TX,
+        FOREIGN_BRIDGE_OWNER,
+        FOREIGN_FEE_PERCENT,
+        FOREIGN_ETH_FALLBACK_RECIPIENT
+      )
     .encodeABI({ from: DEPLOYMENT_ACCOUNT_ADDRESS })
+  } else {
+    initializeFBridgeData = await foreignBridgeImplementation.methods
+      .initialize(
+        storageValidatorsForeign.options.address,
+        erc20TokenAddress,
+        FOREIGN_REQUIRED_BLOCK_CONFIRMATIONS,
+        FOREIGN_GAS_PRICE,
+        FOREIGN_MAX_AMOUNT_PER_TX,
+        HOME_DAILY_LIMIT,
+        HOME_MAX_AMOUNT_PER_TX,
+        FOREIGN_BRIDGE_OWNER,
+        FOREIGN_FEE_PERCENT
+      )
+    .encodeABI({ from: DEPLOYMENT_ACCOUNT_ADDRESS })
+  }
+
   const txInitializeBridge = await sendRawTxForeign({
     data: initializeFBridgeData,
     nonce: foreignNonce,
@@ -185,26 +204,6 @@ async function deployForeign(erc20TokenAddress) {
   })
   assert.strictEqual(Web3Utils.hexToNumber(txInitializeBridge.status), 1, 'Transaction Failed')
   foreignNonce++
-
-  if (BRIDGE_MODE === 'NATIVE_TO_ERC' && FOREIGN_ETH_FALLBACK_RECIPIENT) {
-    console.log(`\nSet foreign ETH fallback recipient ${FOREIGN_ETH_FALLBACK_RECIPIENT}\n`)
-    const setFallbackRecipientData = await foreignBridgeImplementation.methods
-      .setFallbackRecipient(FOREIGN_ETH_FALLBACK_RECIPIENT)
-      .encodeABI({ from: DEPLOYMENT_ACCOUNT_ADDRESS })
-    const setFallbackRecipientTx = await sendRawTxForeign({
-      data: setFallbackRecipientData,
-      nonce: foreignNonce,
-      to: foreignBridgeStorage.options.address,
-      privateKey: deploymentPrivateKey,
-      url: FOREIGN_RPC_URL
-    })
-    assert.strictEqual(
-      Web3Utils.hexToNumber(setFallbackRecipientTx.status),
-      1,
-      'Transaction Failed'
-    )
-    foreignNonce++
-  }
 
   const bridgeOwnershipData = await foreignBridgeStorage.methods
     .transferProxyOwnership(FOREIGN_UPGRADEABLE_ADMIN)
@@ -226,7 +225,7 @@ async function deployForeign(erc20TokenAddress) {
       deployedBlockNumber: Web3Utils.hexToNumber(foreignBridgeStorage.deployedBlockNumber)
     },
     erc20Token: {
-      address: erc20
+      address: BRIDGE_MODE === 'NATIVE_TO_ERC'? foreignBridgeStorage.options.address: erc20TokenAddress
     }
   }
 }
