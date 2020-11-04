@@ -24,6 +24,18 @@
         display: none;
       }
     }
+
+    .header-icon {
+      width: 172px;
+      height: 20px;
+      background-size: contain;
+      background-image: url(#{$base-images-path + '/themes/core/logos/logo-thunderbridge.png'});
+
+      @media (max-width: $mobile-width) {
+        margin-left: 8px;
+        background-image: url(#{$base-images-path + '/themes/core/logos/logo-thunderbridge-3x.png'});
+      }
+    }
   }
 
   .header-section {

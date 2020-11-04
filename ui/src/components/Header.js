@@ -8,7 +8,6 @@ import { MobileMenuButton } from './MobileMenuButton'
 import { inject, observer } from 'mobx-react/index'
 import { ReactComponent as TTIcon } from "../assets/images/themes/core/logos/logo-home.svg"
 import { ReactComponent as TTLogoIcon} from "../assets/images/themes/core/logos/logo-thundercore.svg"
-import ThunderBridge from "../assets/images/themes/core/logos/logo-thunderbridge.png"
 
 @inject('RootStore')
 @observer
@@ -31,7 +30,7 @@ export class Header extends React.Component {
             <Link to="/" onClick={showMobileMenu ? onMenuToggle : null} className="header-logo-container">
               <TTIcon height={28} width={28}/>
               <TTLogoIcon className="header-logo"/>
-              <img src={ThunderBridge} alt="ThunderBridge" />
+              <div className="header-icon" />
             </Link>
             <MobileMenuButton onMenuToggle={onMenuToggle} showMobileMenu={showMobileMenu} />
           </div>
