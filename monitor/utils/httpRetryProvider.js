@@ -1,6 +1,7 @@
 const fetch = require('node-fetch')
 const promiseRetry = require('promise-retry')
 const deepmerge = require('deepmerge')
+const logger = require('pino')()
 
 const defaultOptions = {
   retry: {
@@ -70,7 +71,7 @@ async function trySend(payload, urls, initialIndex) {
       return [result, index]
     } catch (e) {
       // log error here
-      console.log({ error: e.message }, 'fetch fail')
+      logger.error({ error: e.message }, 'fetch fail')
       errors.push(e)
     }
     index = (index + 1) % urls.length

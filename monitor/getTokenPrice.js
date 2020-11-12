@@ -3,6 +3,7 @@ const Web3 = require('web3')
 const HttpRetryProvider = require('./utils/httpRetryProvider')
 const ERC20_ABI = require('./abis/ERC20.abi')
 const ten = new BN(10)
+const logger = require('pino')()
 
 
 async function makeBatchRequest(web3, calls) {
@@ -61,6 +62,8 @@ function main({ TOKEN_PRICE_RPC_URL, UNISWAP_PAIR_ADDRESS, TOKEN_ADDRESS, STABLE
       TOKEN_ADDRESS,
       STABLE_TOKEN_ADDRESS,
     )
+
+    logger.debug({price, pair: UNISWAP_PAIR_ADDRESS, token: TOKEN_ADDRESS}, 'getTokenPrice')
 
     return {price}
   }

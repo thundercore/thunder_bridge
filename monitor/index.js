@@ -6,12 +6,16 @@ const client = require('prom-client');
 const fetch = require('node-fetch');
 const HttpRetryProvider = require('./utils/httpRetryProvider')
 const { newRedis } = require('./utils/redisClient')
-
+const logger = require('pino')()
 const Web3 = require('web3')
 const { decodeBridgeMode } = require('./utils/bridgeMode')
+const { initSentry } = require('./utils/sentry.js')
+const Sentry = require('@sentry/node')
 
 const { readFileSync, existsSync } = require('fs');
 const { env } = process;
+
+initSentry()
 
 const _lock = {}
 
@@ -140,7 +144,7 @@ async function checkStatus(token) {
 
   const lockKey = `checkStatus_${token}`
   if(isLocked(lockKey)) {
-    console.log(`${lockKey} is locked. skip.`)
+    logger.info(`${lockKey} is locked. skip.`)
     return
   }
   lock(lockKey)
@@ -167,7 +171,8 @@ async function checkStatus(token) {
     updateAllData(status, token)
     return status
   } catch (e) {
-    throw e
+    logger.error(e, 'failed to checkStatus')
+    Sentry.captureException(e)
   } finally {
     unlock(lockKey)
   }
@@ -179,7 +184,7 @@ async function checkVBalances(token) {
 
   const lockKey = `checkVBalances_${token}`
   if(isLocked(lockKey)) {
-    console.log(`${lockKey} is locked. skip.`)
+    logger.info(`${lockKey} is locked. skip.`)
     return
   }
   lock(lockKey)
@@ -198,7 +203,8 @@ async function checkVBalances(token) {
     updateAllData(vBalances, token)
     return vBalances
   } catch (e) {
-    throw e
+    logger.error(e, 'failed to checkVBalances')
+    Sentry.captureException(e)
   } finally {
     unlock(lockKey)
   }

@@ -1,11 +1,12 @@
 const { toBN } = require('web3').utils
+const logger = require('pino')()
 
 const ONE = toBN(1)
 const TWO = toBN(2)
 const queryRange = toBN(1000)
 
 function *getPastEventsIter({ contract, event, fromBlock, toBlock, options, token }) {
-  console.log(`${token} *getPastEventsIter: ${event} from: ${fromBlock} to: ${toBlock}`)
+  logger.debug(`${token} *getPastEventsIter: ${event} from: ${fromBlock} to: ${toBlock}`)
   let from = toBN(fromBlock)
   let to = toBN(fromBlock).add(queryRange)
   while (to.lt(toBlock)) {
@@ -17,7 +18,7 @@ function *getPastEventsIter({ contract, event, fromBlock, toBlock, options, toke
 }
 
 async function getPastEvents({ contract, event, fromBlock, toBlock, options, token }) {
-  console.log(`${token} getPastEvents: ${event} from: ${fromBlock} to: ${toBlock}`)
+  logger.debug(`${token} getPastEvents: ${event} from: ${fromBlock} to: ${toBlock}`)
   let events
   try {
     events = await contract.getPastEvents(event, {

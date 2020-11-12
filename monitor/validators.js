@@ -5,6 +5,7 @@ const { getBridgeABIs } = require('./utils/bridgeMode')
 const { getValidatorList } = require('./utils/validatorUtils')
 const { getBlockNumber } = require('./utils/contract')
 const HttpRetryProvider = require('./utils/httpRetryProvider')
+const logger = require('pino')()
 
 function main ({
   HOME_RPC_URL,
@@ -46,7 +47,7 @@ function main ({
       const json = await response.json()
       gasPriceInGwei = Math.min(Number(json[type]), Number(limit))
     } catch (e) {
-      console.log(e)
+      logger.error(e)
       gasPriceInGwei = GAS_PRICE_FALLBACK
     }
     const gasPrice = new Web3Utils.BN(Web3Utils.toWei(gasPriceInGwei.toString(10), 'gwei'))
