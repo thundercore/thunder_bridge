@@ -4,7 +4,6 @@ function readPrometheusStatus(resp, field, tokenName, network, name, fallbackVal
   const token = tokenName
     .replace('TT-', '')
     .replace('TW', '')  // TWETH...
-    .replace('DAI', 'SAI')
   let ret;
   try {
     ret = resp[token][field][network][name]
