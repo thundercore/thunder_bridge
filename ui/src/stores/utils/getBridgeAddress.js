@@ -1,6 +1,8 @@
 
 let cache = undefined
 
+const tokenList = ["BUSD", "BNB", "TT"];
+
 function parseBridgeEnv(env) {
     const segments = env.split('_')
     return [segments[3], segments[2]]
@@ -39,10 +41,5 @@ export function getBridgeAddress(tokenName, network) {
 
 
 export function getTokenList() {
-    if (process.env.REACT_APP_BRIDGE_TOKENS)
-        return process.env.REACT_APP_BRIDGE_TOKENS.split(" ")
-    if (!cache) {
-        cache = loadBridgeAddress()
-    }
-    return Object.keys(cache)
+    return tokenList
 }
