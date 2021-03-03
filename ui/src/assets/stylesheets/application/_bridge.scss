@@ -946,4 +946,20 @@
     &-eth {
         background-image: url(#{$base-images-path + '/logos/eth.png'});
     }
+
+    &-tt-bnb {
+        background-image: url(#{$base-images-path + '/logos/tt-bnb.svg'});
+    }
+    
+    &-tt-busd {
+        background-image: url(#{$base-images-path + '/logos/tt-busd.svg'});
+    }
+
+    &-bnb {
+        background-image: url(#{$base-images-path + '/logos/binance-bnb.svg'});
+    }
+
+    &-busd {
+        background-image: url(#{$base-images-path + '/logos/binance-busd.svg'});
+    }
 }

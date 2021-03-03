@@ -15,15 +15,18 @@ import { Disclaimer } from './components'
 import { ModalContainer } from './components'
 import { NoWallet } from './components'
 import { setItem, getItem, DISCLAIMER_KEY } from './components/utils/localstorage'
+import Banner from './components/Banner'
 
 export class App extends React.Component {
   state = {
     showDisclaimer: false,
-    showMobileMenu: false
+    showMobileMenu: false,
+    isBannerOpen: false
   }
 
   componentDidMount() {
     const disclaimerDisplayed = getItem(DISCLAIMER_KEY)
+    this.setState({isBannerOpen : true})
 
     if (!disclaimerDisplayed) {
       this.setState({ showDisclaimer: true })
@@ -40,7 +43,7 @@ export class App extends React.Component {
   }
 
   render() {
-    const { showDisclaimer, showMobileMenu } = this.state
+    const { showDisclaimer, showMobileMenu, isBannerOpen } = this.state
     return (
       <div className={showMobileMenu ? 'mobile-menu-is-open' : ''}>
         <Route component={Loading} />
@@ -60,6 +63,9 @@ export class App extends React.Component {
         <Route component={Footer} />
         <ModalContainer showModal={showDisclaimer}>
           <Disclaimer onConfirmation={this.closeDisclaimer} />
+        </ModalContainer>
+        <ModalContainer showModal={isBannerOpen}>
+          <Banner onConfirmation={this.closeDisclaimer} closeModal={() => this.setState({isBannerOpen: false})} />
         </ModalContainer>
         <NoWallet showModal={!showDisclaimer} />
       </div>

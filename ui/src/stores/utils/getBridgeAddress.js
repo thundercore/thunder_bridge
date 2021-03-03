@@ -1,7 +1,7 @@
 
 let cache = undefined
 
-const tokenList = ["BUSD", "BNB", "TT"];
+const tokenList = ["BUSD", "BNB"];
 
 function parseBridgeEnv(env) {
     const segments = env.split('_')
