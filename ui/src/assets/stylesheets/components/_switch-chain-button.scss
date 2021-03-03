@@ -1,9 +1,14 @@
 .switch-chain-wrapper {
 
     margin-left: auto;
+    margin-top: 12px;
+
+    @media screen and (max-width: $tablet-width) {
+        margin-right: auto;
+    }
 
     .switch-chain-button {
-        background-color: $bridge-button-background-color;
+        background-color: #514747;
         border-radius: 3px;
         color: $bridge-button-text-color;
         display: block;
@@ -11,9 +16,21 @@
         font-weight: 700;
         height: 48px;
         text-decoration: none;
+        width: 300px;
     
         &:hover {
-            background-color: darken($bridge-button-background-color, 10%);
+            background-color: #514747;
+        }
+
+        .to {
+            color: #fee63b;
+            font-size: 12px;
+            margin-right: 12px;
+        }
+
+        .text {
+            // font-family: NunitoSans;
+            font-size: 14px;
         }
     }
 }

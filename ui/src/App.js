@@ -9,7 +9,7 @@ import {
   StatusPage,
   StatisticsPage
 } from './components'
-import { Route } from 'react-router-dom'
+import { Route, Switch } from 'react-router-dom'
 import './assets/stylesheets/application.css'
 import { Disclaimer } from './components'
 import { ModalContainer } from './components'
@@ -21,7 +21,7 @@ import SwithChainButton from './components/SwithChainButton'
 export class App extends React.Component {
   state = {
     showDisclaimer: false,
-    showMobileMenu: false
+    showMobileMenu: false,
   }
 
   componentDidMount() {
@@ -55,10 +55,12 @@ export class App extends React.Component {
         <div className="app-container">
           <SwithChainButton />
           {showMobileMenu && <Route render={() => <div className="mobile-menu-open" />} />}
-          <Route exact path="/" component={Bridge} />
-          { /* <Route exact path="/events" component={RelayEvents} /> */ }
-          <Route exact path="/status" component={StatusPage} />
-          <Route exact path="/statistics" component={StatisticsPage} />
+          <Switch>
+            { /* <Route exact path="/events" component={RelayEvents} /> */ }
+            <Route exact path={["/status", "/:id/status"]} component={StatusPage} />
+            <Route exact path={["/statistics", "/:id/statistics"]} component={StatisticsPage} />
+            <Route path={"/"} component={Bridge} />
+          </Switch>
         </div>
         <Route component={Footer} />
         <ModalContainer showModal={showDisclaimer}>
