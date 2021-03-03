@@ -14,6 +14,7 @@ const web3 = new Web3()
 const { toBN } = Web3.utils
 
 async function estimateGas({
+  validatorAddress,
   foreignBridge,
   validatorContract,
   message,
@@ -25,7 +26,7 @@ async function estimateGas({
   try {
     const gasEstimate = await foreignBridge.methods
       .executeSignatures(v, r, s, message)
-      .estimateGas()
+      .estimateGas({from: validatorAddress})
     return gasEstimate
   } catch (e) {
     if (e instanceof HttpListProviderError) {
@@ -35,14 +36,14 @@ async function estimateGas({
     // check if the message was already processed
     logger.debug('Check if the message was already processed')
     const { txHash } = parseMessage(message)
-    const alreadyProcessed = await foreignBridge.methods.relayedMessages(txHash).call()
+    const alreadyProcessed = await foreignBridge.methods.relayedMessages(txHash).call({ from: validatorAddress })
     if (alreadyProcessed) {
       throw new AlreadyProcessedError()
     }
 
     // check if the number of signatures is enough
     logger.debug('Check if number of signatures is enough')
-    const requiredSignatures = await validatorContract.methods.requiredSignatures().call()
+    const requiredSignatures = await validatorContract.methods.requiredSignatures().call({from: validatorAddress})
     if (toBN(requiredSignatures).gt(toBN(numberOfCollectedSignatures))) {
       throw new IncompatibleContractError('The number of collected signatures does not match')
     }
@@ -51,7 +52,7 @@ async function estimateGas({
     for (let i = 0; i < v.length; i++) {
       const address = web3.eth.accounts.recover(message, web3.utils.toHex(v[i]), r[i], s[i])
       logger.debug({ address }, 'Check that signature is from a validator')
-      const isValidator = await validatorContract.methods.isValidator(address).call()
+      const isValidator = await validatorContract.methods.isValidator(address).call({from: address})
 
       if (!isValidator) {
         throw new InvalidValidatorError(`Message signed by ${address} that is not a validator`)

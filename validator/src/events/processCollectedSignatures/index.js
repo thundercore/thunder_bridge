@@ -36,7 +36,7 @@ function processCollectedSignaturesBuilder(config, validator) {
 
     if (validatorContract === null) {
       rootLogger.debug('Getting validator contract address')
-      const validatorContractAddress = await foreignBridge.methods.validatorContract().call()
+      const validatorContractAddress = await foreignBridge.methods.validatorContract().call({ from: validator.address })
       rootLogger.debug({ validatorContractAddress }, 'Validator contract address obtained')
 
       validatorContract = new web3Foreign.eth.Contract(
@@ -85,6 +85,7 @@ function processCollectedSignaturesBuilder(config, validator) {
           try {
             logger.debug('Estimate gas')
             gasEstimate = await estimateGas({
+              validatorAddress: validator.address,
               foreignBridge,
               validatorContract,
               v,

@@ -50,6 +50,9 @@ clean-chain:
 	cd $(E2E_DIR) && docker-compose -f docker-compose-infra.yaml down
 
 
+run-db:
+	cd $(VALIDATOR_DIR) && docker-compose up -d redis rabbitmq
+
 run-%:
 	cd $(E2E_DIR) && cp envs/$*.env validator.env
 	cd $(E2E_DIR) && docker-compose build validator && docker-compose -p $* up -d
@@ -82,7 +85,7 @@ test-contracts:
 	cd $(CONTRACT_DIR) && docker build -t test-contracts -f Dockerfile.test .
 	cd $(CONTRACT_DIR) && docker run test-contracts
 
-run-all: run-v1 run-v2 run-v3
+run-all: run-db run-v1 run-v2 run-v3
 	echo "All validator are deployed."
 
 stress-%: deploy-stress-%
@@ -95,6 +98,10 @@ crash: deploy-stress
 	$(MAKE) run-all
 	cd $(VALIDATOR_DIR) && python scripts/crash-test.py | tee crash.log
 
-test-all: test-e2e test-unittest test-truffle clean
+test-e2e: test-e2e-native-to-erc test-e2e-erc-to-erc
+
+test-truffle: test-truffle-native-to-erc test-truffle-erc-to-erc
+
+test-all: test-e2e test-unittest test-truffle test-contracts clean
 
 clean: clean-chain clean-v1 clean-v2 clean-v3
