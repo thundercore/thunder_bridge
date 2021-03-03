@@ -138,7 +138,7 @@ class HomeStore {
   networkName = process.env.REACT_APP_HOME_NETWORK_NAME || 'Unknown'
   filteredBlockNumber = 0
   homeBridge = {}
-  HOME_BRIDGE_ADDRESS = process.env.REACT_APP_HOME_USDT_BRIDGE_ADDRESS
+  HOME_BRIDGE_ADDRESS = process.env.REACT_APP_HOME_BUSD_BRIDGE_ADDRESS
   explorerTxTemplate = process.env.REACT_APP_HOME_EXPLORER_TX_TEMPLATE || ''
   explorerAddressTemplate = process.env.REACT_APP_HOME_EXPLORER_ADDRESS_TEMPLATE || ''
   tokenContract = {}
