@@ -15,6 +15,8 @@ import { Disclaimer } from './components'
 import { ModalContainer } from './components'
 import { NoWallet } from './components'
 import { setItem, getItem, DISCLAIMER_KEY } from './components/utils/localstorage'
+import Banner from './components/Banner'
+import SwithChainButton from './components/SwithChainButton'
 
 export class App extends React.Component {
   state = {
@@ -51,6 +53,7 @@ export class App extends React.Component {
           )}
         />
         <div className="app-container">
+          <SwithChainButton />
           {showMobileMenu && <Route render={() => <div className="mobile-menu-open" />} />}
           <Route exact path="/" component={Bridge} />
           { /* <Route exact path="/events" component={RelayEvents} /> */ }

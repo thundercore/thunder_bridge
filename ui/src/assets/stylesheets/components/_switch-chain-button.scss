@@ -1,0 +1,19 @@
+.switch-chain-wrapper {
+
+    margin-left: auto;
+
+    .switch-chain-button {
+        background-color: $bridge-button-background-color;
+        border-radius: 3px;
+        color: $bridge-button-text-color;
+        display: block;
+        flex-shrink: 0;
+        font-weight: 700;
+        height: 48px;
+        text-decoration: none;
+    
+        &:hover {
+            background-color: darken($bridge-button-background-color, 10%);
+        }
+    }
+}
