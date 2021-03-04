@@ -9,6 +9,11 @@ export const BridgeChoose = (props) => {
     return 'bridge-choose-logo logo-' + c.toLowerCase()
   }
 
+  const renderAdditionalLogoInfo = (item) => {
+    if (item === "Binance-TT") return <div className="logo-info">BEP 20</div>
+    return null
+  }
+
   const handleOptionChange = (mode) => {
     if (props.web3Store.metamaskNet.id === props.web3Store.foreignNet.id) {
       if (mode.from.substring(0,3) === 'TT-') {
@@ -58,12 +63,14 @@ export const BridgeChoose = (props) => {
             <span className="bridge-choose-container">
               <span className="bridge-choose-logo-container">
                 <span className={chooseLogoClass(item.from)} />
+                {renderAdditionalLogoInfo(item.from)}
               </span>
               <span className="bridge-choose-text">
                 {RenameToken(item.from)} <i className="bridge-choose-arrow" /> {RenameToken(item.to)}
               </span>
               <span className="bridge-choose-logo-container">
                 <span className={chooseLogoClass(item.to)} />
+                {renderAdditionalLogoInfo(item.to)}
               </span>
             </span>
           </label>

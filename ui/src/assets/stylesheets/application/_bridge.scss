@@ -483,6 +483,22 @@
                 justify-content: center;
                 align-items: center;
                 border-radius: 40px;
+                position: relative;
+
+                .logo-info {
+                    width: 37px;
+                    height: 17px;
+                    padding: 1px;
+                    border-radius: 2px;
+                    font-size: 9.5px;
+                    background-color: #626262;
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    position: absolute;
+                    top: 35px;
+                }
             }
         }
 
@@ -961,5 +977,9 @@
 
     &-busd {
         background-image: url(#{$base-images-path + '/logos/binance-busd.svg'});
+    }
+
+    &-tt, &-binance-tt {
+        background-image: url('#{ $home-logo-image }');
     }
 }
