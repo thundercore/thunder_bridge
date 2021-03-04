@@ -1,7 +1,7 @@
 import HOME_ERC_TO_ERC_ABI from '../../../abis/HomeBridgeErcToErcWithFee.abi'
 import FOREIGN_ERC_TO_ERC_ABI from '../../../abis/ForeignBridgeErcToErc.abi'
 
-export const bridgeType = process.env.REACT_APP_BRIDGE_TYPE === "ETH" ? "eth" : "bsc"
+export const bridgeType = process.env.REACT_APP_BRIDGE_TYPE.toLowerCase()
 
 export const BRIDGE_MODES = {
   NATIVE_TO_ERC: 'NATIVE_TO_ERC',
