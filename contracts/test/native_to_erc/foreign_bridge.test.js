@@ -1,5 +1,6 @@
 const ForeignBridge = artifacts.require("ForeignBridgeWithNativeToken.sol");
 const ForeignBridgeV2 = artifacts.require("ForeignBridgeV2.sol");
+const RevertFallback = artifacts.require("RevertFallback.sol");
 const BridgeValidators = artifacts.require("BridgeValidators.sol");
 const EternalStorageProxy = artifacts.require("EternalStorageProxy.sol");
 const TetherToken = artifacts.require("TetherToken.sol");
@@ -441,8 +442,8 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
     })
 
     it('if send eth failed, redirect eth to the fallback recipient', async () => {
-      let foreignImplV2 = await ForeignBridgeV2.new();
-      const recipient = foreignImplV2.address
+      let fallback = await RevertFallback.new();
+      const recipient = fallback.address
       const validator = authorities[0]
       const originBalance = await balanceOf(fallbackRecipient)
 
@@ -455,7 +456,7 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       await foreignBridge.setFallbackRecipient(fallbackRecipient)
       const {logs} = await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message, {from: validator}).should.be.fulfilled
 
-      // ForeignBridgeV2 will revert this transfer, so contract will redirect to the sender.
+      // RevertFallback will revert this transfer, so contract will redirect to the sender.
       logs[0].event.should.be.equal("RecipientRedirected")
       logs[0].args.from.should.be.equal(recipient)
       logs[0].args.to.should.be.equal(fallbackRecipient)
@@ -474,8 +475,8 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
     })
 
     it('test setFallbackRecipient', async () => {
-      let foreignImplV2 = await ForeignBridgeV2.new();
-      const recipient = foreignImplV2.address
+      let fallback = await RevertFallback.new();
+      const recipient = fallback.address
       const validator = authorities[0]
       const newRecipient = accounts[6]
       const originBalance = await balanceOf(newRecipient)
@@ -489,7 +490,7 @@ contract('ForeignBridge_NATIVE_to_ERC20', async (accounts) => {
       await foreignBridge.setFallbackRecipient(newRecipient)
       const {logs} = await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message, {from: validator}).should.be.fulfilled
 
-      // ForeignBridgeV2 will revert this transfer, so contract will redirect to the sender.
+      // RevertFallback will revert this transfer, so contract will redirect to the sender.
       logs[0].event.should.be.equal("RecipientRedirected")
       logs[0].args.from.should.be.equal(recipient)
       logs[0].args.to.should.be.equal(newRecipient)
