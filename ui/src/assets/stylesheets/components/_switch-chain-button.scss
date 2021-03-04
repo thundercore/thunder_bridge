@@ -13,7 +13,6 @@
         color: $bridge-button-text-color;
         display: block;
         flex-shrink: 0;
-        font-weight: 700;
         height: 48px;
         text-decoration: none;
         width: 300px;
@@ -26,10 +25,12 @@
             color: #fee63b;
             font-size: 12px;
             margin-right: 12px;
+            font-weight: 100;
         }
 
         .text {
             // font-family: NunitoSans;
+            font-weight: 700;
             font-size: 14px;
         }
     }

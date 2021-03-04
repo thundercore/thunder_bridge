@@ -23,6 +23,7 @@ class App extends React.Component {
   state = {
     showDisclaimer: false,
     showMobileMenu: false,
+    isBannerOpen: true
   }
 
   handleSubpath(history) {
@@ -55,7 +56,7 @@ class App extends React.Component {
   }
 
   render() {
-    const { showDisclaimer, showMobileMenu } = this.state
+    const { showDisclaimer, showMobileMenu, isBannerOpen } = this.state
     return (
       <div className={showMobileMenu ? 'mobile-menu-is-open' : ''}>
         <Route component={Loading} />
@@ -66,7 +67,7 @@ class App extends React.Component {
           )}
         />
         <div className="app-container">
-          <SwithChainButton />
+          {/* <SwithChainButton /> */}
           {showMobileMenu && <Route render={() => <div className="mobile-menu-open" />} />}
           <Switch>
             { /* <Route exact path="/events" component={RelayEvents} /> */ }
@@ -78,6 +79,9 @@ class App extends React.Component {
         <Route component={Footer} />
         <ModalContainer showModal={showDisclaimer}>
           <Disclaimer onConfirmation={this.closeDisclaimer} />
+        </ModalContainer>
+        <ModalContainer showModal={isBannerOpen}>
+          <Banner closeModal={() => this.setState({isBannerOpen: false})} />
         </ModalContainer>
         <NoWallet showModal={!showDisclaimer} />
       </div>
