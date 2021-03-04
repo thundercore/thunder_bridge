@@ -8,7 +8,7 @@ export default class SwithChainButton extends Component {
   getUrl() {
     const env = process.env.NODE_ENV
     const bridge = process.env.REACT_APP_BRIDGE_TOKENS.toLowerCase().includes("eth") ? "bsc" : "eth"
-    if (env === "dev") return `https://bridge-venus.thundercore.com/${bridge}`
+    if (env === "development") return `https://bridge-venus.thundercore.com/${bridge}`
     return `https://bridge.thundercore.com/${bridge}`
   }
 
