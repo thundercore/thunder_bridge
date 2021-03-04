@@ -74,15 +74,6 @@ if (BRIDGE_MODE === 'ERC_TO_ERC') {
     BRIDGEABLE_TOKEN_DECIMALS: envalid.num()
   }
 }
-if (BRIDGE_MODE === 'ERC_TO_NATIVE') {
-  validations = {
-    ...validations,
-    ERC20_TOKEN_ADDRESS: addressValidator(),
-    BLOCK_REWARD_ADDRESS: addressValidator({
-      default: ZERO_ADDRESS
-    })
-  }
-}
 
 const env = envalid.cleanEnv(process.env, validations)
 

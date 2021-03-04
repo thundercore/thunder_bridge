@@ -16,3 +16,6 @@ services:
   e2e-native-to-erc:
     extends: test-e2e
     command: npx mocha test/nativeToErc.js
+  e2e-erc-to-native:
+    extends: test-e2e
+    command: npx mocha test/ercToNative.js
