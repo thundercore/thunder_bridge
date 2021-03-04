@@ -140,7 +140,7 @@ class ForeignStore {
     }, 10000)
 
     if (!tokenName)
-      tokenName = "BUSD"
+    tokenName = process.env.REACT_APP_HOME_NATIVE_NAME
 
     this.FOREIGN_BRIDGE_ADDRESS = getBridgeAddress(tokenName, "foreign")
 

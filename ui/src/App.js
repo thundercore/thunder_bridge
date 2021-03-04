@@ -27,7 +27,7 @@ class App extends React.Component {
   state = {
     showDisclaimer: false,
     showMobileMenu: false,
-    isBannerOpen: false,
+    isBannerOpen: true,
   };
 
   handleSubpath(history) {
@@ -39,9 +39,20 @@ class App extends React.Component {
     }
   }
 
+  updateLogo() {
+    const els = document.querySelectorAll(".foreign-logo");
+    console.log("els:", els.length);
+    els.forEach(
+      (el) =>
+        (el.style.backgroundImage = `url(./assets/images/themes/core/logos/logo-foreign-${bridgeType}.svg)`)
+    );
+    console.log("bridgeType:", bridgeType);
+  }
+
   componentDidMount() {
     const { history } = this.props;
     this.handleSubpath(history);
+    this.updateLogo();
 
     const disclaimerDisplayed = getItem(DISCLAIMER_KEY);
 

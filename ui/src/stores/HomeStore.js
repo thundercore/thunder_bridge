@@ -175,7 +175,7 @@ class HomeStore {
     }, 10000)
 
     if (!tokenName)
-      tokenName = "BUSD"
+      tokenName = process.env.REACT_APP_HOME_NATIVE_NAME
 
     this.HOME_BRIDGE_ADDRESS = getBridgeAddress(tokenName, 'home')
 
