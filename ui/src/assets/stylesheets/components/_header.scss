@@ -26,14 +26,14 @@
     }
 
     .header-icon {
-      width: 172px;
+      width: 234px;
       height: 20px;
-      background-size: contain;
+      margin-left: 8px;
+      margin-top: 3px;
       background-image: url(#{$base-images-path + '/themes/core/logos/logo-thunderbridge.png'});
 
       @media (max-width: $mobile-width) {
-        margin-left: 8px;
-        background-image: url(#{$base-images-path + '/themes/core/logos/logo-thunderbridge-3x.png'});
+        background-image: url(#{$base-images-path + '/themes/core/logos/logo-thunderbridge-3x.svg'});
       }
     }
   }
