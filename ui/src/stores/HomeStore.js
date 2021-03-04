@@ -175,7 +175,7 @@ class HomeStore {
     }, 10000)
 
     if (!tokenName)
-      tokenName = "USDT"
+      tokenName = "BUSD"
 
     this.HOME_BRIDGE_ADDRESS = getBridgeAddress(tokenName, 'home')
 

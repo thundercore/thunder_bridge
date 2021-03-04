@@ -3,18 +3,7 @@ import { getTokenList } from '../stores/utils/getBridgeAddress'
 import { RenameToken } from './utils/renameToken'
 
 export const BridgeChoose = (props) => {
-  const tokens = getTokenList()
-  const chooseItems = []
-  for (const token of tokens) {
-    chooseItems.push({
-      from: token,
-      to: `TT-${token}`
-    })
-    chooseItems.push({
-      from: `TT-${token}`,
-      to: token
-    })
-  }
+  const chooseItems = getTokenList()
 
   const chooseLogoClass = (c) => {
     return 'bridge-choose-logo logo-' + c.toLowerCase()

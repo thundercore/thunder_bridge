@@ -140,7 +140,7 @@ class ForeignStore {
     }, 10000)
 
     if (!tokenName)
-      tokenName = "USDT"
+      tokenName = "BUSD"
 
     this.FOREIGN_BRIDGE_ADDRESS = getBridgeAddress(tokenName, "foreign")
 

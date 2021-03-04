@@ -1,7 +1,7 @@
 
 let cache = undefined
 
-const tokenList = ["BUSD", "BNB"];
+const tokenList = ["BUSD", "BNB", "TT"];
 
 function parseBridgeEnv(env) {
     const segments = env.split('_')
@@ -41,5 +41,17 @@ export function getBridgeAddress(tokenName, network) {
 
 
 export function getTokenList() {
-    return tokenList
+    const list = []
+    tokenList.forEach(token => {
+        const prefixed = token === "TT" ? "Binance-" : "TT-"
+        list.push({
+            from: token,
+            to: `${prefixed}${token}`
+        })
+        list.push({
+            from: `${prefixed}${token}`,
+            to: token
+        })
+    })
+    return list
 }
