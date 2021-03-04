@@ -9,7 +9,7 @@ import {
   StatusPage,
   StatisticsPage,
 } from "./components";
-import { Route, Switch, withRouter } from "react-router-dom";
+import { Route, Switch } from "react-router-dom";
 import "./assets/stylesheets/application.css";
 import { Disclaimer } from "./components";
 import { ModalContainer } from "./components";
@@ -20,8 +20,8 @@ import {
   DISCLAIMER_KEY,
 } from "./components/utils/localstorage";
 import Banner from "./components/Banner";
-import {bridgeType} from './stores/utils/bridgeMode'
 import SwithChainButton from "./components/SwithChainButton";
+import NotFound from "./components/NotFound";
 
 class App extends React.Component {
   state = {
@@ -30,19 +30,7 @@ class App extends React.Component {
     isBannerOpen: true,
   };
 
-  handleSubpath(history) {
-    const { pathname } = window.location;
-    const subpath = pathname.split("/")[1];
-    if (subpath && subpath !== bridgeType) {
-      const newPath = pathname.replace(subpath, bridgeType);
-      history.push(newPath);
-    }
-  }
-
   componentDidMount() {
-    const { history } = this.props;
-    this.handleSubpath(history);
-
     const disclaimerDisplayed = getItem(DISCLAIMER_KEY);
 
     if (!disclaimerDisplayed) {
@@ -84,15 +72,16 @@ class App extends React.Component {
             {/* <Route exact path="/events" component={RelayEvents} /> */}
             <Route
               exact
-              path={["/status", "/:id/status"]}
+              path={["/status", "/(eth|bsc)/status"]}
               component={StatusPage}
             />
             <Route
               exact
-              path={["/statistics", "/:id/statistics"]}
+              path={["/statistics", "/(eth|bsc)/statistics"]}
               component={StatisticsPage}
             />
-            <Route path={"/"} component={Bridge} />
+            <Route exact path={["/", "/(eth|bsc)"]} component={Bridge} />
+            <Route component={NotFound} />
           </Switch>
         </div>
         <Route component={Footer} />
@@ -108,4 +97,4 @@ class App extends React.Component {
   }
 }
 
-export default withRouter(App);
+export default App;
