@@ -2,6 +2,7 @@ import React from 'react'
 import numeral from 'numeral'
 import { CopyIcon } from './icons/CopyIcon'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { updateForeignLogo } from '../stores/utils/utils'
 import { RenameToken } from './utils/renameToken'
 
 export const NetworkDetails = ({
@@ -43,7 +44,7 @@ export const NetworkDetails = ({
   return (
     <div className="network-details" data-testid="network-details">
       <div className="details-logo-container">
-        <div className={logoClass} />
+        <div className={logoClass} style={!isHome ? updateForeignLogo() : {}} />
       </div>
       <div className="details-body">
         <p className="details-data-container">

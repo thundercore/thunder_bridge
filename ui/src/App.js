@@ -20,8 +20,8 @@ import {
   DISCLAIMER_KEY,
 } from "./components/utils/localstorage";
 import Banner from "./components/Banner";
+import {bridgeType} from './stores/utils/bridgeMode'
 import SwithChainButton from "./components/SwithChainButton";
-import { bridgeType } from "./stores/utils/bridgeMode";
 
 class App extends React.Component {
   state = {
@@ -39,20 +39,9 @@ class App extends React.Component {
     }
   }
 
-  updateLogo() {
-    const els = document.querySelectorAll(".foreign-logo");
-    console.log("els:", els.length);
-    els.forEach(
-      (el) =>
-        (el.style.backgroundImage = `url(./assets/images/themes/core/logos/logo-foreign-${bridgeType}.svg)`)
-    );
-    console.log("bridgeType:", bridgeType);
-  }
-
   componentDidMount() {
     const { history } = this.props;
     this.handleSubpath(history);
-    this.updateLogo();
 
     const disclaimerDisplayed = getItem(DISCLAIMER_KEY);
 
