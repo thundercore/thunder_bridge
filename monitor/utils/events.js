@@ -1,6 +1,6 @@
 const Web3 = require('web3')
 const { toBN } = require('web3').utils
-const { BRIDGE_MODES, decodeBridgeMode, getBridgeABIs, ERC_TYPES } = require('./bridgeMode')
+const { getBridgeABIs, ERC_TYPES } = require('./bridgeMode')
 const { getTokenType } = require('./ercUtils')
 const HttpRetryProvider = require('./httpRetryProvider')
 
@@ -22,13 +22,12 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
     try {
       const homeErcBridge = new web3Home.eth.Contract(HOME_ERC_TO_ERC_ABI, HOME_BRIDGE_ADDRESS)
       const bridgeModeHash = await homeErcBridge.methods.getBridgeMode().call()
-      const bridgeMode = decodeBridgeMode(bridgeModeHash)
-      const { HOME_ABI, FOREIGN_ABI } = getBridgeABIs(bridgeMode)
+      const { HOME_ABI, FOREIGN_ABI } = getBridgeABIs()
       const homeBridge = new web3Home.eth.Contract(HOME_ABI, HOME_BRIDGE_ADDRESS)
       const foreignBridge = new web3Foreign.eth.Contract(FOREIGN_ABI, FOREIGN_BRIDGE_ADDRESS)
       const tokenType = await getTokenType(foreignBridge, FOREIGN_BRIDGE_ADDRESS)
       const isExternalErc20 = tokenType === ERC_TYPES.ERC20
-      const erc20MethodName = bridgeMode === BRIDGE_MODES.NATIVE_TO_ERC ? 'erc677token' : 'erc20token'
+      const erc20MethodName = 'erc20token'
       const erc20Address = await foreignBridge.methods[erc20MethodName]().call()
       const erc20Contract = new web3Foreign.eth.Contract(ERC20_ABI, erc20Address)
 
