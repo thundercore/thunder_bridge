@@ -8,7 +8,6 @@ import { MobileMenuButton } from './MobileMenuButton'
 import { inject, observer } from 'mobx-react/index'
 import { ReactComponent as TTIcon } from "../assets/images/themes/core/logos/logo-home.svg"
 import { ReactComponent as TTLogoIcon} from "../assets/images/themes/core/logos/logo-thundercore.svg"
-import { bridgeType } from '../stores/utils/bridgeMode'
 
 @inject('RootStore')
 @observer
@@ -28,7 +27,7 @@ export class Header extends React.Component {
         ) : null}
         <div className="container">
           <div className="header-section">
-            <Link to={`/${bridgeType}`} onClick={showMobileMenu ? onMenuToggle : null} className="header-logo-container">
+            <Link to="/" onClick={showMobileMenu ? onMenuToggle : null} className="header-logo-container">
               <TTIcon height={28} width={28}/>
               <TTLogoIcon className="header-logo"/>
               <div className="header-icon" />
