@@ -303,7 +303,7 @@ contract('HomeBridge_ERC677_to_NATIVE', async (accounts) => {
         .should.be.rejectedWith(ERROR_MSG)
     })
 
-    it('should not let to deposit less than minPerTx', async () => {
+    it('should not let to withdraw less than minPerTx', async () => {
       const newDailyLimit = 100
       const newMaxPerTx = 50
       const newMinPerTx = 20
