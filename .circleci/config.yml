@@ -46,6 +46,9 @@ jobs:
       - run:
           name: Run e2e native-to-erc tests
           command: make test-e2e-native-to-erc
+      - run:
+          name: Run e2e erc-to-native tests
+          command: make test-e2e-erc-to-native
 
   contracttests:
     executor: builder
