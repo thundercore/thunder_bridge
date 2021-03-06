@@ -41,7 +41,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
 
     let diff
     if (bridgeMode === BRIDGE_MODES.ERC_TO_NATIVE) {
-      diff = foreignTotalSupply.minus(tokenBalance).toString(10)
+      diff = tokenBalance.minus(foreignTotalSupply).toString(10)
     } else {
       diff = foreignBalanceBN.minus(homeTotalSupplyBN).toString(10)
     }

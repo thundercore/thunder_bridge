@@ -43,10 +43,10 @@ function mkDict(pairs) {
 
 let config = existsSync("config.json") ? JSON.parse(readFileSync("config.json", "utf8")) :
   mkDict(env.TOKEN_LABELS.split(" ").filter(s => s.length >= 2).map(L => [L, {
-    "BRIDGE_MODE": env.BRIDGE_MODE,
     "HOME_RPC_URL": env.HOME_RPC_URL,
     "FOREIGN_RPC_URL": env.FOREIGN_RPC_URL,
     "TOKEN_PRICE_RPC_URL": env.TOKEN_PRICE_RPC_URL,
+    "BRIDGE_MODE": env[`${L}_BRIDGE_MODE`],
     "HOME_BRIDGE_ADDRESS": env[`${L}_HOME_BRIDGE_ADDRESS`],
     "FOREIGN_BRIDGE_ADDRESS": env[`${L}_FOREIGN_BRIDGE_ADDRESS`],
     "HOME_DEPLOYMENT_BLOCK": env[`${L}_HOME_DEPLOYMENT_BLOCK`],
