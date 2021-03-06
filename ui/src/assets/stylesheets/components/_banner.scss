@@ -1,13 +1,4 @@
 .banner-wrapper {
-    position: relative;
-
-    .close {
-        right: 10px;
-        top: -30px;
-        position: absolute;
-        cursor: pointer;
-    }
-
     .disclaimer-alert {
         border-radius: 8px;
         position: relative;
@@ -15,8 +6,17 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        position: relative;
+
+        .close {
+            right: 0;
+            top: -30px;
+            position: absolute;
+            cursor: pointer;
+        }
+        
         @media screen and (max-width: $tablet-width) {
-            max-width: 90vw;
+            max-width: 85vw;
         }
     }
 
