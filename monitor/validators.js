@@ -3,7 +3,6 @@ const Web3 = require('web3')
 const fetch = require('node-fetch')
 const { getBridgeABIs } = require('./utils/bridgeMode')
 const { getValidatorList } = require('./utils/validatorUtils')
-const { getBlockNumber } = require('./utils/contract')
 const HttpRetryProvider = require('./utils/httpRetryProvider')
 const logger = require('pino')()
 
@@ -67,8 +66,6 @@ function main ({
         homeValidatorsAddress
       )
 
-      const [homeBlockNumber, foreignBlockNumber] = await getBlockNumber(web3Home, web3Foreign)
-
       const foreignValidatorsAddress = await foreignBridge.methods.validatorContract().call()
       const foreignBridgeValidators = new web3Foreign.eth.Contract(
         BRIDGE_VALIDATORS_ABI,
@@ -79,14 +76,14 @@ function main ({
         foreignValidatorsAddress,
         web3Foreign.eth,
         FOREIGN_DEPLOYMENT_BLOCK,
-        foreignBlockNumber
+        (parseInt(FOREIGN_DEPLOYMENT_BLOCK)+1000).toString(),
       )
 
       const homeValidators = await getValidatorList(
         homeValidatorsAddress,
         web3Home.eth,
         HOME_DEPLOYMENT_BLOCK,
-        homeBlockNumber
+        (parseInt(HOME_DEPLOYMENT_BLOCK)+1000).toString(),
       )
 
       const homeBalances = {}

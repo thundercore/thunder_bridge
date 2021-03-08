@@ -51,7 +51,7 @@ const filterAsync = (array, filter) =>
 
 const getValidatorList = async (address, eth, fromBlock, toBlock) => {
   const validatorsContract = new eth.Contract(bridgeValidatorsAbi, address)
-  let validators = (await validatorsContract.getPastEvents("ValidatorAdded", { fromBlock: "1", toBlock: "latest" })).map(e => e.returnValues.validator);
+  let validators = (await validatorsContract.getPastEvents("ValidatorAdded", { fromBlock, toBlock })).map(e => e.returnValues.validator);
 
   validators = await filterAsync(validators, async v => await validatorsContract.methods.isValidator(v).call());
 
