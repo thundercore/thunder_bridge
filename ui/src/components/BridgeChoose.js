@@ -18,10 +18,12 @@ export const BridgeChoose = (props) => {
     chooseItems.push({
       from: token,
       to: `${getPrefix(token)}-${token}`,
+      network: token === "TT" ? "fromHome" : "fromForeign"
     });
     chooseItems.push({
       from: `${getPrefix(token)}-${token}`,
       to: token,
+      network: token === "TT" ? "fromForeign" : "fromHome"
     });
   }
 
@@ -36,7 +38,7 @@ export const BridgeChoose = (props) => {
 
   const handleOptionChange = (mode) => {
     if (props.web3Store.metamaskNet.id === props.web3Store.foreignNet.id) {
-      if (mode.from.substring(0, 3) === "TT-") {
+      if (mode.from.startsWith("TT")) {
         props.alert.pushError(
           `Please, change network to ${
             props.web3Store.homeNet.name
@@ -44,10 +46,10 @@ export const BridgeChoose = (props) => {
         );
       } else {
         props.alert.setLoading(true);
-        props.setNewTokenHandler(mode.from);
+        props.setNewTokenHandler(mode.to === "TT" ? "TT" : mode.from);
       }
     } else {
-      if (mode.from.substring(0, 3) !== "TT-") {
+      if (!mode.from.startsWith("TT")) {
         props.alert.pushError(
           `Please, change network to ${
             props.web3Store.foreignNet.name
@@ -55,18 +57,20 @@ export const BridgeChoose = (props) => {
         );
       } else {
         props.alert.setLoading(true);
-        props.setNewTokenHandler(mode.to);
+        props.setNewTokenHandler(mode.from === "TT" ? "TT" : mode.to);
       }
     }
   };
 
   const handleChecked = (item) => {
-    if (props.isHome) {
-      if (item.to === RenameToken(props.foreignStore.symbol)) {
+    console.log('props.foreignStore.symbol:', props.foreignStore.symbol)
+    console.log('item.network:', item.network)
+    if (props.isHome && item.network === "fromHome") {
+      if (item.to === RenameToken(props.foreignStore.symbol) || item.to === "Binance-TT" && props.foreignStore.symbol === "TT" ) {
         return true;
       }
     } else {
-      if (item.from === RenameToken(props.foreignStore.symbol)) {
+      if (item.network === "fromForeign" && item.from === RenameToken(props.foreignStore.symbol) || item.to === "TT" && props.foreignStore.symbol === "TT") {
         return true;
       }
     }
