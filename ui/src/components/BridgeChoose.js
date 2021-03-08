@@ -19,17 +19,31 @@ export const BridgeChoose = (props) => {
     return "TT";
   };
 
+  const setItems = (token, type) => {
+    if (type === 0) {
+      chooseItems.push({
+        from: token,
+        to: `${getPrefix(token)}-${token}`,
+        direction: token === "TT" ? direction.fromHome : direction.fromForeign
+      })
+    }
+    if (type === 1) {
+      chooseItems.push({
+        from: `${getPrefix(token)}-${token}`,
+        to: token,
+        direction: token === "TT" ? direction.fromForeign : direction.fromHome
+      })
+    }
+  }
+
   for (const token of tokens) {
-    chooseItems.push({
-      from: token,
-      to: `${getPrefix(token)}-${token}`,
-      direction: token === "TT" ? direction.fromHome : direction.fromForeign
-    });
-    chooseItems.push({
-      from: `${getPrefix(token)}-${token}`,
-      to: token,
-      direction: token === "TT" ? direction.fromForeign : direction.fromHome
-    });
+    if (token === "TT") {
+      setItems(token, 1)
+      setItems(token, 0)
+    } else {
+      setItems(token, 0)
+      setItems(token, 1)
+    }
   }
 
   const chooseLogoClass = (c) => {
