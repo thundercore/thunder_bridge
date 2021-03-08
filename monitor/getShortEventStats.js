@@ -16,6 +16,8 @@ async function processEvents(iterator, processedResult) {
       processedResult.value = processedResult.value.add(toBN(event.returnValues.value))
       if (event.returnValues.recipient) {
         processedResult.users.add(event.returnValues.recipient)
+      } else if (event.event == 'Transfer') {
+        processedResult.users.add(event.returnValues.from)
       }
     }
   }
@@ -111,26 +113,18 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
       })
       const homeWithdrawal = await processEvents(homeWithdrawalsIter, homeWithdrawalCache)
 
-      const foreignWithdrawalsIter =
-        tokenType === ERC_TYPES.ERC20
-          ? getPastEventsIter({
-              contract: erc20Contract,
-              event: 'Transfer',
-              fromBlock: foreignStartBlock,
-              toBlock: foreignBlockNumber,
-              options: {
-                filter: { to: FOREIGN_BRIDGE_ADDRESS }
-              },
-              token
-            })
-          : getPastEventsIter({
-              contract: foreignBridge,
-              event: 'UserRequestForAffirmation',
-              fromBlock: foreignStartBlock,
-              toBlock: foreignBlockNumber,
-              options: {},
-              token
-            })
+      const foreignWithdrawalsIter = getPastEventsIter({
+        contract: erc20Contract,
+        event: 'Transfer',
+        fromBlock: foreignStartBlock,
+        toBlock: foreignBlockNumber,
+        options: {
+          filter: {
+            to: FOREIGN_BRIDGE_ADDRESS
+          }
+        },
+        token
+      })
 
       const foreignWithdrawal = await processEvents(foreignWithdrawalsIter, foreignWithdrawalCache)
 
