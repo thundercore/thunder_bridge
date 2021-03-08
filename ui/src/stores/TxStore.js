@@ -66,7 +66,14 @@ class TxStore {
         if (this.web3Store.defaultAccount.address) {
           const recipientData = `0x000000000000000000000000${recipient.slice(2)}`
           const data = await contract.methods.transferAndCall(to, value, recipientData).encodeABI()
-          return this.doSend({ to: tokenAddress, from, value: '0x00', data, sentValue: value, recipient })
+          return this.doSend({
+            to: tokenAddress,
+            from,
+            value: '0x00',
+            data,
+            sentValue: value,
+            recipient
+          })
         } else {
           this.alertStore.pushError('Please unlock wallet')
         }
@@ -77,7 +84,33 @@ class TxStore {
   }
 
   @action
-  async ethTransfer({ to, from, value, recipient }) {
+  async ethTransferAndCall({ to, from, value, contract, tokenAddress, recipient }) {
+    try {
+      return this.web3Store.getWeb3Promise.then(async () => {
+        if (this.web3Store.defaultAccount.address) {
+          const recipientData = `0x000000000000000000000000${recipient.slice(2)}`
+          const data = await contract.methods
+            .transferAndCall(to, value, recipientData)
+            .encodeABI({ from: this.web3Store.defaultAccount.address })
+          return this.doSend({
+            to: tokenAddress,
+            from,
+            value,
+            data,
+            sentValue: value,
+            recipient
+          })
+        } else {
+          this.alertStore.pushError('Please unlock wallet')
+        }
+      })
+    } catch (e) {
+      this.alertStore.pushError(e)
+    }
+  }
+
+  @action
+  async ethTransfer({ to, from, value, recipient, tokenAddress }) {
     try {
       return this.web3Store.getWeb3Promise.then(async () => {
         if (this.web3Store.defaultAccount.address) {
@@ -87,7 +120,7 @@ class TxStore {
           data += `000000000000000000000000${recipient.slice(2)}`
 
           return this.doSend({
-            to: this.foreignStore.tokenAddress,
+            to: tokenAddress,
             from,
             value,
             data,

@@ -1,4 +1,4 @@
-$theme-name: 'ethereum-classic';
+$theme-name: "ethereum-classic";
 
 // base colors
 $primary-color: #31f896;
@@ -17,7 +17,7 @@ $gradient-color-2: #352d59;
 
 // main
 $main-background-color: #17132b;
-$main-font-family: 'Nunito', sans-serif;
+$main-font-family: "Nunito", sans-serif;
 
 // header
 $header-background-color: #221c3f;
@@ -42,24 +42,26 @@ $footer-text-color: #fff;
 $separator-color: #333;
 
 // background
-$pattern-background-image: $base-images-path + '/themes/' + $theme-name + '/background/bg-pattern.svg';
+$pattern-background-image: $base-images-path + "/themes/" + $theme-name +
+  "/background/bg-pattern.svg";
 
 // social icons
 $social-icons-background-color: #343053;
 $social-icons-icon-color: #b9b0e1;
 
 // logo
-$logo-image: $base-images-path + '/themes/' + $theme-name + '/logos/logo.svg';
+$logo-image: $base-images-path + "/themes/" + $theme-name + "/logos/logo.svg";
 
 // home logo
-$home-logo-image: $base-images-path + '/themes/' + $theme-name + '/logos/logo-home.svg';
+$home-logo-image: $base-images-path + "/themes/" + $theme-name +
+  "/logos/logo-home.svg";
 $home-logo-image-modal: $home-logo-image;
 $home-logo-width: 25px;
 $home-logo-height: 39px;
 
 // foreign logo
-$foreign-logo-image: $base-images-path + '/themes/' + $theme-name + '/logos/logo-foreign.svg';
-$foreign-logo-image-modal: $foreign-logo-image;
+// $foreign-logo-image: $base-images-path + '/themes/' + $theme-name + '/logos/logo-foreign.svg';
+// $foreign-logo-image-modal: $foreign-logo-image;
 $foreign-logo-width: 24px;
 $foreign-logo-height: 38px;
 
@@ -85,7 +87,8 @@ $mobile-menu-overlay-color: rgba($primary-color-darker, 0.9);
 // loading
 $loading-item-background-color: $secondary-color;
 $loading-item-text-color: #fff;
-$loading-logo: $base-images-path + '/themes/' + $theme-name + '/logos/logo-loading.svg';
+$loading-logo: $base-images-path + "/themes/" + $theme-name +
+  "/logos/logo-loading.svg";
 
 // bridge section
 $bridge-background-color: #fff;
@@ -101,11 +104,16 @@ $bridge-textfield-color: $primary-color-dark;
 $bridge-textfield-placeholder-color: #666;
 $bridge-side-image-width: 272px;
 $bridge-side-image-height: 276px;
-$bridge-image-center-pointing-left: $base-images-path + '/themes/' + $theme-name + '/transparent.png';
-$bridge-image-center-pointing-right: $base-images-path + '/themes/' + $theme-name + '/transparent.png';
-$bridge-image-center-pointing-down: $base-images-path + '/themes/' + $theme-name + '/transparent.png';
-$bridge-image-left: $base-images-path + '/themes/' + $theme-name + '/bridge/pattern-1.png';
-$bridge-image-right: $base-images-path + '/themes/' + $theme-name + '/bridge/pattern-2.png';
+$bridge-image-center-pointing-left: $base-images-path + "/themes/" + $theme-name +
+  "/transparent.png";
+$bridge-image-center-pointing-right: $base-images-path + "/themes/" +
+  $theme-name + "/transparent.png";
+$bridge-image-center-pointing-down: $base-images-path + "/themes/" + $theme-name +
+  "/transparent.png";
+$bridge-image-left: $base-images-path + "/themes/" + $theme-name +
+  "/bridge/pattern-1.png";
+$bridge-image-right: $base-images-path + "/themes/" + $theme-name +
+  "/bridge/pattern-2.png";
 $bridge-transfer-title-color: $modal-text-color;
 
 // bridge alert
@@ -119,9 +127,12 @@ $status-text-color: $text-color;
 $status-authority-number-color: $text-color;
 $status-authority-address-color: $primary-color;
 
-$status-authority-logo-0: $base-images-path + '/themes/' + $theme-name + '/status/authority/logo-0.svg';
-$status-authority-logo-1: $base-images-path + '/themes/' + $theme-name + '/status/authority/logo-1.svg';
-$status-authority-logo-2: $base-images-path + '/themes/' + $theme-name + '/status/authority/logo-2.svg';
+$status-authority-logo-0: $base-images-path + "/themes/" + $theme-name +
+  "/status/authority/logo-0.svg";
+$status-authority-logo-1: $base-images-path + "/themes/" + $theme-name +
+  "/status/authority/logo-1.svg";
+$status-authority-logo-2: $base-images-path + "/themes/" + $theme-name +
+  "/status/authority/logo-2.svg";
 
 // datablock
 $datablock-value-color: $primary-color;

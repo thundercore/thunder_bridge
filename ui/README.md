@@ -9,7 +9,7 @@
 brew install yarn
 ```
 ## Install
-In the folder which clone from the repo.
+In the folder which clone from the repo. (Prefer Node V10)
 ```
 cd ./ui
 yarn install

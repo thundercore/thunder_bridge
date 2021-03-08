@@ -5,7 +5,7 @@ import ForeignStore from './ForeignStore'
 import AlertStore from './AlertStore'
 import GasPriceStore from './GasPriceStore'
 import TxStore from './TxStore'
-import HOME_ERC_ABI from '../../abis/HomeBridgeErcToErc.abi'
+// import HOME_ERC_ABI from '../../abis/HomeBridgeErcToErc.abi'
 import { decodeBridgeMode } from './utils/bridgeMode'
 import { getWeb3Instance } from './utils/web3'
 

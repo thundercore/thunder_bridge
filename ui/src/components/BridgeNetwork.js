@@ -2,6 +2,7 @@ import React from 'react'
 import numeral from 'numeral'
 import { InfoIcon } from './icons/InfoIcon'
 import { RenameToken } from './utils/renameToken'
+import { updateForeignLogo } from '../stores/utils/utils'
 
 export const BridgeNetwork = ({
   balance,
@@ -31,7 +32,7 @@ export const BridgeNetwork = ({
       }
       <div className="network-container">
         <div className="network-logo-container">
-          <div className={`network-logo ${containerName}-logo`} />
+          <div className={`network-logo ${containerName}-logo`} style={containerName === "foreign" ? updateForeignLogo()  : {}} />
         </div>
         <p className="text">
           <span className="network-basic-label">{`${side === 'left' ? `From` : 'To'}`}</span>

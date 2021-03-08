@@ -5,7 +5,6 @@ import foreignLogoPurple from '../assets/images/logos/logo-poa-20-purple@2x.png'
 import homeLogoPurple from '../assets/images/logos/logo-poa-sokol-purple@2x.png'
 import swal from 'sweetalert'
 import { BRIDGE_MODES, ERC_TYPES } from '../stores/utils/bridgeMode'
-import { BridgeAddress } from './index'
 import { BridgeForm } from './index'
 import { BridgeNetwork } from './index'
 import { BridgeChoose } from './index'
@@ -14,7 +13,7 @@ import { NetworkDetails } from './NetworkDetails'
 import { TransferAlert } from './TransferAlert'
 import { inject, observer } from 'mobx-react'
 import { toDecimals } from '../stores/utils/decimals'
-import { RenameToken } from './utils/renameToken'
+import { getForeignNativeToken, getHomeNativeToken } from '../stores/utils/getBridgeAddress'
 
 @inject('RootStore')
 @observer
@@ -113,8 +112,8 @@ export class Bridge extends React.Component {
     } else {
       try {
         alertStore.setLoading(true)
-        if (isErcToErcMode) {
-          return txStore.erc677transferAndCall({
+        if (homeStore.symbol === getHomeNativeToken()) {
+          return await txStore.ethTransferAndCall({
             to: homeStore.HOME_BRIDGE_ADDRESS,
             from: web3Store.defaultAccount.address,
             value: toDecimals(amount, homeStore.tokenDecimals),
@@ -122,17 +121,16 @@ export class Bridge extends React.Component {
             tokenAddress: homeStore.tokenAddress,
             recipient
           })
-        } else {
-          const value = toHex(toDecimals(amount, homeStore.tokenDecimals))
-          return txStore.doSend({
-            to: homeStore.HOME_BRIDGE_ADDRESS,
-            from: web3Store.defaultAccount.address,
-            value,
-            data: '0x',
-            sentValue: value,
-            recipient
-          })
         }
+
+        return txStore.erc677transferAndCall({
+          to: homeStore.HOME_BRIDGE_ADDRESS,
+          from: web3Store.defaultAccount.address,
+          value: toDecimals(amount, homeStore.tokenDecimals),
+          contract: homeStore.tokenContract,
+          tokenAddress: homeStore.tokenAddress,
+          recipient
+        })
       } catch (e) {
         console.error(e)
       }
@@ -178,31 +176,22 @@ export class Bridge extends React.Component {
     } else {
       try {
         alertStore.setLoading(true)
-        if (foreignStore.symbol.includes('ETH')) {
+        if (foreignStore.symbol === getForeignNativeToken()) {
           return await txStore.ethTransfer({
             to: foreignStore.FOREIGN_BRIDGE_ADDRESS,
             from: web3Store.defaultAccount.address,
             value: toDecimals(amount, foreignStore.tokenDecimals),
-            recipient
-          })
-        }
-        if (isExternalErc20) {
-          return await txStore.erc20transfer({
-            to: foreignStore.FOREIGN_BRIDGE_ADDRESS,
-            from: web3Store.defaultAccount.address,
-            value: toDecimals(amount, foreignStore.tokenDecimals),
-            recipient
-          })
-        } else {
-          return await txStore.erc677transferAndCall({
-            to: foreignStore.FOREIGN_BRIDGE_ADDRESS,
-            from: web3Store.defaultAccount.address,
-            value: toHex(toDecimals(amount, foreignStore.tokenDecimals)),
-            contract: foreignStore.tokenContract,
             tokenAddress: foreignStore.tokenAddress,
             recipient
           })
         }
+        return await txStore.erc20transfer({
+          to: foreignStore.FOREIGN_BRIDGE_ADDRESS,
+          from: web3Store.defaultAccount.address,
+          value: toDecimals(amount, foreignStore.tokenDecimals),
+          tokenAddress: foreignStore.tokenAddress,
+          recipient
+        })
       } catch (e) {
         console.error(e)
       }

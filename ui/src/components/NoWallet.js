@@ -44,7 +44,7 @@ export class NoWallet extends Component {
             <div className="noWallet-buttons">
               <a
                 className="noWallet-metamask"
-                href="https://forum.poa.network/t/wallet-metamask-extension/1819"
+                href="https://www.thundercore.com/wallet-instructions/"
                 rel="noopener noreferrer"
                 target="_blank"
               >
