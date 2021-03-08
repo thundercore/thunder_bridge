@@ -43,3 +43,11 @@ export function getTokenList() {
   }
   return Object.keys(cache);
 }
+
+export function getForeignNativeToken() {
+  return process.env.REACT_APP_FOREIGN_NATIVE_TOKEN || ""
+}
+
+export function getHomeNativeToken() {
+  return process.env.REACT_APP_HOME_NATIVE_TOKEN || ""
+}
