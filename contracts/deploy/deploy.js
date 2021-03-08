@@ -11,7 +11,7 @@ async function main() {
   if (BRIDGE_MODE === 'ERC_TO_ERC') {
     if (!ERC20_TOKEN_ADDRESS) {
       erc20Token = (await deployErc20()).erc677tokenAddress
-      console.log(`deploy erc20: ${ERC20_TOKEN_ADDRESS}`)
+      console.log(`deploy erc20: ${erc20Token}`)
     } else if (!Web3Utils.isAddress(ERC20_TOKEN_ADDRESS)) {
       throw new Error('Invalid erc20 token address')
     }
@@ -19,10 +19,8 @@ async function main() {
     return deployErcToErc(erc20Token)
   }
 
-  if (BRIDGE_MODE === 'NATIVE_TO_ERC') {
-    console.log(`deploy ${BRIDGE_MODE} contract`)
-    return deployErcToErc(erc20Token)
-  }
+  console.log(`deploy ${BRIDGE_MODE} contract`)
+  return deployErcToErc(erc20Token)
 }
 
 main().catch(e => console.log('Error:', e))

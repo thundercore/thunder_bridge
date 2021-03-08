@@ -15,6 +15,7 @@ const {
   HOME_MIN_AMOUNT_PER_TX,
   HOME_TEST_TX_GAS_PRICE,
   FOREIGN_CUSTOM_RECIPIENT,
+  BRIDGE_MODE,
   HOME_BLOCK_TIME,
 } = process.env
 
@@ -63,8 +64,9 @@ async function sendFromHomeToForeign(numberToSend) {
       logger.info(`Balance of ${USER_ADDRESS}: ${balance}`)
       let gasLimit = await erc677.methods
         .transferAndCall(HOME_BRIDGE_ADDRESS, transferValue, '0x')
-        .estimateGas({ from: USER_ADDRESS })
+        .estimateGas({ from: USER_ADDRESS, value: transferValue })
       gasLimit *= 2
+
       logger.info(`user: ${USER_ADDRESS}, gasLimit: ${gasLimit}`)
       let data = await erc677.methods
         .transferAndCall(HOME_BRIDGE_ADDRESS, transferValue, '0x')
@@ -73,13 +75,17 @@ async function sendFromHomeToForeign(numberToSend) {
         data += `000000000000000000000000${FOREIGN_CUSTOM_RECIPIENT.slice(2)}`
         gasLimit += 50000
       }
+      let value = web3Home.utils.toWei('0')
+      if (BRIDGE_MODE === 'ERC_TO_NATIVE') {
+        value =  transferValue
+      }
       const tx = {
         chain: 'home',
         privateKey: USER_ADDRESS_PRIVATE_KEY,
         data,
         nonce,
         gasPrice: HOME_TEST_TX_GAS_PRICE,
-        value: web3Home.utils.toWei('0'),
+        value,
         gasLimit,
         to: BRIDGEABLE_TOKEN_ADDRESS,
         web3: web3Home,

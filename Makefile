@@ -98,7 +98,7 @@ crash: deploy-stress
 	$(MAKE) run-all
 	cd $(VALIDATOR_DIR) && python scripts/crash-test.py | tee crash.log
 
-test-e2e: test-e2e-native-to-erc test-e2e-erc-to-erc
+test-e2e: test-e2e-erc-to-native test-e2e-native-to-erc test-e2e-erc-to-erc
 
 test-truffle: test-truffle-native-to-erc test-truffle-erc-to-erc
 
