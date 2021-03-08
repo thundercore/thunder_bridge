@@ -41,6 +41,7 @@ async function getTokenPrice(web3, swapPairAddress, tokenAddress, stableTokenAdd
     stableCoinBalance
   ] = await makeBatchRequest(web3, calls)
 
+  logger.debug({ swapPairAddress, tokenDecimals, tokenBalance, stableTokenDecimals, stableCoinBalance }, "get token price")
   const price = new BN(stableCoinBalance)
     .multipliedBy(ten.pow(Number(tokenDecimals)))
     .idiv(new BN(tokenBalance)).idiv(ten.pow(Number(stableTokenDecimals-6)))
