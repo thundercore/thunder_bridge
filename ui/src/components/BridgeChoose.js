@@ -7,6 +7,11 @@ export const BridgeChoose = (props) => {
   const tokens = getTokenList();
   const chooseItems = [];
 
+  const direction = {
+    fromHome: 0,
+    fromForeign: 1
+  }
+
   const getPrefix = (token) => {
     if (token === "TT") {
       return bridgeType === "eth" ? "TT" : "Binance";
@@ -18,12 +23,12 @@ export const BridgeChoose = (props) => {
     chooseItems.push({
       from: token,
       to: `${getPrefix(token)}-${token}`,
-      network: token === "TT" ? "fromHome" : "fromForeign"
+      direction: token === "TT" ? direction.fromHome : direction.fromForeign
     });
     chooseItems.push({
       from: `${getPrefix(token)}-${token}`,
       to: token,
-      network: token === "TT" ? "fromForeign" : "fromHome"
+      direction: token === "TT" ? direction.fromForeign : direction.fromHome
     });
   }
 
@@ -37,8 +42,8 @@ export const BridgeChoose = (props) => {
   };
 
   const handleOptionChange = (mode) => {
-    if (props.web3Store.metamaskNet.id === props.web3Store.foreignNet.id) {
-      if (mode.from.startsWith("TT")) {
+    if (!props.isHome) {
+      if (mode.direction === direction.fromHome) {
         props.alert.pushError(
           `Please, change network to ${
             props.web3Store.homeNet.name
@@ -49,7 +54,7 @@ export const BridgeChoose = (props) => {
         props.setNewTokenHandler(mode.to === "TT" ? "TT" : mode.from);
       }
     } else {
-      if (!mode.from.startsWith("TT")) {
+      if (mode.direction === direction.fromForeign) {
         props.alert.pushError(
           `Please, change network to ${
             props.web3Store.foreignNet.name
@@ -62,15 +67,18 @@ export const BridgeChoose = (props) => {
     }
   };
 
+  const verifyTokenMatch = (item, dir) => {
+    if (dir === direction.fromHome) return item.to === RenameToken(props.foreignStore.symbol) || item.to === "Binance-TT" && props.foreignStore.symbol === "TT"
+    return item.from === RenameToken(props.foreignStore.symbol) || item.to === "TT" && props.foreignStore.symbol === "TT"
+  }
+
   const handleChecked = (item) => {
-    console.log('props.foreignStore.symbol:', props.foreignStore.symbol)
-    console.log('item.network:', item.network)
-    if (props.isHome && item.network === "fromHome") {
-      if (item.to === RenameToken(props.foreignStore.symbol) || item.to === "Binance-TT" && props.foreignStore.symbol === "TT" ) {
+    if (props.isHome) {
+      if (item.direction === direction.fromHome && verifyTokenMatch(item, direction.fromHome)) {
         return true;
       }
     } else {
-      if (item.network === "fromForeign" && item.from === RenameToken(props.foreignStore.symbol) || item.to === "TT" && props.foreignStore.symbol === "TT") {
+      if (item.direction === direction.fromForeign && verifyTokenMatch(item, direction.fromForeign)) {
         return true;
       }
     }
