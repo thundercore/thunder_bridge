@@ -462,7 +462,7 @@ class HomeStore {
       this.requiredSignatures = await this.homeBridgeValidators.methods.requiredSignatures().call()
       this.validatorsCount = await this.homeBridgeValidators.methods.validatorCount().call()
 
-      this.validators = this.readValidators(this.tokenName)
+      this.validators = this.readValidators(this.symbol)
     } catch (e) {
       console.error(e)
     }
