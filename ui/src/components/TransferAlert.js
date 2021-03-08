@@ -3,6 +3,7 @@ import arrowsIcon from '../assets/images/transfer-modal/icon-arrows@2x.png'
 import numeral from 'numeral'
 import { ArrowRight } from './icons/ArrowRight'
 import { RenameToken } from './utils/renameToken'
+import { updateForeignLogo } from '../stores/utils/utils'
 
 export const TransferAlert = ({
   onConfirmation,
@@ -27,7 +28,7 @@ export const TransferAlert = ({
       <div className="alert-container">
         <div className="transfer-title">
           <div className="alert-logo-box">
-            <div className={reverse ? 'foreign-logo' : 'home-logo'} />
+            <div className={reverse ? 'foreign-logo' : 'home-logo'} style={reverse ? updateForeignLogo() : {}} />
           </div>
           <div>
             <strong>{formattedFromAmount}</strong> {RenameToken(fromCurrency)}
@@ -37,7 +38,7 @@ export const TransferAlert = ({
             <strong>{formattedToAmount}</strong> {RenameToken(toCurrency)}
           </div>
           <div className="alert-logo-box">
-            <div className={reverse ? 'home-logo' : 'foreign-logo'} />
+            <div className={reverse ? 'home-logo' : 'foreign-logo'} style={!reverse ? updateForeignLogo() : {}} />
           </div>
         </div>
         <p className="transfer-description" data-testid="transfer-description">

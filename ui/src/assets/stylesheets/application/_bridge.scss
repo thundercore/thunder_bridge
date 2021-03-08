@@ -4,7 +4,7 @@
     display: flex;
     position: relative;
     width: 100%;
-    margin: 40px auto;
+    margin: 12px auto 40px;
 
     @media screen and (max-width: $tablet-width) {
         margin-top: 10px;
@@ -62,14 +62,14 @@
             display: flex;
             flex-direction: column;
 
-            @media screen and (max-width: $tablet-width) {
-                border-radius: 8px;
-                max-width: 92%;
-            }
+            // @media screen and (max-width: $tablet-width) {
+            //     border-radius: 8px;
+            //     max-width: 92%;
+            // }
 
-            @media (min-width: 1200px) {
-                width: 1140px;
-            }
+            // @media (min-width: 1200px) {
+            //     width: 1140px;
+            // }
 
             .bridge-transfer-content-background {
                 display: flex;
@@ -483,6 +483,22 @@
                 justify-content: center;
                 align-items: center;
                 border-radius: 40px;
+                position: relative;
+
+                .logo-info {
+                    width: 37px;
+                    height: 17px;
+                    padding: 1px;
+                    border-radius: 2px;
+                    font-size: 9.5px;
+                    background-color: #626262;
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    position: absolute;
+                    top: 35px;
+                }
             }
         }
 
@@ -945,5 +961,25 @@
 
     &-eth {
         background-image: url(#{$base-images-path + '/logos/eth.png'});
+    }
+
+    &-tt-bnb {
+        background-image: url(#{$base-images-path + '/logos/tt-bnb.svg'});
+    }
+    
+    &-tt-busd {
+        background-image: url(#{$base-images-path + '/logos/tt-busd.svg'});
+    }
+
+    &-bnb {
+        background-image: url(#{$base-images-path + '/logos/binance-bnb.svg'});
+    }
+
+    &-busd {
+        background-image: url(#{$base-images-path + '/logos/binance-busd.svg'});
+    }
+
+    &-tt, &-binance-tt {
+        background-image: url('#{ $home-logo-image }');
     }
 }

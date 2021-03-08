@@ -93,14 +93,13 @@ strong {
 }
 
 .app-container {
-  margin-left: auto;
-  margin-right: auto;
-  position: relative;
-  width: 100%;
+  width: 90%;
   flex: 1 0 auto;
   display: flex;
-  align-items: center;
   justify-content: center;
+  flex-direction: column;
+  align-self: center;
+  max-width: 1200px;
 }
 
 .only-mobile {

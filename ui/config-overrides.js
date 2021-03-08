@@ -1,5 +1,11 @@
 const { addDecoratorsLegacy, disableEsLint, override } = require('customize-cra')
-const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin')
+const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
+
+const publicPathPlugin = () => config => {   
+  if (process.env.NODE_ENV === "development") return config
+  config.output.publicPath = `/${process.env.REACT_APP_BRIDGE_TYPE.toLowerCase()}/`;
+  return config;
+};   
 
 const disableModuleScopePlugin = () => config => {
   config.resolve.plugins = config.resolve.plugins.filter(
@@ -8,4 +14,4 @@ const disableModuleScopePlugin = () => config => {
   return config
 }
 
-module.exports = override(addDecoratorsLegacy(), disableEsLint(), disableModuleScopePlugin())
+module.exports = override(publicPathPlugin(), addDecoratorsLegacy(), disableEsLint(), disableModuleScopePlugin())

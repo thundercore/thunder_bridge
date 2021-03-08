@@ -85,7 +85,7 @@ test-contracts:
 	cd $(CONTRACT_DIR) && docker build -t test-contracts -f Dockerfile.test .
 	cd $(CONTRACT_DIR) && docker run test-contracts
 
-run-all: run-v1 run-v2 run-v3
+run-all: run-db run-v1 run-v2 run-v3
 	echo "All validator are deployed."
 
 stress-%: deploy-stress-%

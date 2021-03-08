@@ -61,12 +61,14 @@ const networks = {
   30: 'RSK Mainnet',
   31: 'RSK Testnet',
   42: 'Kovan',
+  56: 'BSC Mainnet',
   61: 'Ethereum Classic',
   77: 'Sokol',
+  97: 'BSC Testnet',
   99: 'POA Network',
   100: 'Dai Chain',
-  108: 'Thunder'
-}
+  108: 'Thunder',
+};
 
 export const getNetworkName = id => networks[id] || 'Unknown'
 
@@ -82,6 +84,7 @@ export const getWeb3Instance = provider => {
 
 export const getNetwork = async web3 => {
   const id = await web3.eth.getChainId()
+  console.log('id:', id)
   const name = getNetworkName(id)
   return {
     id,

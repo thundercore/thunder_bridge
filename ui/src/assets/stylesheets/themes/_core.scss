@@ -1,4 +1,4 @@
-$theme-name: 'core';
+$theme-name: "core";
 
 // base colors
 $primary-color: #fee63b;
@@ -17,7 +17,7 @@ $gradient-color-2: #7b5ab2;
 
 // main
 $main-background-color: #e6e6e6;
-$main-font-family: 'Nunito', sans-serif;
+$main-font-family: "Nunito", sans-serif;
 
 // header
 $header-background-color: $primary-color;
@@ -42,21 +42,24 @@ $footer-text-color: #414141;
 $separator-color: #e4e4e4;
 
 // background
-$pattern-background-image: $base-images-path + '/themes/' + $theme-name + '/background/bg-pattern.svg';
+$pattern-background-image: $base-images-path + "/themes/" + $theme-name +
+  "/background/bg-pattern.svg";
 
 // social icons
 $social-icons-icon-color: #414141;
 
 // logo
-$logo-image: $base-images-path + '/themes/' + $theme-name + '/logos/logo-thundercore.svg';
+$logo-image: $base-images-path + "/themes/" + $theme-name +
+  "/logos/logo-thundercore.svg";
 
 // home logo
-$home-logo-image: $base-images-path + '/themes/' + $theme-name + '/logos/logo-home.svg';
+$home-logo-image: $base-images-path + "/themes/" + $theme-name +
+  "/logos/logo-home.svg";
 $home-logo-width: 60px;
 $home-logo-height: 60px;
 
 // foreign logo
-$foreign-logo-image: $base-images-path + '/themes/' + $theme-name + '/logos/logo-foreign.svg';
+// $foreign-logo-image: $base-images-path + '/themes/' + $theme-name + '/logos/logo-foreign.svg';
 $foreign-logo-width: 60px;
 $foreign-logo-height: 60px;
 
@@ -82,7 +85,8 @@ $mobile-menu-overlay-color: rgba($primary-color-darker, 0.9);
 // loading
 $loading-item-background-color: $secondary-color;
 $loading-item-text-color: #fff;
-$loading-logo: $base-images-path + '/themes/' + $theme-name + '/logos/logo-loading.svg';
+$loading-logo: $base-images-path + "/themes/" + $theme-name +
+  "/logos/logo-loading.svg";
 
 // bridge section
 $bridge-background-color: #fff;
@@ -95,14 +99,19 @@ $bridge-textfield-background: #f3f4f6;
 $bridge-input-label-color: #adb3c0;
 $bridge-label-color: #adb3c0;
 $bridge-textfield-color: #414141;
-$bridge-textfield-placeholder-color: rgba(#414141, .6);
+$bridge-textfield-placeholder-color: rgba(#414141, 0.6);
 $bridge-side-image-width: 272px;
 $bridge-side-image-height: 276px;
-$bridge-image-center-pointing-left: $base-images-path + '/themes/' + $theme-name + '/bridge/center-image-pointing-left.svg';
-$bridge-image-center-pointing-right: $base-images-path + '/themes/' + $theme-name + '/bridge/center-image-pointing-right.svg';
-$bridge-image-center-pointing-down: $base-images-path + '/themes/' + $theme-name + '/bridge/center-image-pointing-down@2x.png';
-$bridge-image-left: $base-images-path + '/themes/' + $theme-name + '/bridge/pattern-1.png';
-$bridge-image-right: $base-images-path + '/themes/' + $theme-name + '/bridge/pattern-2.png';
+$bridge-image-center-pointing-left: $base-images-path + "/themes/" + $theme-name +
+  "/bridge/center-image-pointing-left.svg";
+$bridge-image-center-pointing-right: $base-images-path + "/themes/" +
+  $theme-name + "/bridge/center-image-pointing-right.svg";
+$bridge-image-center-pointing-down: $base-images-path + "/themes/" + $theme-name +
+  "/bridge/center-image-pointing-down@2x.png";
+$bridge-image-left: $base-images-path + "/themes/" + $theme-name +
+  "/bridge/pattern-1.png";
+$bridge-image-right: $base-images-path + "/themes/" + $theme-name +
+  "/bridge/pattern-2.png";
 $bridge-transfer-title-color: $secondary-color;
 
 // bridge alert
@@ -116,9 +125,12 @@ $status-text-color: $text-color;
 $status-authority-number-color: $secondary-color;
 $status-authority-address-color: $text-color;
 
-$status-authority-logo-0: $base-images-path + '/themes/' + $theme-name + '/status/authority/logo-0.svg';
-$status-authority-logo-1: $base-images-path + '/themes/' + $theme-name + '/status/authority/logo-1.svg';
-$status-authority-logo-2: $base-images-path + '/themes/' + $theme-name + '/status/authority/logo-2.svg';
+$status-authority-logo-0: $base-images-path + "/themes/" + $theme-name +
+  "/status/authority/logo-0.svg";
+$status-authority-logo-1: $base-images-path + "/themes/" + $theme-name +
+  "/status/authority/logo-1.svg";
+$status-authority-logo-2: $base-images-path + "/themes/" + $theme-name +
+  "/status/authority/logo-2.svg";
 
 // datablock
 $datablock-value-color: $secondary-color;

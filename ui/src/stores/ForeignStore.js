@@ -105,7 +105,7 @@ class ForeignStore {
   foreignBridge = {}
   tokenContract = {}
   tokenDecimals = 18
-  FOREIGN_BRIDGE_ADDRESS = process.env.REACT_APP_FOREIGN_USDT_BRIDGE_ADDRESS
+  FOREIGN_BRIDGE_ADDRESS = process.env.REACT_APP_FOREIGN_BUSD_BRIDGE_ADDRESS
   explorerTxTemplate = process.env.REACT_APP_FOREIGN_EXPLORER_TX_TEMPLATE || ''
   explorerAddressTemplate = process.env.REACT_APP_FOREIGN_EXPLORER_ADDRESS_TEMPLATE || ''
 
@@ -140,7 +140,7 @@ class ForeignStore {
     }, 10000)
 
     if (!tokenName)
-      tokenName = "USDT"
+    tokenName = process.env.REACT_APP_HOME_NATIVE_NAME
 
     this.FOREIGN_BRIDGE_ADDRESS = getBridgeAddress(tokenName, "foreign")
 
