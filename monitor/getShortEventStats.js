@@ -1,6 +1,6 @@
 const Web3 = require('web3')
 const { toBN } = require('web3').utils
-const { getBridgeABIs, BRIDGE_MODES, ERC_TYPES } = require('./utils/bridgeMode')
+const { getBridgeABIs, ERC_TYPES } = require('./utils/bridgeMode')
 
 
 const ERC20_ABI = require('./abis/ERC20.abi')
@@ -16,6 +16,8 @@ async function processEvents(iterator, processedResult) {
       processedResult.value = processedResult.value.add(toBN(event.returnValues.value))
       if (event.returnValues.recipient) {
         processedResult.users.add(event.returnValues.recipient)
+      } else if (event.event == 'Transfer') {
+        processedResult.users.add(event.returnValues.from)
       }
     }
   }
@@ -53,7 +55,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
       const { HOME_ABI, FOREIGN_ABI } = getBridgeABIs(bridgeMode)
       const homeBridge = new web3Home.eth.Contract(HOME_ABI, HOME_BRIDGE_ADDRESS)
       const foreignBridge = new web3Foreign.eth.Contract(FOREIGN_ABI, FOREIGN_BRIDGE_ADDRESS)
-      const erc20MethodName = bridgeMode === BRIDGE_MODES.NATIVE_TO_ERC ? 'erc677token' : 'erc20token'
+      const erc20MethodName = 'erc20token'
       const erc20Address = await foreignBridge.methods[erc20MethodName]().call()
       const erc20Contract = new web3Foreign.eth.Contract(ERC20_ABI, erc20Address)
       const tokenType = await getTokenType(foreignBridge, FOREIGN_BRIDGE_ADDRESS)
@@ -111,26 +113,18 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
       })
       const homeWithdrawal = await processEvents(homeWithdrawalsIter, homeWithdrawalCache)
 
-      const foreignWithdrawalsIter =
-        tokenType === ERC_TYPES.ERC20
-          ? getPastEventsIter({
-              contract: erc20Contract,
-              event: 'Transfer',
-              fromBlock: foreignStartBlock,
-              toBlock: foreignBlockNumber,
-              options: {
-                filter: { to: FOREIGN_BRIDGE_ADDRESS }
-              },
-              token
-            })
-          : getPastEventsIter({
-              contract: foreignBridge,
-              event: 'UserRequestForAffirmation',
-              fromBlock: foreignStartBlock,
-              toBlock: foreignBlockNumber,
-              options: {},
-              token
-            })
+      const foreignWithdrawalsIter = getPastEventsIter({
+        contract: erc20Contract,
+        event: 'Transfer',
+        fromBlock: foreignStartBlock,
+        toBlock: foreignBlockNumber,
+        options: {
+          filter: {
+            to: FOREIGN_BRIDGE_ADDRESS
+          }
+        },
+        token
+      })
 
       const foreignWithdrawal = await processEvents(foreignWithdrawalsIter, foreignWithdrawalCache)
 

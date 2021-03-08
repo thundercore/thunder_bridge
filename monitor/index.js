@@ -42,10 +42,11 @@ function mkDict(pairs) {
 }
 
 let config = existsSync("config.json") ? JSON.parse(readFileSync("config.json", "utf8")) :
-  mkDict(env.TOKEN_LABELS.split(" ").filter(s => s.length > 2).map(L => [L, {
+  mkDict(env.TOKEN_LABELS.split(" ").filter(s => s.length >= 2).map(L => [L, {
     "HOME_RPC_URL": env.HOME_RPC_URL,
     "FOREIGN_RPC_URL": env.FOREIGN_RPC_URL,
     "TOKEN_PRICE_RPC_URL": env.TOKEN_PRICE_RPC_URL,
+    "BRIDGE_MODE": env[`${L}_BRIDGE_MODE`],
     "HOME_BRIDGE_ADDRESS": env[`${L}_HOME_BRIDGE_ADDRESS`],
     "FOREIGN_BRIDGE_ADDRESS": env[`${L}_FOREIGN_BRIDGE_ADDRESS`],
     "HOME_DEPLOYMENT_BLOCK": env[`${L}_HOME_DEPLOYMENT_BLOCK`],
@@ -150,16 +151,10 @@ async function checkStatus(token) {
   lock(lockKey)
 
   try {
-    const { HOME_BRIDGE_ADDRESS, HOME_RPC_URL } = context;
-    const homeProvider = new HttpRetryProvider(HOME_RPC_URL.split(","))
-    const web3Home = new Web3(homeProvider)
-    const HOME_ERC_TO_ERC_ABI = require('./abis/HomeBridgeErcToErc.abi')
     const getBalances = require('./getBalances')(context)
     const getTokenPrice = require('./getTokenPrice')(context)
     const getShortEventStats = require('./getShortEventStats')(context)
-    const homeBridge = new web3Home.eth.Contract(HOME_ERC_TO_ERC_ABI, HOME_BRIDGE_ADDRESS)
-    const bridgeModeHash = await homeBridge.methods.getBridgeMode().call()
-    const bridgeMode = decodeBridgeMode(bridgeModeHash)
+    const bridgeMode = decodeBridgeMode(context.BRIDGE_MODE)
     const balances = await getBalances(bridgeMode)
     const events = await getShortEventStats(bridgeMode)
     const price = await getTokenPrice()
@@ -195,8 +190,7 @@ async function checkVBalances(token) {
     const HOME_ERC_TO_ERC_ABI = require('./abis/HomeBridgeErcToErc.abi')
     const validators = require('./validators')(context)
     const homeBridge = new web3Home.eth.Contract(HOME_ERC_TO_ERC_ABI, HOME_BRIDGE_ADDRESS)
-    const bridgeModeHash = await homeBridge.methods.getBridgeMode().call()
-    const bridgeMode = decodeBridgeMode(bridgeModeHash)
+    const bridgeMode = decodeBridgeMode(config.BRIDGE_MODE)
     const vBalances = await validators(bridgeMode)
     exportStatus[token]['v_status'] = vBalances
     if (!vBalances) throw new Error('vBalances is empty: ' + JSON.stringify(vBalances))
