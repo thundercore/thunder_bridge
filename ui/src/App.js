@@ -64,7 +64,7 @@ class App extends React.Component {
           )}
         />
         <div className="app-container">
-          <SwithChainButton />
+          {/* <SwithChainButton /> */}
           {showMobileMenu && (
             <Route render={() => <div className="mobile-menu-open" />} />
           )}
