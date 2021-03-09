@@ -32,6 +32,9 @@ const getWeb3 = () => {
           // Request account access
           await ethereum.enable()
           await processWeb3(web3, resolve, reject)
+          ethereum.on('chainChanged', () => {
+            document.location.reload()
+          })
         } catch (error) {
           console.log(error)
           const errorMsg = `Wallet account rejected by user. You need to unlock your wallet.
