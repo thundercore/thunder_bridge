@@ -7,7 +7,7 @@ const SwithChainButton = () => {
 
   return (
     <div className="switch-chain-wrapper">
-      <a href={`${window.origin}/${bridge}`}><button className="switch-chain-button" type="button">
+      <a href={`${window.origin}/${bridge}/`}><button className="switch-chain-button" type="button">
         <span className="to">Switch to</span>
         <span className="text">{bridgeText}</span></button></a>
     </div>
