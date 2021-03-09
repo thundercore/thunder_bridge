@@ -1,8 +1,7 @@
 import React from 'react'
 import {bridgeType} from "../stores/utils/bridgeMode"
-import {withRouter } from 'react-router-dom'
 
-const SwithChainButton = (props) => {
+const SwithChainButton = () => {
   const bridgeText = bridgeType === "eth" ? "Binance Smart Chain Network" : "Ethereum Network"
   const bridge = bridgeType === "eth" ? "bsc" : "eth"
 
@@ -15,4 +14,4 @@ const SwithChainButton = (props) => {
   )
 }
 
-export default withRouter(SwithChainButton)
+export default (SwithChainButton)
