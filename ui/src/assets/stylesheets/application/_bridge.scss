@@ -978,7 +978,7 @@
         background-image: url(#{$base-images-path + '/logos/binance-busd.svg'});
     }
 
-    &-tt, &-binance-tt {
+    &-tt, &-bsc-tt {
         background-image: url('#{ $home-logo-image }');
     }
 }

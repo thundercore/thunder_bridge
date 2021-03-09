@@ -14,7 +14,7 @@ export const BridgeChoose = (props) => {
 
   const getPrefix = (token) => {
     if (token === "TT") {
-      return bridgeType === "eth" ? "TT" : "Binance";
+      return bridgeType === "eth" ? "TT" : "BSC";
     }
     return "TT";
   };
@@ -51,7 +51,7 @@ export const BridgeChoose = (props) => {
   };
 
   const renderAdditionalLogoInfo = (item) => {
-    if (item === "Binance-TT") return <div className="logo-info">BEP 20</div>;
+    if (item === "BSC-TT") return <div className="logo-info">BEP 20</div>;
     return null;
   };
 
@@ -82,7 +82,7 @@ export const BridgeChoose = (props) => {
   };
 
   const verifyTokenMatch = (item, dir) => {
-    if (dir === direction.fromHome) return item.to === RenameToken(props.foreignStore.symbol) || item.to === "Binance-TT" && props.foreignStore.symbol === "TT"
+    if (dir === direction.fromHome) return item.to === RenameToken(props.foreignStore.symbol) || item.to === "BSC-TT" && props.foreignStore.symbol === "TT"
     return item.from === RenameToken(props.foreignStore.symbol) || item.to === "TT" && props.foreignStore.symbol === "TT"
   }
 
