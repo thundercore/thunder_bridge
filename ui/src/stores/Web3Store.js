@@ -140,7 +140,8 @@ class Web3Store {
         this.alertStore.pushError(
           `You are on an unknown network on your wallet. Please select ${this.homeNet.name} or ${
             this.foreignNet.name
-          } in order to communicate with the bridge.`
+          } in order to communicate with the bridge.`,
+          this.alertStore.WRONG_NETWORK_ERROR
         )
       }
     }

@@ -25,6 +25,7 @@ class AlertStore {
     'Validators Verifying Transaction...',
     'Transfer Complete'
   ]
+  WRONG_NETWORK_ERROR = 'Wrong network error'
   HOME_CONNECTION_ERROR = 'Home Connection Error'
   FOREIGN_CONNECTION_ERROR = 'Foreign Connection Error'
   HOME_TRANSFER_SUCCESS = 'Home Transfer Success'

@@ -11,6 +11,9 @@ export class SweetAlert extends React.Component {
       const alert = alertStore.alerts.slice()[0]
       swal(alert).then(() => {
         alertStore.remove(alert)
+        if (alert.messageType == alertStore.WRONG_NETWORK_ERROR) {
+          window.location.reload()
+        }
       })
     }
   }
