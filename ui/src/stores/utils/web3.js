@@ -57,10 +57,11 @@ const getWeb3 = () => {
 
 export default getWeb3
 
-const networks = {
+export const networks = {
   1: 'Ethereum Mainnet',
   3: 'Ropsten',
   4: 'Rinkeby',
+  18: 'Thunder Testnet',
   30: 'RSK Mainnet',
   31: 'RSK Testnet',
   42: 'Kovan',

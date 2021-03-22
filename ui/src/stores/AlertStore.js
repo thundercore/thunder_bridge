@@ -32,7 +32,7 @@ class AlertStore {
   FOREIGN_TRANSFER_SUCCESS = 'Foreign Transfer Success'
 
   @action
-  pushError(message, messageType) {
+  pushError(message, messageType, info = {}) {
     console.error('Error: ', message)
     const shouldPushError = this.checkErrorPush(messageType, messageType)
     if (shouldPushError) {
@@ -42,7 +42,8 @@ class AlertStore {
         title: 'Error',
         content: node,
         icon: 'error',
-        messageType
+        messageType,
+        info
       }
       this.alerts.push(error)
     }

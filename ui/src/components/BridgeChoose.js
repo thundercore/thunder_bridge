@@ -62,8 +62,9 @@ export const BridgeChoose = (props) => {
           `Please, change network to ${
             props.web3Store.homeNet.name
           } to transfer ${RenameToken(mode.from)}`,
-          props.alert.WRONG_NETWORK_ERROR
-        );
+          props.alert.WRONG_NETWORK_ERROR,
+          props.web3Store.homeNet
+          );
       } else {
         props.alert.setLoading(true);
         props.setNewTokenHandler(mode.to === "TT" ? "TT" : mode.from);
@@ -74,8 +75,9 @@ export const BridgeChoose = (props) => {
           `Please, change network to ${
             props.web3Store.foreignNet.name
           } to transfer ${RenameToken(mode.from)}`,
-          props.alert.WRONG_NETWORK_ERROR
-        );
+          props.alert.WRONG_NETWORK_ERROR,
+          props.web3Store.foreignNet
+          );
       } else {
         props.alert.setLoading(true);
         props.setNewTokenHandler(mode.from === "TT" ? "TT" : mode.to);

@@ -141,8 +141,86 @@ class Web3Store {
           `You are on an unknown network on your wallet. Please select ${this.homeNet.name} or ${
             this.foreignNet.name
           } in order to communicate with the bridge.`,
-          this.alertStore.WRONG_NETWORK_ERROR
+          this.alertStore.WRONG_NETWORK_ERROR,
+          this.homeNet
         )
+      }
+    }
+  }
+
+  static switchToExistingNetwork = (chainId) => {
+    window.ethereum
+    .request({
+      method: 'wallet_switchEthereumChain',
+      params: [{chainId : "0x1"}] // you must have access to the specified account
+    })
+    .catch(error => {
+      if (error.code === 4001) {
+        // EIP-1193 userRejectedRequest error
+        console.log('We can encrypt anything without the key.')
+      } else {
+        console.error(error)
+      }
+    })
+  }
+
+
+  static autoAddNetwork = (chainID) => {
+    if (chainID) {
+      const networkInfo = {
+        56: {
+          chainId: '0x38',
+          chainName: 'Binance Smart Chain',
+          rpcUrls: ['https://bsc-dataseed.binance.org/', "https://bsc-dataseed1.defibit.io/"],
+          // iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
+          blockExplorerUrls: ['https://bscscan.com/'],
+          nativeCurrency: {
+            name: 'BNB',
+            symbol: 'BNB',
+            decimals: 18
+          }
+        },
+        108: {
+          chainId: '0x6c',
+          chainName: 'Thundercore Mainnet',
+          rpcUrls: ['https://mainnet-rpc.thundercore.com'],
+          iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
+          blockExplorerUrls: ['https://viewblock.io/thundercore'],
+          nativeCurrency: {
+            name: 'Thundercore Token',
+            symbol: 'TT',
+            decimals: 18
+          }
+        },
+        // 18: {
+        //   chainId: '0x6c',
+        //   chainName: 'Thundercore Mainnet',
+        //   rpcUrls: ['https://mainnet-rpc.thundercore.com'],
+        //   iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
+        //   blockExplorerUrls: ['https://viewblock.io/thundercore'],
+        //   nativeCurrency: {
+        //     name: 'Thundercore Token',
+        //     symbol: 'TT',
+        //     decimals: 18
+        //   }
+        // },
+      }
+  
+      if (window.ethereum.isMetaMask) {
+        window.ethereum
+          .request({
+            method: 'wallet_addEthereumChain',
+            params: [networkInfo[chainID]] // you must have access to the specified account
+          })
+          .catch(error => {
+            if (error.code === 4001) {
+              // EIP-1193 userRejectedRequest error
+              console.log('We can encrypt anything without the key.')
+              window.location.reload()
+            } else {
+              console.error(error)
+            }
+          })
       }
     }
   }
