@@ -9,7 +9,7 @@
 brew install yarn
 ```
 ## Install
-In the folder which clone from the repo. (Prefer Node V10)
+In the folder which clone from the repo. (Should be Node V10.x)
 ```
 cd ./ui
 yarn install
@@ -17,11 +17,11 @@ yarn install
 ## Set up environment variables
 In the [Ansible playbook](https://github.com/thundercore/devops/blob/develop/ansible/playbooks/CCA/cca-bridgeui.yml), 
 follow section of "Transfer BridgeUI Env File" to do the following change.\
-In the folder of thunder_bridge/ui
+In the folder of thunder_bridge/ui, ovewrite .env file based on your testing network.
 ```
-cp .env.example .env
-cd ../deployment/ui
-cp .env.example .env
+cp .env.example.eth .env
+or
+cp .env.example.bsc .env
 ```
 Modify required env values based on Ansible config for [Mainnet](https://github.com/thundercore/devops/blob/develop/ansible/configs/CCA/mainnet/global.env.yml) / [Testnet](https://github.com/thundercore/devops/blob/develop/ansible/configs/CCA/testnet/global.env.yml)
 and [jinja2 config](https://github.com/thundercore/devops/blob/develop/ansible/configs/CCA/bridgeui-env.j2) accordingly.
