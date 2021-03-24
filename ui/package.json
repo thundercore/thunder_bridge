@@ -18,6 +18,7 @@
     "react-app-rewire-mobx": "^1.0.7",
     "react-app-rewired": "^2.0.3",
     "react-copy-to-clipboard": "^5.0.1",
+    "react-device-detect": "^1.17.0",
     "react-dom": "^16.2.0",
     "react-ga": "^3.3.0",
     "react-router": "^4.3.1",
