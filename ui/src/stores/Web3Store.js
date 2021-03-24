@@ -1,6 +1,7 @@
 import { action, observable } from 'mobx'
 import getWeb3, { getBalance, getWeb3Instance, getNetwork } from './utils/web3'
 import { balanceLoaded } from './utils/testUtils'
+import ReactGA from 'react-ga'
 import { BRIDGE_MODES } from './utils/bridgeMode'
 
 class Web3Store {
@@ -192,19 +193,35 @@ class Web3Store {
             decimals: 18
           }
         },
-        // 18: {
-        //   chainId: '0x6c',
-        //   chainName: 'Thundercore Mainnet',
-        //   rpcUrls: ['https://mainnet-rpc.thundercore.com'],
-        //   iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
-        //   blockExplorerUrls: ['https://viewblock.io/thundercore'],
-        //   nativeCurrency: {
-        //     name: 'Thundercore Token',
-        //     symbol: 'TT',
-        //     decimals: 18
-        //   }
-        // },
+        18: {
+          chainId: '0x12',
+          chainName: 'Thundercore Testnet',
+          rpcUrls: ['https://testnet-rpc.thundercore.com'],
+          iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
+          blockExplorerUrls: ['https://viewblock.io/thundercore'],
+          nativeCurrency: {
+            name: 'Thundercore Token',
+            symbol: 'TT',
+            decimals: 18
+          }
+        },
+        97: {
+          chainId: '0x61',
+          chainName: 'BSC Testnet',
+          rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
+          // iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
+          blockExplorerUrls: ['https://testnet.bscscan.com/'],
+          nativeCurrency: {
+            name: 'BNB',
+            symbol: 'BNB',
+            decimals: 18
+          }
+        },
       }
+      ReactGA.event({
+        category: 'Account',
+        action: 'AutoSwitchNetwork'
+      })
   
       if (window.ethereum.isMetaMask) {
         window.ethereum

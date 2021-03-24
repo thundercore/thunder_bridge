@@ -7,14 +7,11 @@ import Web3Store from '../stores/Web3Store'
 @observer
 export class SweetAlert extends React.Component {
   componentWillReact() {
-    const isTestnet = process.env.REACT_APP_HOME_HTTP_PARITY_URL.includes("venus")
     const { alertStore } = this.props.RootStore
 
     if (alertStore.alerts.length > 0) {
       const alert = alertStore.alerts.slice()[0]
-      console.log('network', alert)
-      // const isAddNetwork = true
-      const isAddNetwork = !isTestnet && alert.info.id !== 1
+      const isAddNetwork = alert.info.id !== 1 // check not eth network. For eth, check this PR: https://github.com/ethereum/EIPs/pull/3326
       const button = isAddNetwork ? {button: {text: `Switch to ${alert.info.name}`}} : {}
       const swalConfig = {...alert, ...button}
       swal(swalConfig).then((isButtonClicked) => {
