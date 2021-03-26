@@ -44,7 +44,7 @@
     "coveralls": "cat ./coverage/lcov.info | node node_modules/.bin/coveralls",
     "eject": "react-app-rewired eject",
     "postinstall": "(cp lib/web3-eth/index.js ./node_modules/web3-eth/src)",
-    "extract-messages": "NODE_ENV=development extract-messages -o src/translations --flat -l en 'src/**/*.ts'"
+    "extract-messages": "NODE_ENV=development extract-messages -o src/translations --flat -l en,zh-Hant,zh-Hans,ko,vi,ja,tr,id,ru,pt 'src/**/*.ts'"
   },
   "devDependencies": {
     "jest-dom": "^3.0.1",

@@ -1,5 +1,7 @@
 import { defineMessages } from "react-intl"
 
 export default defineMessages({
-  transferButtonText: "Transfer",
+  from: "From",
+  to: "To",
+  balance: "Balance",
 })

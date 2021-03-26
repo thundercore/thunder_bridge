@@ -22,7 +22,7 @@ export const BridgeForm = ({
         <div className="bridge-form-inputs">
           <div className="bridge-form-input-wrapper">
             <label htmlFor="amount" className="bridge-form-input-label">
-              Amount
+              <FormattedMessage id="components.i18n.BridgeForm.amount" />
             </label>
             <div className="bridge-form-input-container">
               <input
@@ -41,7 +41,7 @@ export const BridgeForm = ({
           </div>
           <div className="bridge-form-input-wrapper">
             <label htmlFor="recipient" className="bridge-form-input-label">
-              Recipient
+              <FormattedMessage id="components.i18n.BridgeForm.recipient" />
             </label>
             <div className="bridge-form-input-container">
               <input
@@ -59,7 +59,7 @@ export const BridgeForm = ({
         </div>
         <div>
           <button type="submit" className="bridge-form-button">
-            <FormattedMessage id="components.i18n.transferButtonText" />
+            <FormattedMessage id="components.i18n.BridgeForm.transferButtonText" />
           </button>
         </div>
       </div>
