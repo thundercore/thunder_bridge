@@ -223,7 +223,7 @@ class Web3Store {
         action: 'AutoSwitchNetwork'
       })
   
-      if (window.ethereum.isMetaMask) {
+      if (window.ethereum) {
         window.ethereum
           .request({
             method: 'wallet_addEthereumChain',
