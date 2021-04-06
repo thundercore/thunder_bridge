@@ -1,12 +1,12 @@
 import { defineMessages } from "react-intl"
 
 export default defineMessages({
-  welcome: "Welcome to ThunderBridge",
+  welcome: "Get Started!",
   disclaimer1:
-    "Use of this app and the ThunderBridge is at your own risk. Users may experience unexpected delays, unexpected visual artifacts, unexpected loss of tokens or funds from improper app configuration, or other negative outcomes.",
+    "Connect wallet that is Ethereum compatible such as MetaMask on web browser or Trust Wallet in-App browser to use ThunderCore Bridge. Ensure to switch the right network.",
   disclaimer2:
-    'By hitting the "continue" button, you are representing that you’ve read our',
-  disclaimer3: "Terms of Service",
-  disclaimer4: "in full, and that you agree to be legally bound by them.",
-  continue: "Continue",
+    "For further information on how to install any of both wallets, please click the buttons below.",
+  metaMask: "MetaMask",
+  thunderCoreHub: "ThunderCore Hub",
+  gotIt: "Got it!",
 })

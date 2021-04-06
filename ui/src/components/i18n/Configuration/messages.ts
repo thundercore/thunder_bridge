@@ -5,5 +5,5 @@ export default defineMessages({
   requiredSignatures: "Required Signatures",
   authorities: "Authorities",
   maxSingleDeposit: "Max Single Deposit",
-  remainingDailyQuota: "Remaining Daily [token name] Quota",
+  remainingDailyQuota: "Remaining Daily {tokenName} Quota",
 })

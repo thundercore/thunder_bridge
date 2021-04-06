@@ -16,13 +16,27 @@ const languageWithoutRegionCode = (locale: string) => {
       return "zh-Hans"
     case "ko":
       return "ko"
-    case "ja":
-      return "en"
-    case "in":
+    case "vi_VN":
+    case "vi":
+      return "vi"
+    case "tr_TR":
+    case "tr":
+      return "tr"
+    case "id_ID":
     case "id":
+      return "id"
+    case "ja":
+      return "ja"
+    case "in":
       return "en"
     case "ru":
       return "ru"
+    case "pt_BR":
+    case "pt_GW":
+    case "pt_MZ":
+    case "pt_PT":
+    case "pt":
+      return "pt"
     default:
       return "en"
   }

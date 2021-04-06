@@ -1,37 +1,46 @@
-import React from "react";
-import { getTokenList } from "../stores/utils/getBridgeAddress";
-import { RenameToken } from "./utils/renameToken";
-import { bridgeType } from "../stores/utils/bridgeMode";
+import React from "react"
+import { getTokenList } from "../stores/utils/getBridgeAddress"
+import { RenameToken } from "./utils/renameToken"
+import { bridgeType } from "../stores/utils/bridgeMode"
+import { injectIntl } from "react-intl"
 
-export const BridgeChoose = (props) => {
-  const tokens = getTokenList();
-  const chooseItems = [];
+const BridgeChoose = ({
+  setNewTokenHandler,
+  web3Store,
+  alert,
+  isHome,
+  foreignStore,
+  homeStore,
+  intl,
+}) => {
+  const tokens = getTokenList()
+  const chooseItems = []
 
   const direction = {
     fromHome: 0,
-    fromForeign: 1
+    fromForeign: 1,
   }
 
   const getPrefix = (token) => {
     if (token === "TT") {
-      return bridgeType === "eth" ? "TT" : "BSC";
+      return bridgeType === "eth" ? "TT" : "BSC"
     }
-    return "TT";
-  };
+    return "TT"
+  }
 
   const setItems = (token, type) => {
     if (type === 0) {
       chooseItems.push({
         from: token,
         to: `${getPrefix(token)}-${token}`,
-        direction: token === "TT" ? direction.fromHome : direction.fromForeign
+        direction: token === "TT" ? direction.fromHome : direction.fromForeign,
       })
     }
     if (type === 1) {
       chooseItems.push({
         from: `${getPrefix(token)}-${token}`,
         to: token,
-        direction: token === "TT" ? direction.fromForeign : direction.fromHome
+        direction: token === "TT" ? direction.fromForeign : direction.fromHome,
       })
     }
   }
@@ -47,60 +56,81 @@ export const BridgeChoose = (props) => {
   }
 
   const chooseLogoClass = (c) => {
-    return "bridge-choose-logo logo-" + c.toLowerCase();
-  };
+    return "bridge-choose-logo logo-" + c.toLowerCase()
+  }
 
   const renderAdditionalLogoInfo = (item) => {
-    if (item === "BSC-TT") return <div className="logo-info">BEP 20</div>;
-    return null;
-  };
+    if (item === "BSC-TT") return <div className="logo-info">BEP 20</div>
+    return null
+  }
 
   const handleOptionChange = (mode) => {
-    if (!props.isHome) {
+    if (!isHome) {
       if (mode.direction === direction.fromHome) {
-        props.alert.pushError(
-          `Please, change network to ${
-            props.web3Store.homeNet.name
-          } to transfer ${RenameToken(mode.from)}`,
-          props.alert.WRONG_NETWORK_ERROR,
-          props.web3Store.homeNet
-          );
+        alert.pushError(
+          intl.formatMessage(
+            { id: "components.i18n.BridgeChoose.changeNetworkTransfer" },
+            {
+              networkName: web3Store.homeNet.name,
+              tokenName: RenameToken(mode.from),
+            }
+          ),
+          alert.WRONG_NETWORK_ERROR,
+          web3Store.homeNet
+        )
       } else {
-        props.alert.setLoading(true);
-        props.setNewTokenHandler(mode.to === "TT" ? "TT" : mode.from);
+        alert.setLoading(true)
+        setNewTokenHandler(mode.to === "TT" ? "TT" : mode.from)
       }
     } else {
       if (mode.direction === direction.fromForeign) {
-        props.alert.pushError(
-          `Please, change network to ${
-            props.web3Store.foreignNet.name
-          } to transfer ${RenameToken(mode.from)}`,
-          props.alert.WRONG_NETWORK_ERROR,
-          props.web3Store.foreignNet
-          );
+        alert.pushError(
+          intl.formatMessage(
+            { id: "components.i18n.BridgeChoose.changeNetworkTransfer" },
+            {
+              networkName: web3Store.foreignNet.name,
+              tokenName: RenameToken(mode.from),
+            }
+          ),
+          alert.WRONG_NETWORK_ERROR,
+          web3Store.foreignNet
+        )
       } else {
-        props.alert.setLoading(true);
-        props.setNewTokenHandler(mode.from === "TT" ? "TT" : mode.to);
+        alert.setLoading(true)
+        setNewTokenHandler(mode.from === "TT" ? "TT" : mode.to)
       }
     }
-  };
+  }
 
   const verifyTokenMatch = (item, dir) => {
-    if (dir === direction.fromHome) return item.to === RenameToken(props.foreignStore.symbol) || item.to === "BSC-TT" && props.foreignStore.symbol === "TT"
-    return item.from === RenameToken(props.foreignStore.symbol) || item.to === "TT" && props.foreignStore.symbol === "TT"
+    if (dir === direction.fromHome)
+      return (
+        item.to === RenameToken(foreignStore.symbol) ||
+        (item.to === "BSC-TT" && foreignStore.symbol === "TT")
+      )
+    return (
+      item.from === RenameToken(foreignStore.symbol) ||
+      (item.to === "TT" && foreignStore.symbol === "TT")
+    )
   }
 
   const handleChecked = (item) => {
-    if (props.isHome) {
-      if (item.direction === direction.fromHome && verifyTokenMatch(item, direction.fromHome)) {
-        return true;
+    if (isHome) {
+      if (
+        item.direction === direction.fromHome &&
+        verifyTokenMatch(item, direction.fromHome)
+      ) {
+        return true
       }
     } else {
-      if (item.direction === direction.fromForeign && verifyTokenMatch(item, direction.fromForeign)) {
-        return true;
+      if (
+        item.direction === direction.fromForeign &&
+        verifyTokenMatch(item, direction.fromForeign)
+      ) {
+        return true
       }
     }
-  };
+  }
 
   return (
     <div className="bridge-choose">
@@ -129,8 +159,10 @@ export const BridgeChoose = (props) => {
               </span>
             </span>
           </label>
-        );
+        )
       })}
     </div>
-  );
-};
+  )
+}
+
+export default injectIntl(BridgeChoose)

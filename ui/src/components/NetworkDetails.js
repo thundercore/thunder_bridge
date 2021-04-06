@@ -1,11 +1,12 @@
-import React from 'react'
-import numeral from 'numeral'
-import { CopyIcon } from './icons/CopyIcon'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
-import { updateForeignLogo } from '../stores/utils/utils'
-import { RenameToken } from './utils/renameToken'
+import React from "react"
+import numeral from "numeral"
+import { CopyIcon } from "./icons/CopyIcon"
+import { CopyToClipboard } from "react-copy-to-clipboard"
+import { updateForeignLogo } from "../stores/utils/utils"
+import { RenameToken } from "./utils/renameToken"
+import { injectIntl, FormattedMessage } from "react-intl"
 
-export const NetworkDetails = ({
+const NetworkDetails = ({
   isHome,
   networkData,
   url,
@@ -26,20 +27,33 @@ export const NetworkDetails = ({
   getExplorerAddressUrl,
   fixedFee,
   feePercent,
-  feeCurrency
+  feeCurrency,
+  intl,
 }) => {
   const displayCurrency = RenameToken(currency)
-  const networkTitle = isHome ? 'Bridge Home' : 'Bridge Foreign'
-  const logoClass = isHome ? 'home-logo home-logo-modal' : 'foreign-logo foreign-logo-modal'
+  const networkTitle = isHome ? (
+    <FormattedMessage id="components.i18n.NetworkDetails.bridgeHomeAddress" />
+  ) : (
+    <FormattedMessage id="components.i18n.NetworkDetails.bridgeForeignAddress" />
+  )
+  const logoClass = isHome
+    ? "home-logo home-logo-modal"
+    : "foreign-logo foreign-logo-modal"
   const totalTitle = isHome
     ? nativeSupplyTitle
-      ? `Native Coins Amount`
-      : `Totally minted by the bridge`
-    : `${displayCurrency} Tokens Amount`
+      ? intl.formatMessage({
+          id: "components.i18n.BridgeStatistics.nativeToken",
+        })
+      : intl.formatMessage({
+          id: "components.i18n.BridgeStatistics.totalMinted",
+        })
+    : `${displayCurrency} ${intl.formatMessage({
+        id: "components.i18n.BridgeStatistics.tokensAmount",
+      })}`
   const totalAmount = isHome ? totalBalance : totalSupply
-  const formattedBalance = isNaN(numeral(balance).format('0.00', Math.floor))
-    ? numeral(0).format('0,0.00', Math.floor)
-    : numeral(balance).format('0,0.000', Math.floor)
+  const formattedBalance = isNaN(numeral(balance).format("0.00", Math.floor))
+    ? numeral(0).format("0,0.00", Math.floor)
+    : numeral(balance).format("0,0.000", Math.floor)
 
   return (
     <div className="network-details" data-testid="network-details">
@@ -48,18 +62,20 @@ export const NetworkDetails = ({
       </div>
       <div className="details-body">
         <p className="details-data-container">
-          <span className="details-label">Network</span>
+          <span className="details-label">
+            <FormattedMessage id="components.i18n.NetworkDetails.network" />
+          </span>
           <span className="details-description">{url}</span>
         </p>
         <p className="details-data-container">
-          <span className="details-label">{networkTitle} Address</span>
+          <span className="details-label">{networkTitle}</span>
           <span className="details-description details-copy">
             <a
               className="details-description"
               href={getExplorerAddressUrl(address)}
               target="_blank"
             >
-              {address.slice(0, 27).concat('...')}
+              {address.slice(0, 27).concat("...")}
             </a>
             <CopyToClipboard text={address}>
               <span className="copy-icon copy-icon-right">
@@ -70,54 +86,72 @@ export const NetworkDetails = ({
         </p>
         {displayBridgeLimits && (
           <p className="details-data-container">
-            <span className="details-label">Remaining Daily {displayCurrency} Quota</span>
+            <span className="details-label">
+              <FormattedMessage
+                id="components.i18n.Configuration.remainingDailyQuota"
+                values={{ tokenName: displayCurrency }}
+              />
+            </span>
             <span className="details-description-black">
-              {numeral(maxCurrentLimit).format('0,0.0', Math.floor)} {displayCurrency}
+              {numeral(maxCurrentLimit).format("0,0.0", Math.floor)}{" "}
+              {displayCurrency}
             </span>
           </p>
         )}
         {displayBridgeLimits && (
           <p className="details-data-container">
-            <span className="details-label">Maximum Amount Per Transaction</span>
+            <span className="details-label">
+              <FormattedMessage id="components.i18n.NetworkDetails.maxAmountPerTx" />
+            </span>
             <span className="details-description-black">
-              {numeral(maxPerTx).format('0,0.0', Math.floor)} {displayCurrency}
+              {numeral(maxPerTx).format("0,0.0", Math.floor)} {displayCurrency}
             </span>
           </p>
         )}
         {displayBridgeLimits && (
           <p className="details-data-container">
-            <span className="details-label">Minimum Amount Per Transaction</span>
+            <span className="details-label">
+              <FormattedMessage id="components.i18n.NetworkDetails.minAmountPerTx" />
+            </span>
             <span className="details-description-black">
-              {numeral(minPerTx).format('0,0.000', Math.floor)} {displayCurrency}
+              {numeral(minPerTx).format("0,0.000", Math.floor)}{" "}
+              {displayCurrency}
             </span>
           </p>
         )}
         {displayBridgeLimits && fixedFee && (
           <p className="details-data-container">
-            <span className="details-label">Minimum Fee</span>
+            <span className="details-label">
+              <FormattedMessage id="components.i18n.NetworkDetails.minFee" />
+            </span>
             <span className="details-description-black">
-              {numeral(fixedFee).format('0,0.000', Math.floor)} {RenameToken(feeCurrency)}
+              {numeral(fixedFee).format("0,0.000", Math.floor)}{" "}
+              {RenameToken(feeCurrency)}
             </span>
           </p>
         )}
         {displayBridgeLimits && feePercent && (
           <p className="details-data-container">
-            <span className="details-label">Fee Percent</span>
+            <span className="details-label">
+              <FormattedMessage id="components.i18n.NetworkDetails.feePercent" />
+            </span>
             <span className="details-description-black">
-              {numeral(feePercent).format('0,0.0', Math.floor)} %
+              {numeral(feePercent).format("0,0.0", Math.floor)} %
             </span>
           </p>
         )}
         {displayTokenAddress && (
           <p className="details-data-container">
-            <span className="details-label">Token Address</span>
+            <span className="details-label">
+              <FormattedMessage id="components.i18n.NetworkDetails.tokenAddress" />
+            </span>
             <span className="details-description details-copy">
               <a
                 className="details-description"
                 href={getExplorerAddressUrl(tokenAddress)}
                 target="_blank"
               >
-                {tokenAddress.slice(0, 27).concat('...')}
+                {tokenAddress.slice(0, 27).concat("...")}
               </a>
               <CopyToClipboard text={tokenAddress}>
                 <span className="copy-icon copy-icon-right">
@@ -129,18 +163,28 @@ export const NetworkDetails = ({
         )}
         {displayTokenAddress && (
           <p className="details-data-container">
-            <span className="details-label">Token Name</span>
-            <span className="details-description-black">{RenameToken(tokenName) || 'No token name'}</span>
+            <span className="details-label">
+              <FormattedMessage id="components.i18n.NetworkDetails.tokenName" />
+            </span>
+            <span className="details-description-black">
+              {RenameToken(tokenName) || "No token name"}
+            </span>
           </p>
         )}
         <p className="details-data-container">
           <span className="details-label">{totalTitle}</span>
           <span className="details-description-black">
-            {numeral(totalAmount).format('0,0.000', Math.floor)} {displayCurrency}
+            {numeral(totalAmount).format("0,0.000", Math.floor)}{" "}
+            {displayCurrency}
           </span>
         </p>
         <p className="details-data-container">
-          <span className="details-label">Your {displayCurrency} Balance</span>
+          <span className="details-label">
+            <FormattedMessage
+              id="components.i18n.NetworkDetails.yourBalance"
+              values={{ tokenName: displayCurrency }}
+            />
+          </span>
           <span className="details-description-black">
             {formattedBalance} {displayCurrency}
           </span>
@@ -149,3 +193,5 @@ export const NetworkDetails = ({
     </div>
   )
 }
+
+export default injectIntl(NetworkDetails)

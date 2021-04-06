@@ -1,7 +1,7 @@
 import { defineMessages } from "react-intl"
 
 export default defineMessages({
-  switchNetwork: "Please switch wallet to Ethereum network",
+  switchNetwork: "Please switch wallet to {networkName} network",
   minAmountPerTxError:
     "The amount is less than the current minimum amount per transaction.\nThe minimum amount per transaction is:",
   maxAmountPerTxError:

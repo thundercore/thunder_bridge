@@ -3,18 +3,25 @@ import { IntlProvider, addLocaleData } from "react-intl"
 import * as enLocaleData from "react-intl/locale-data/en"
 import * as zhLocaleData from "react-intl/locale-data/zh"
 import * as koLocaleData from "react-intl/locale-data/ko"
-import * as jaLocaleData from "react-intl/locale-data/ja"
+import * as viLocaleData from "react-intl/locale-data/vi"
+import * as trLocaleData from "react-intl/locale-data/tr"
 import * as idLocaleData from "react-intl/locale-data/id"
+import * as jaLocaleData from "react-intl/locale-data/ja"
 import * as ruLocaleData from "react-intl/locale-data/ru"
+import * as ptLocaleData from "react-intl/locale-data/pt"
 import localeMessages from "../translations"
+import { getLocale } from "../utils/locale"
 
 addLocaleData([
   ...enLocaleData,
   ...zhLocaleData,
   ...koLocaleData,
-  ...jaLocaleData,
+  ...viLocaleData,
+  ...trLocaleData,
   ...idLocaleData,
+  ...jaLocaleData,
   ...ruLocaleData,
+  ...ptLocaleData,
 ])
 
 export const LocaleContext = React.createContext({})
@@ -24,7 +31,7 @@ export class LocaleProvider extends React.PureComponent {
     super(props)
 
     this.state = {
-      locale: "en",
+      locale: getLocale(),
       options: [
         {
           displayName: "English",
@@ -43,16 +50,28 @@ export class LocaleProvider extends React.PureComponent {
           locale: "ko",
         },
         {
-          displayName: "日本語",
-          locale: "ja",
+          displayName: "Tiếng việt",
+          locale: "vi",
+        },
+        {
+          displayName: "Türk dili",
+          locale: "tr",
         },
         {
           displayName: "Indonesia",
           locale: "id",
         },
         {
+          displayName: "日本語",
+          locale: "ja",
+        },
+        {
           displayName: "Русский",
           locale: "ru",
+        },
+        {
+          displayName: "Português",
+          locale: "pt",
         },
       ],
     }

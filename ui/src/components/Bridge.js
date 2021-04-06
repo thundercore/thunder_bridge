@@ -9,18 +9,19 @@ import { BridgeForm } from "./index"
 import { BridgeNetwork } from "./index"
 import { BridgeChoose } from "./index"
 import { ModalContainer } from "./ModalContainer"
-import { NetworkDetails } from "./NetworkDetails"
-import { TransferAlert } from "./TransferAlert"
+import { default as NetworkDetails } from "./NetworkDetails"
+import { default as TransferAlert } from "./TransferAlert"
 import { inject, observer } from "mobx-react"
 import { toDecimals } from "../stores/utils/decimals"
 import {
   getForeignNativeToken,
   getHomeNativeToken,
 } from "../stores/utils/getBridgeAddress"
+import { injectIntl } from "react-intl"
 
 @inject("RootStore")
 @observer
-export class Bridge extends React.Component {
+class Bridge extends React.Component {
   state = {
     reverse: false,
     amount: "",
@@ -96,36 +97,51 @@ export class Bridge extends React.Component {
     } = this.props.RootStore
     const isErcToErcMode = bridgeMode === BRIDGE_MODES.ERC_TO_ERC
     const { isLessThan, isGreaterThan } = this
+    const { intl } = this.props
+
     if (
       web3Store.metamaskNet.id.toString() !== web3Store.homeNet.id.toString()
     ) {
       swal(
         "Error",
-        `Please switch wallet to ${web3Store.homeNet.name} network`,
+        intl.formatMessage({
+          id: "components.i18n.Bridge.switchNetwork",
+          values: { networkName: web3Store.homeNet.name },
+        }),
         "error"
       )
       return
     }
     if (isLessThan(amount, homeStore.minPerTx)) {
       alertStore.pushError(
-        `The amount is less than the current minimum amount per transaction.\nThe minimum amount per transaction is: ${homeStore.minPerTx} ${homeStore.symbol}`
+        `${intl.formatMessage({
+          id: "components.i18n.Bridge.minAmountPerTxError",
+        })} ${homeStore.minPerTx} ${homeStore.symbol}`
       )
       return
     }
     if (isGreaterThan(amount, homeStore.maxPerTx)) {
       alertStore.pushError(
-        `The amount is above the current maximum amount per transaction.\nThe maximum amount per transaction is: ${homeStore.maxPerTx} ${homeStore.symbol}`
+        `${intl.formatMessage({
+          id: "components.i18n.Bridge.maxAmountPerTxError",
+        })} ${homeStore.maxPerTx} ${homeStore.symbol}`
       )
       return
     }
     if (isGreaterThan(amount, homeStore.maxCurrentDeposit)) {
       alertStore.pushError(
-        `The amount is above the current daily limit.\nThe maximum deposit today: ${homeStore.maxCurrentDeposit} ${homeStore.symbol}`
+        `${intl.formatMessage({
+          id: "components.i18n.Bridge.depositDailyLimitError",
+        })} ${homeStore.maxCurrentDeposit} ${homeStore.symbol}`
       )
       return
     }
     if (isGreaterThan(amount, homeStore.getDisplayedBalance())) {
-      alertStore.pushError("Insufficient balance")
+      alertStore.pushError(
+        intl.formatMessage({
+          id: "components.i18n.Bridge.insufficientBalance",
+        })
+      )
     } else {
       try {
         alertStore.setLoading(true)
@@ -163,37 +179,50 @@ export class Bridge extends React.Component {
     } = this.props.RootStore
     const isExternalErc20 = foreignStore.tokenType === ERC_TYPES.ERC20
     const { isLessThan, isGreaterThan } = this
+    const { intl } = this.props
+
     if (
       web3Store.metamaskNet.id.toString() !== web3Store.foreignNet.id.toString()
     ) {
       swal(
         "Error",
-        `Please switch wallet to ${web3Store.foreignNet.name} network`,
+        intl.formatMessage({
+          id: "components.i18n.Bridge.switchNetwork",
+          values: { networkName: web3Store.foreignNet.name },
+        }),
         "error"
       )
       return
     }
     if (isLessThan(amount, foreignStore.minPerTx)) {
       alertStore.pushError(
-        `The amount is less than minimum amount per transaction.\nThe min per transaction is: ${foreignStore.minPerTx} ${foreignStore.symbol}`
+        `${intl.formatMessage({
+          id: "components.i18n.Bridge.minAmountPerTxError",
+        })} ${foreignStore.minPerTx} ${foreignStore.symbol}`
       )
       return
     }
     if (isGreaterThan(amount, foreignStore.maxPerTx)) {
       alertStore.pushError(
-        `The amount is above maximum amount per transaction.\nThe max per transaction is: ${foreignStore.maxPerTx} ${foreignStore.symbol}`
+        `${intl.formatMessage({
+          id: "components.i18n.Bridge.maxAmountPerTxError",
+        })} ${foreignStore.maxPerTx} ${foreignStore.symbol}`
       )
       return
     }
     if (isGreaterThan(amount, foreignStore.maxCurrentDeposit)) {
       alertStore.pushError(
-        `The amount is above current daily limit.\nThe max withdrawal today: ${foreignStore.maxCurrentDeposit} ${foreignStore.symbol}`
+        `${intl.formatMessage({
+          id: "components.i18n.Bridge.withdrawalDailyLimitError",
+        })} ${foreignStore.maxCurrentDeposit} ${foreignStore.symbol}`
       )
       return
     }
     if (isGreaterThan(amount, foreignStore.balance)) {
       alertStore.pushError(
-        `Insufficient token balance. Your balance is ${foreignStore.balance} ${foreignStore.symbol}`
+        `${intl.formatMessage({
+          id: "components.i18n.Bridge.insufficientBalance2",
+        })} ${foreignStore.balance} ${foreignStore.symbol}`
       )
     } else {
       try {
@@ -228,8 +257,15 @@ export class Bridge extends React.Component {
     e.preventDefault()
 
     const amount = this.state.amount.trim()
+    const { intl } = this.props
     if (!amount) {
-      swal("Error", "Please specify amount", "error")
+      swal(
+        "Error",
+        intl.formatMessage({
+          id: "components.i18n.Bridge.specifyAmount",
+        }),
+        "error"
+      )
       return
     }
 
@@ -270,7 +306,9 @@ export class Bridge extends React.Component {
 
     if (finalAmount.lte(new BN(0))) {
       alertStore.pushError(
-        `The amount that you entered does not cover the transaction fee.\nThe minimum transaction amount is: ${fee} ${homeStore.symbol}`
+        `${intl.formatMessage({
+          id: "components.i18n.Bridge.minFeeError",
+        })} ${fee} ${homeStore.symbol}`
       )
       return
     }
@@ -298,8 +336,15 @@ export class Bridge extends React.Component {
 
     this.setState({ showConfirmation: false, confirmationData: {} })
     const amount = this.state.amount.trim()
+    const { intl } = this.props
     if (!amount) {
-      swal("Error", "Please specify amount", "error")
+      swal(
+        "Error",
+        intl.formatMessage({
+          id: "components.i18n.Bridge.specifyAmount",
+        }),
+        "error"
+      )
       return
     }
 
@@ -423,7 +468,7 @@ export class Bridge extends React.Component {
       showModal,
       modalData,
       showConfirmation,
-      confirmationData /*, recipient*/,
+      confirmationData,
     } = this.state
     const formCurrency = reverse ? foreignStore.symbol : homeStore.symbol
 
@@ -530,3 +575,5 @@ export class Bridge extends React.Component {
     )
   }
 }
+
+export default injectIntl(Bridge)
