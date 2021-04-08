@@ -65,17 +65,5 @@
   "components.i18n.TransferAlert.recipient": "Penerima: {recipient}",
   "components.i18n.TransferAlert.txFee": "Biaya transaksi: {fee} {currency}",
   "components.i18n.Wallet.login": "Masuk dengan{space}",
-  "components.i18n.Wallet.wallet": "dompet",
-  "stores.i18n.errForeignConnection": "Kesalahan Sambungan Asing",
-  "stores.i18n.errHomeConnection": "Kesalahan Koneksi Rumah",
-  "stores.i18n.errWrongNetwork": "Kesalahan jaringan",
-  "stores.i18n.error": "Kesalahan",
-  "stores.i18n.loading": "Memuat",
-  "stores.i18n.successForeignTransfer": "Sukses Transfer Luar Negeri",
-  "stores.i18n.successHomeTransfer": "Transfer Rumah Berhasil",
-  "stores.i18n.transferComplete": "Transfer Selesai",
-  "stores.i18n.unknownNetwork": "Anda berada di jaringan yang tidak dikenal di dompet Anda. Harap pilih {homeNet} atau {foreignNet} untuk berkomunikasi dengan bridge.",
-  "stores.i18n.unlockWallet": "Silakan buka kunci dompet",
-  "stores.i18n.verifyingTransaction": "Validator Sedang Memverifikasi Transaksi ...",
-  "stores.i18n.waitConfirmations": "Menunggu Konfirmasi Blok ..."
+  "components.i18n.Wallet.wallet": "dompet"
 }

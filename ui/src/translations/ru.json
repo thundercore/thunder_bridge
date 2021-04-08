@@ -65,17 +65,5 @@
   "components.i18n.TransferAlert.recipient": "Получатель: {recipient}",
   "components.i18n.TransferAlert.txFee": "Комиссия за транзакцию: {fee} {currency}",
   "components.i18n.Wallet.login": "Войти с помощью{space}",
-  "components.i18n.Wallet.wallet": "кошелек",
-  "stores.i18n.errForeignConnection": "Ошибка подключения к другой сети",
-  "stores.i18n.errHomeConnection": "Ошибка подключения к домашней сети",
-  "stores.i18n.errWrongNetwork": "Ошибка неправильной сети",
-  "stores.i18n.error": "Ошибка",
-  "stores.i18n.loading": "Загрузка",
-  "stores.i18n.successForeignTransfer": "Перевод в другую сеть успешен",
-  "stores.i18n.successHomeTransfer": "Перевод в домашнюю сеть успешен",
-  "stores.i18n.transferComplete": "Перевод завершен",
-  "stores.i18n.unknownNetwork": "Ваш кошелек в неизвестной сети. Пожалуйста выберите {homeNet} или {foreignNet} для взаимодействия с мостом.",
-  "stores.i18n.unlockWallet": "Пожалуйста разблокируйте кошелек",
-  "stores.i18n.verifyingTransaction": "Валидаторы верифицируют транзакцию...",
-  "stores.i18n.waitConfirmations": "Ожидание подтверждений блока..."
+  "components.i18n.Wallet.wallet": "кошелек"
 }

@@ -65,17 +65,5 @@
   "components.i18n.TransferAlert.recipient": "接收地址：{recipient}",
   "components.i18n.TransferAlert.txFee": "交易费用：{fee} {currency}",
   "components.i18n.Wallet.login": "登入{space}",
-  "components.i18n.Wallet.wallet": "钱包",
-  "stores.i18n.errForeignConnection": "对外连结错误",
-  "stores.i18n.errHomeConnection": "对内连结错误",
-  "stores.i18n.errWrongNetwork": "网路错误",
-  "stores.i18n.error": "错误",
-  "stores.i18n.loading": "载入中",
-  "stores.i18n.successForeignTransfer": "对外转帐成功",
-  "stores.i18n.successHomeTransfer": "对内转帐成功",
-  "stores.i18n.transferComplete": "转帐完成",
-  "stores.i18n.unknownNetwork": "您的钱包目前连接未知网路。请选择{homeNet}或{foreignNet}以便与桥连接。",
-  "stores.i18n.unlockWallet": "请解锁钱包",
-  "stores.i18n.verifyingTransaction": "等待验证交易中...",
-  "stores.i18n.waitConfirmations": "等待区块确认中..."
+  "components.i18n.Wallet.wallet": "钱包"
 }

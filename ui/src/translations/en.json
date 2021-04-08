@@ -65,17 +65,5 @@
   "components.i18n.TransferAlert.recipient": "Recipient: {recipient}",
   "components.i18n.TransferAlert.txFee": "Transaction fee: {fee} {currency}",
   "components.i18n.Wallet.login": "Login with{space}",
-  "components.i18n.Wallet.wallet": "wallet",
-  "stores.i18n.errForeignConnection": "Foreign Connection Error",
-  "stores.i18n.errHomeConnection": "Home Connection Error",
-  "stores.i18n.errWrongNetwork": "Wrong network error",
-  "stores.i18n.error": "Error",
-  "stores.i18n.loading": "Loading",
-  "stores.i18n.successForeignTransfer": "Foreign Transfer Success",
-  "stores.i18n.successHomeTransfer": "Home Transfer Success",
-  "stores.i18n.transferComplete": "Transfer Complete",
-  "stores.i18n.unknownNetwork": "You are on an unknown network on your wallet. Please select {homeNet} or {foreignNet} in order to communicate with the bridge.",
-  "stores.i18n.unlockWallet": "Please unlock wallet",
-  "stores.i18n.verifyingTransaction": "Validators Verifying Transaction...",
-  "stores.i18n.waitConfirmations": "Waiting for Block Confirmations..."
+  "components.i18n.Wallet.wallet": "wallet"
 }

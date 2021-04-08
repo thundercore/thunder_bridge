@@ -65,17 +65,5 @@
   "components.i18n.TransferAlert.recipient": "받는 주소: {recipient}",
   "components.i18n.TransferAlert.txFee": "거래수수료: {fee} {currency}",
   "components.i18n.Wallet.login": "로그인{space}",
-  "components.i18n.Wallet.wallet": "지갑",
-  "stores.i18n.errForeignConnection": "외부연결오류",
-  "stores.i18n.errHomeConnection": "내부연결오류",
-  "stores.i18n.errWrongNetwork": "네트워크 오류",
-  "stores.i18n.error": "오류",
-  "stores.i18n.loading": "로딩중",
-  "stores.i18n.successForeignTransfer": "외부이체성공",
-  "stores.i18n.successHomeTransfer": "내부이체성공",
-  "stores.i18n.transferComplete": "이체완료",
-  "stores.i18n.unknownNetwork": "현재 지갑이 알 수 없는 네트워크에 연결되었습니다.  {homeNet} 또는 {foreignNet}을 선택하여 브리지에 연결하세요.",
-  "stores.i18n.unlockWallet": "지갑을 해제하세요",
-  "stores.i18n.verifyingTransaction": "거래검증 대기중...",
-  "stores.i18n.waitConfirmations": "블록확인 대기중..."
+  "components.i18n.Wallet.wallet": "지갑"
 }
