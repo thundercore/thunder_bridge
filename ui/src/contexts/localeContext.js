@@ -9,6 +9,7 @@ import * as idLocaleData from "react-intl/locale-data/id"
 import * as jaLocaleData from "react-intl/locale-data/ja"
 import * as ruLocaleData from "react-intl/locale-data/ru"
 import * as ptLocaleData from "react-intl/locale-data/pt"
+import * as esLocaleData from "react-intl/locale-data/es"
 import localeMessages from "../translations"
 import { getLocale } from "../utils/locale"
 
@@ -22,6 +23,7 @@ addLocaleData([
   ...jaLocaleData,
   ...ruLocaleData,
   ...ptLocaleData,
+  ...esLocaleData,
 ])
 
 export const LocaleContext = React.createContext({})
@@ -72,6 +74,10 @@ export class LocaleProvider extends React.PureComponent {
         {
           displayName: "Português",
           locale: "pt",
+        },
+        {
+          displayName: "español",
+          locale: "es",
         },
       ],
     }

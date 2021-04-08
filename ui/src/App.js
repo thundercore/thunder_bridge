@@ -43,7 +43,6 @@ class App extends React.Component {
     setItem(DISCLAIMER_KEY, true)
     this.setState({ showDisclaimer: false })
   }
-
   toggleMobileMenu = () => {
     this.setState((prevState) => ({
       showMobileMenu: !prevState.showMobileMenu,

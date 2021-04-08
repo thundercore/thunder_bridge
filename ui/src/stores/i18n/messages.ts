@@ -1,6 +1,7 @@
 import { defineMessages } from "react-intl"
 
 export default defineMessages({
+  error: "Error",
   loading: "Loading",
   waitConfirmations: "Waiting for Block Confirmations...",
   verifyingTransaction: "Validators Verifying Transaction...",

@@ -15,4 +15,5 @@ export default defineMessages({
   specifyAmount: "Please specify amount",
   minFeeError:
     "The amount that you entered does not cover the transaction fee.\nThe minimum transaction amount is:",
+  error: "Error",
 })

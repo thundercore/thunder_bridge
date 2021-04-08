@@ -56,17 +56,31 @@ const TransferAlert = ({
           </div>
         </div>
         <p className="transfer-description" data-testid="transfer-description">
-          <strong>{recipient && `Recipient: ${recipient}`}</strong>
+          <strong>
+            {recipient &&
+              `${intl.formatMessage(
+                { id: "components.i18n.TransferAlert.recipient" },
+                { recipient: recipient }
+              )}`}
+          </strong>
           <br />
-          <strong>{`Transaction fee: ${fee} ${RenameToken(
-            feeCurrency
+          <strong>{`${intl.formatMessage(
+            { id: "components.i18n.TransferAlert.txFee" },
+            { fee: fee, currency: RenameToken(feeCurrency) }
           )}`}</strong>
         </p>
         <p className="transfer-description" data-testid="transfer-description">
-          Please confirm that you would like to send{" "}
-          <strong>{formattedFromAmount}</strong> {RenameToken(fromCurrency)}{" "}
-          from {from} to receive <strong>{formattedToAmount}</strong>{" "}
-          {RenameToken(toCurrency)} on {to}.
+          <FormattedMessage
+            id="components.i18n.TransferAlert.confirmText"
+            values={{
+              fromAmount: <strong>{formattedFromAmount}</strong>,
+              fromCurrency: RenameToken(fromCurrency),
+              fromNetwork: from,
+              toAmount: <strong>{formattedToAmount}</strong>,
+              toCurrency: RenameToken(toCurrency),
+              toNetwork: to,
+            }}
+          />
         </p>
         <div className="transfer-buttons">
           <button className="transfer-confirm" onClick={onConfirmation}>

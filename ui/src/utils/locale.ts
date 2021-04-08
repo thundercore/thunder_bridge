@@ -37,6 +37,30 @@ const languageWithoutRegionCode = (locale: string) => {
     case "pt_PT":
     case "pt":
       return "pt"
+    case "es_AR":
+    case "es_BO":
+    case "es_CL":
+    case "es_CO":
+    case "es_CR":
+    case "es_DO":
+    case "es_EC":
+    case "es_SV":
+    case "es_GQ":
+    case "es_GT":
+    case "es_HN":
+    case "es_419":
+    case "es_MX":
+    case "es_NI":
+    case "es_PA":
+    case "es_PY":
+    case "es_PE":
+    case "es_PR":
+    case "es_ES":
+    case "es_US":
+    case "es_UY":
+    case "es_VE":
+    case "es":
+      return "es"
     default:
       return "en"
   }
@@ -56,4 +80,12 @@ export function getOriginalLocale(): string {
     navigator.language ||
     "en"
   )
+}
+
+export function getI18nKey(): string {
+  let locale = getLocale()
+  if (locale === "zh-Hant" || locale === "zh-Hans") {
+    locale = locale.replace(/-/g, "")
+  }
+  return locale
 }

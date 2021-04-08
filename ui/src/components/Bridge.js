@@ -103,11 +103,11 @@ class Bridge extends React.Component {
       web3Store.metamaskNet.id.toString() !== web3Store.homeNet.id.toString()
     ) {
       swal(
-        "Error",
-        intl.formatMessage({
-          id: "components.i18n.Bridge.switchNetwork",
-          values: { networkName: web3Store.homeNet.name },
-        }),
+        intl.formatMessage({ id: "components.i18n.Bridge.error" }),
+        intl.formatMessage(
+          { id: "components.i18n.Bridge.switchNetwork" },
+          { networkName: web3Store.homeNet.name }
+        ),
         "error"
       )
       return
@@ -185,11 +185,11 @@ class Bridge extends React.Component {
       web3Store.metamaskNet.id.toString() !== web3Store.foreignNet.id.toString()
     ) {
       swal(
-        "Error",
-        intl.formatMessage({
-          id: "components.i18n.Bridge.switchNetwork",
-          values: { networkName: web3Store.foreignNet.name },
-        }),
+        intl.formatMessage({ id: "components.i18n.Bridge.error" }),
+        intl.formatMessage(
+          { id: "components.i18n.Bridge.switchNetwork" },
+          { networkName: web3Store.foreignNet.name }
+        ),
         "error"
       )
       return
@@ -260,7 +260,7 @@ class Bridge extends React.Component {
     const { intl } = this.props
     if (!amount) {
       swal(
-        "Error",
+        intl.formatMessage({ id: "components.i18n.Bridge.error" }),
         intl.formatMessage({
           id: "components.i18n.Bridge.specifyAmount",
         }),
@@ -339,7 +339,7 @@ class Bridge extends React.Component {
     const { intl } = this.props
     if (!amount) {
       swal(
-        "Error",
+        intl.formatMessage({ id: "components.i18n.Bridge.error" }),
         intl.formatMessage({
           id: "components.i18n.Bridge.specifyAmount",
         }),
