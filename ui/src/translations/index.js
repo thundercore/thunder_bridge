@@ -8,6 +8,7 @@ import tr from "./tr.json"
 import id from "./id.json"
 import ru from "./ru.json"
 import pt from "./pt.json"
+import es from "./es.json"
 
 export default {
   en,
@@ -20,4 +21,5 @@ export default {
   id,
   ru,
   pt,
+  es,
 }

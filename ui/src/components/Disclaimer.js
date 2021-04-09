@@ -17,8 +17,26 @@ export const Disclaimer = ({ onConfirmation }) => (
         <FormattedMessage id="components.i18n.Disclaimer.disclaimer2" />
       </p>
       <div className="disclaimer-buttons">
+        <a
+          className="disclaimer-metamask"
+          href="https://support-center.thundercore.com/docs/metamask/"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <FormattedMessage id="components.i18n.Disclaimer.metaMask" />
+        </a>
+        <a
+          className="disclaimer-metamask"
+          href="https://www.thundercore.com/thundercore-hub"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <FormattedMessage id="components.i18n.Disclaimer.thunderCoreHub" />
+        </a>
         <button className="disclaimer-confirm" onClick={onConfirmation}>
-          <FormattedMessage id="components.i18n.Disclaimer.gotIt" />
+          <strong>
+            <FormattedMessage id="components.i18n.Disclaimer.gotIt" />
+          </strong>
         </button>
       </div>
     </div>

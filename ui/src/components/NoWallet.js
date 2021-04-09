@@ -29,13 +29,6 @@ export class NoWallet extends Component {
     return (
       <ModalContainer showModal={showModal && this.state.showModal}>
         <div className="noWallet-alert">
-          <div className="noWallet-image-container">
-            <img
-              className="noWallet-icon"
-              src={noWalletIcon}
-              alt="no wallet icon"
-            />
-          </div>
           <div className="noWallet-alert-container">
             <h2 className="noWallet-title">
               <FormattedMessage id="components.i18n.NoWallet.wrongNetwork" />
@@ -46,22 +39,14 @@ export class NoWallet extends Component {
             <div className="noWallet-buttons">
               <a
                 className="noWallet-metamask"
-                href="https://www.thundercore.com/wallet-instructions/"
+                href="https://support-center.thundercore.com/docs/metamask/"
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                Metamask
-              </a>
-              <a
-                className="noWallet-metamask"
-                href="https://www.thundercore.com/thundercore-hub"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                ThunderCore Hub
+                <FormattedMessage id="components.i18n.NoWallet.learnSetUp" />
               </a>
               <button className="noWallet-cancel" onClick={this.handleCancel}>
-                Cancel
+                <FormattedMessage id="components.i18n.NoWallet.gotIt" />
               </button>
             </div>
           </div>

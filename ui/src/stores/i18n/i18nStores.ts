@@ -159,11 +159,11 @@ export const i18nStores = {
     en:
       "You are on an unknown network on your wallet. Please select {homeNet} or {foreignNet} in order to communicate with the bridge.",
     zhHant:
-      "您的錢包目前連接未知網路。請選擇{homeNet}或{foreignNet}以便與橋連接。",
+      "您的錢包目前連接未知網路。請選擇 {homeNet} 或 {foreignNet} 以便與橋連接。",
     zhHans:
-      "您的钱包目前连接未知网路。请选择{homeNet}或{foreignNet}以便与桥连接。",
+      "您的钱包目前连接未知网路。请选择 {homeNet} 或 {foreignNet} 以便与桥连接。",
     ko:
-      "현재 지갑이 알 수 없는 네트워크에 연결되었습니다.  {homeNet} 또는 {foreignNet}을 선택하여 브리지에 연결하세요.",
+      "현재 지갑이 알 수 없는 네트워크에 연결되었습니다. {homeNet} 또는 {foreignNet} 을 선택하여 브리지에 연결하세요.",
     vi:
       "Bạn đang sử dụng một mạng không xác định trên ví của mình. Vui lòng chọn {homeNet} hoặc {foreignNet} để giao tiếp với bridge.",
     tr:
@@ -175,7 +175,7 @@ export const i18nStores = {
     ru:
       "Ваш кошелек в неизвестной сети. Пожалуйста выберите {homeNet} или {foreignNet} для взаимодействия с мостом.",
     pt:
-      "Você está em uma rede desconhecida em sua carteira.  Selecione {homeNet} ou {foreignNet} para se comunicar com a ponte.",
+      "Você está em uma rede desconhecida em sua carteira. Selecione {homeNet} ou {foreignNet} para se comunicar com a ponte.",
     es:
       "Su billetera está en una red desconocida. Por favor, seleccione la red {homeNet} ó {foreignNet} para poder comunicarse con el puente.",
   },

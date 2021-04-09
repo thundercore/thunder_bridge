@@ -736,7 +736,6 @@
     flex-direction: column;
     justify-content: space-around;
     padding: 24px 30px;
-    width: 389px;
 
     @media screen and (max-width: $tablet-width) {
       align-self: center;
@@ -771,7 +770,6 @@
   .noWallet-buttons {
     column-gap: 10px;
     display: grid;
-    grid-template-columns: 1fr 1fr;
     row-gap: 10px;
     font-size: 16px;
 
@@ -891,31 +889,38 @@
     }
 
     .disclaimer-buttons {
-      .disclaimer-confirm {
+      column-gap: 10px;
+      display: grid;
+      row-gap: 10px;
+      font-size: 16px;
+
+      @media screen and (max-width: $mobile-width) {
+        grid-template-columns: 1fr;
+      }
+
+      .disclaimer-metamask {
         background-color: $button-background-color;
         border-radius: 3px;
         color: $button-text-color;
-        font-size: 15px;
-        font-weight: 700;
-        height: 40px;
+        line-height: 36px;
+        text-align: center;
         text-decoration: none;
-        min-width: 100px;
 
         &:hover {
           background-color: darken($button-background-color, 10%);
         }
       }
-      .disclaimer-confirm-disabled {
-        background-color: $button-background-color;
+      .disclaimer-confirm {
+        background-color: $button-bordered-background-color;
         border-radius: 3px;
-        color: $button-text-color;
-        cursor: default;
-        font-size: 15px;
-        font-weight: 700;
-        height: 40px;
-        opacity: 0.5;
+        border: 1px solid $button-bordered-border-color;
+        color: $button-bordered-text-color;
+        height: 36px;
         text-decoration: none;
-        min-width: 100px;
+
+        &:hover {
+          opacity: 0.7;
+        }
       }
     }
   }
