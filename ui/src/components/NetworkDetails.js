@@ -65,7 +65,7 @@ const NetworkDetails = ({
           <span className="details-label">
             <FormattedMessage id="components.i18n.NetworkDetails.network" />
           </span>
-          <span className="details-description">{url}</span>
+          <span className="details-description-black">{url}</span>
         </p>
         <p className="details-data-container">
           <span className="details-label">{networkTitle}</span>
