@@ -33,7 +33,7 @@ export class LocaleProvider extends React.PureComponent {
     super(props)
 
     this.state = {
-      locale: getLocale(),
+      locale: window.hubLang ? window.hubLang : getLocale(),
       options: [
         {
           displayName: "English",
