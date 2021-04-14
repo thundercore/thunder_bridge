@@ -9,7 +9,7 @@
   "components.i18n.Bridge.specifyAmount": "請註明金額",
   "components.i18n.Bridge.switchNetwork": "請將錢包切換到 {networkName} 網絡",
   "components.i18n.Bridge.withdrawalDailyLimitError": "該金額高於當前的每日限額。\n今日的最大提款額：",
-  "components.i18n.BridgeChoose.changeNetworkTransfer": "請將網路更改為{networkName}以轉移{tokenName}",
+  "components.i18n.BridgeChoose.changeNetworkTransfer": "請將網路更改為 {networkName} 以轉移 {tokenName}",
   "components.i18n.BridgeForm.amount": "數量",
   "components.i18n.BridgeForm.recipient": "接收地址",
   "components.i18n.BridgeForm.transferButtonText": "轉帳",

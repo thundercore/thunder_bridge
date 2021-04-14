@@ -4,6 +4,10 @@ import { DataBlock } from "./DataBlock"
 import { RenameToken } from "./utils/renameToken"
 import { injectIntl } from "react-intl"
 
+const checkSymbol = (symbol) => {
+  return symbol === "TT" ? RenameToken("BEP20-TT") : symbol
+}
+
 const BridgeStatistics = ({
   users,
   totalBridged,
@@ -26,10 +30,10 @@ const BridgeStatistics = ({
     <DataBlock
       description={intl.formatMessage(
         { id: "components.i18n.BridgeStatistics.totalBridged" },
-        { tokenName: RenameToken(foreignSymbol) }
+        { tokenName: checkSymbol(foreignSymbol) }
       )}
       value={numeral(totalBridged).format("0,0.00 a", Math.floor)}
-      type={foreignSymbol}
+      type={checkSymbol(foreignSymbol)}
     />
     <div className="separator" />
     <DataBlock
@@ -47,11 +51,11 @@ const BridgeStatistics = ({
     />
     <div className="separator" />
     <DataBlock
-      description={`${RenameToken(foreignSymbol)} ${intl.formatMessage({
+      description={`${checkSymbol(foreignSymbol)} ${intl.formatMessage({
         id: "components.i18n.BridgeStatistics.tokensAmount",
       })}`}
       value={numeral(foreignSupply).format("0,0.00 a", Math.floor)}
-      type={foreignSymbol}
+      type={checkSymbol(foreignSymbol)}
     />
   </div>
 )
