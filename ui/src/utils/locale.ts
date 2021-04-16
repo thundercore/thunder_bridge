@@ -82,8 +82,8 @@ export function getOriginalLocale(): string {
   )
 }
 
-export function getI18nKey(): string {
-  let locale = getLocale()
+export function getI18nKey(hubLang: string): string {
+  let locale = hubLang ? hubLang : getLocale()
   if (locale === "zh-Hant" || locale === "zh-Hans") {
     locale = locale.replace(/-/g, "")
   }

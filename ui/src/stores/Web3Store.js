@@ -47,7 +47,7 @@ class Web3Store {
     this.rootStore = rootStore
 
     this.getWeb3Promise = getWeb3()
-    this.locale = window.hubLang ? window.hubLang : getI18nKey()
+    this.locale = getI18nKey(window.hubLang)
 
     this.getWeb3Promise
       .then((web3Config) => {
