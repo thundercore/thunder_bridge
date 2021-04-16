@@ -13,6 +13,8 @@ class TxStore {
   @observable
   txsValues = {}
 
+  locale = getI18nKey(window.hubLang)
+
   constructor(rootStore) {
     this.web3Store = rootStore.web3Store
     this.gasPriceStore = rootStore.gasPriceStore
@@ -20,7 +22,6 @@ class TxStore {
     this.foreignStore = rootStore.foreignStore
     this.homeStore = rootStore.homeStore
     this.rootStore = rootStore
-    this.locale = getI18nKey(window.hubLang)
   }
 
   @action

@@ -41,13 +41,13 @@ class Web3Store {
 
   HOME_HTTP_PARITY_URL = process.env.REACT_APP_HOME_HTTP_PARITY_URL
   FOREIGN_HTTP_PARITY_URL = process.env.REACT_APP_FOREIGN_HTTP_PARITY_URL
+  locale = getI18nKey(window.hubLang)
 
   constructor(rootStore) {
     this.alertStore = rootStore.alertStore
     this.rootStore = rootStore
 
     this.getWeb3Promise = getWeb3()
-    this.locale = getI18nKey(window.hubLang)
 
     this.getWeb3Promise
       .then((web3Config) => {
