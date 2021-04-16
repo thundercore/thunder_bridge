@@ -20,7 +20,7 @@ class TxStore {
     this.foreignStore = rootStore.foreignStore
     this.homeStore = rootStore.homeStore
     this.rootStore = rootStore
-    this.locale = getI18nKey()
+    this.locale = window.hubLang ? window.hubLang : getI18nKey()
   }
 
   @action

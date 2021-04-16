@@ -20,7 +20,7 @@ class AlertStore {
 
   homeConnectionErrorSended = false
   foreignConnectionErrorSended = false
-  locale = getI18nKey()
+  locale = window.hubLang ? window.hubLang : getI18nKey()
 
   loadingSteps = [
     i18nStores["loading"][this.locale],
