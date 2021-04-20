@@ -155,6 +155,19 @@ export const i18nStores = {
     pt: "Por favor, desbloqueie a carteira",
     es: "Por favor, desbloquee su billetera",
   },
+  transactionRejected: {
+    en: "Transaction rejected on wallet",
+    zhHant: "錢包上的交易被拒絕",
+    zhHans: "钱包上的交易被拒绝",
+    ko: "지갑의 거래가 거부되었습니다",
+    vi: "Giao dịch bị từ chối trên ví",
+    tr: "İşlem cüzdanda reddedildi",
+    id: "Transaksi ditolak di dompet",
+    ja: "ウォレットでトランザクションが拒否されました",
+    ru: "Транзакция отменена",
+    pt: "Transação rejeitada na carteira",
+    es: "Transaction rejected on wallet",
+  },
   unknownNetwork: {
     en:
       "You are on an unknown network on your wallet. Please select {homeNet} or {foreignNet} in order to communicate with the bridge.",

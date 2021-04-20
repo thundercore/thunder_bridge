@@ -64,7 +64,9 @@ class TxStore {
               !e.message.includes("Failed to subscribe to new newBlockHeaders")
             ) {
               this.alertStore.setLoading(false)
-              this.alertStore.pushError("Transaction rejected on wallet")
+              this.alertStore.pushError(
+                i18nStores["transactionRejected"][this.locale]
+              )
             }
           })
       } catch (e) {
