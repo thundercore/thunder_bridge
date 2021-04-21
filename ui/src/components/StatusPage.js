@@ -1,30 +1,40 @@
-import React from 'react'
-import yn from './utils/yn'
-import { Authority } from './Authority'
-import { Configuration } from './Configuration'
-import { inject, observer } from 'mobx-react'
+import React from "react"
+import yn from "./utils/yn"
+import { Authority } from "./Authority"
+import { default as Configuration } from "./Configuration"
+import { inject, observer } from "mobx-react"
+import { FormattedMessage } from "react-intl"
 
-@inject('RootStore')
+@inject("RootStore")
 @observer
 export class StatusPage extends React.Component {
   render() {
     const { homeStore, foreignStore, web3Store } = this.props.RootStore
-    const isHome = web3Store.metamaskNet.id.toString() === web3Store.homeNet.id.toString()
+    const isHome =
+      web3Store.metamaskNet.id.toString() === web3Store.homeNet.id.toString()
     const requiredSignatures = isHome
       ? homeStore.requiredSignatures
       : foreignStore.requiredSignatures
-    const authorities = isHome ? homeStore.validatorsCount : foreignStore.validatorsCount
+    const authorities = isHome
+      ? homeStore.validatorsCount
+      : foreignStore.validatorsCount
     const symbol = isHome ? homeStore.symbol : foreignStore.symbol
     const maxSingleDeposit = isHome ? homeStore.maxPerTx : foreignStore.maxPerTx
-    const maxTotalBalance = isHome ? homeStore.maxCurrentDeposit : foreignStore.maxCurrentDeposit
-    const validatorsList = isHome ? homeStore.validators : foreignStore.validators
+    const maxTotalBalance = isHome
+      ? homeStore.maxCurrentDeposit
+      : foreignStore.maxCurrentDeposit
+    const validatorsList = isHome
+      ? homeStore.validators
+      : foreignStore.validators
     const withoutEvents = false
 
     return (
       <div className="status-page">
         <div className="status-page-container">
           <div className="status-configuration-container">
-            <span className="status-configuration-title status-title">Configuration</span>
+            <span className="status-configuration-title status-title">
+              <FormattedMessage id="components.i18n.Configuration.configuration" />
+            </span>
             <Configuration
               requiredSignatures={requiredSignatures}
               authorities={authorities}
@@ -35,10 +45,17 @@ export class StatusPage extends React.Component {
           </div>
           {withoutEvents ? null : (
             <div className="status-authorities-container">
-              <span className="status-authorities-title status-title">Authorities</span>
+              <span className="status-authorities-title status-title">
+                <FormattedMessage id="components.i18n.Configuration.authorities" />
+              </span>
               <div className="status-authorities-data">
                 {validatorsList.map((validator, i) => (
-                  <Authority key={validator} address={validator} number={i + 1} logoIndex={i % 3} />
+                  <Authority
+                    key={validator}
+                    address={validator}
+                    number={i + 1}
+                    logoIndex={i % 3}
+                  />
                 ))}
               </div>
             </div>

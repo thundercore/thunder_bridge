@@ -1,33 +1,42 @@
-import React from 'react'
-import disclaimerIcon from '../assets/images/disclaimer-modal/disclaimer@2x.png'
+import React from "react"
+import disclaimerIcon from "../assets/images/disclaimer-modal/disclaimer@2x.png"
+import { FormattedMessage } from "react-intl"
 
 export const Disclaimer = ({ onConfirmation }) => (
   <div className="disclaimer-alert">
     <div className="alert-container">
       <span className="disclaimer-title">
-      Welcome to ThunderBridge
+        <FormattedMessage id="components.i18n.Disclaimer.welcome" />
         <br />
       </span>
       <p className="disclaimer-description">
         <br />
-        Use of this app and the ThunderBridge is at your own risk. Users may experience unexpected
-        delays, unexpected visual artifacts, unexpected loss of tokens or funds from improper app
-        configuration, or other negative outcomes.
+        <FormattedMessage id="components.i18n.Disclaimer.disclaimer1" />
         <br />
         <br />
-        By hitting the "continue" button, you are representing that you’ve read our
-        <a
-          href="https://www.thundercore.com/terms/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Terms of Service
-        </a>{' '}
-        in full, and that you agree to be legally bound by them.
+        <FormattedMessage id="components.i18n.Disclaimer.disclaimer2" />
       </p>
       <div className="disclaimer-buttons">
+        <a
+          className="disclaimer-metamask"
+          href="https://support-center.thundercore.com/docs/metamask/"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <FormattedMessage id="components.i18n.Disclaimer.metaMask" />
+        </a>
+        <a
+          className="disclaimer-metamask"
+          href="https://www.thundercore.com/thundercore-hub"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <FormattedMessage id="components.i18n.Disclaimer.thunderCoreHub" />
+        </a>
         <button className="disclaimer-confirm" onClick={onConfirmation}>
-          Continue
+          <strong>
+            <FormattedMessage id="components.i18n.Disclaimer.gotIt" />
+          </strong>
         </button>
       </div>
     </div>

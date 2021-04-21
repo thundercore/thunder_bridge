@@ -1,18 +1,29 @@
-import React from 'react'
-import { RenameToken } from './utils/renameToken'
+import React from "react"
+import { RenameToken } from "./utils/renameToken"
+import { FormattedMessage } from "react-intl"
 
-export const BridgeForm = ({ reverse, currency, onTransfer, onAmountInputChange, onRecipientInputChange, displayArrow, recipient }) => (
+export const BridgeForm = ({
+  reverse,
+  currency,
+  onTransfer,
+  onAmountInputChange,
+  onRecipientInputChange,
+  displayArrow,
+  recipient,
+}) => (
   <div className="form-container">
-    {displayArrow &&
-      <div className={`transfer-line ${displayArrow ? 'transfer-right' : ''}`}>
+    {displayArrow && (
+      <div className={`transfer-line ${displayArrow ? "transfer-right" : ""}`}>
         <div className="arrow" />
       </div>
-    }
+    )}
     <form className="bridge-form" onSubmit={onTransfer} autoComplete="off">
       <div className="bridge-form-controls">
         <div className="bridge-form-inputs">
           <div className="bridge-form-input-wrapper">
-            <label htmlFor="amount" className="bridge-form-input-label">Amount</label>
+            <label htmlFor="amount" className="bridge-form-input-label">
+              <FormattedMessage id="components.i18n.BridgeForm.amount" />
+            </label>
             <div className="bridge-form-input-container">
               <input
                 onChange={onAmountInputChange}
@@ -29,7 +40,9 @@ export const BridgeForm = ({ reverse, currency, onTransfer, onAmountInputChange,
             </div>
           </div>
           <div className="bridge-form-input-wrapper">
-          <label htmlFor="recipient" className="bridge-form-input-label">Recipient</label>
+            <label htmlFor="recipient" className="bridge-form-input-label">
+              <FormattedMessage id="components.i18n.BridgeForm.recipient" />
+            </label>
             <div className="bridge-form-input-container">
               <input
                 onChange={onRecipientInputChange}
@@ -46,7 +59,7 @@ export const BridgeForm = ({ reverse, currency, onTransfer, onAmountInputChange,
         </div>
         <div>
           <button type="submit" className="bridge-form-button">
-            Transfer
+            <FormattedMessage id="components.i18n.BridgeForm.transferButtonText" />
           </button>
         </div>
       </div>

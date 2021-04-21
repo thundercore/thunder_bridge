@@ -1,13 +1,13 @@
-import { action } from 'mobx'
-import Web3Store from './Web3Store'
-import HomeStore from './HomeStore'
-import ForeignStore from './ForeignStore'
-import AlertStore from './AlertStore'
-import GasPriceStore from './GasPriceStore'
-import TxStore from './TxStore'
+import { action } from "mobx"
+import Web3Store from "./Web3Store"
+import HomeStore from "./HomeStore"
+import ForeignStore from "./ForeignStore"
+import AlertStore from "./AlertStore"
+import GasPriceStore from "./GasPriceStore"
+import TxStore from "./TxStore"
 // import HOME_ERC_ABI from '../../abis/HomeBridgeErcToErc.abi'
-import { decodeBridgeMode } from './utils/bridgeMode'
-import { getWeb3Instance } from './utils/web3'
+import { decodeBridgeMode } from "./utils/bridgeMode"
+import { getWeb3Instance } from "./utils/web3"
 
 class RootStore {
   constructor() {
@@ -23,7 +23,7 @@ class RootStore {
 
   @action
   async setBridgeMode() {
-    this.bridgeMode = 'ERC_TO_ERC'
+    this.bridgeMode = "ERC_TO_ERC"
     this.bridgeModeInitialized = true
   }
 }

@@ -27,7 +27,9 @@
     "react-transition-group": "^2.2.1",
     "sweetalert": "^2.1.0",
     "web3": "1.0.0-beta.30",
-    "web3-utils": "1.0.0-beta.30"
+    "web3-utils": "1.0.0-beta.30",
+    "react-intl": "^2.7.2",
+    "typescript": "3.5.3"
   },
   "scripts": {
     "lint": "eslint . --ignore-path ../.eslintignore",
@@ -41,12 +43,17 @@
     "coverage": "react-app-rewired test --env=jsdom --coverage",
     "coveralls": "cat ./coverage/lcov.info | node node_modules/.bin/coveralls",
     "eject": "react-app-rewired eject",
-    "postinstall": "(cp lib/web3-eth/index.js ./node_modules/web3-eth/src)"
+    "postinstall": "(cp lib/web3-eth/index.js ./node_modules/web3-eth/src)",
+    "extract-messages": "NODE_ENV=development extract-messages -o src/translations --flat -l en,zh-Hant,zh-Hans,ko,vi,ja,tr,id,ru,pt,es 'src/**/*.ts'"
   },
   "devDependencies": {
     "jest-dom": "^3.0.1",
     "nodemon": "^1.18.11",
-    "react-testing-library": "^5.4.4"
+    "react-testing-library": "^5.4.4",
+    "@types/react-intl": "^2.3.11",
+    "@babel/preset-typescript": "^7.3.3",
+    "babel-plugin-react-intl-auto": "^3.3.0",
+    "extract-react-intl-messages": "^4.1.1"
   },
   "browserslist": [
     ">0.2%",

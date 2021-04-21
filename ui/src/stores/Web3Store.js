@@ -1,14 +1,16 @@
-import { action, observable } from 'mobx'
-import getWeb3, { getBalance, getWeb3Instance, getNetwork } from './utils/web3'
-import { balanceLoaded } from './utils/testUtils'
-import ReactGA from 'react-ga'
-import { BRIDGE_MODES } from './utils/bridgeMode'
+import { action, observable } from "mobx"
+import getWeb3, { getBalance, getWeb3Instance, getNetwork } from "./utils/web3"
+import { balanceLoaded } from "./utils/testUtils"
+import ReactGA from "react-ga"
+import { BRIDGE_MODES } from "./utils/bridgeMode"
+import { getI18nKey } from "../utils/locale"
+import { i18nStores } from "./i18n/i18nStores"
 
 class Web3Store {
   @observable
   injectedWeb3 = {}
   @observable
-  defaultAccount = { address: '', homeBalance: '' }
+  defaultAccount = { address: "", homeBalance: "" }
 
   @observable
   homeWeb3 = {}
@@ -28,17 +30,18 @@ class Web3Store {
   metamaskNotSetted = false
 
   @observable
-  homeNet = { id: '', name: '' }
+  homeNet = { id: "", name: "" }
   @observable
-  foreignNet = { id: '', name: '' }
+  foreignNet = { id: "", name: "" }
   @observable
-  metamaskNet = { id: '', name: '' }
+  metamaskNet = { id: "", name: "" }
 
   @observable
   walletInstalled = true
 
   HOME_HTTP_PARITY_URL = process.env.REACT_APP_HOME_HTTP_PARITY_URL
   FOREIGN_HTTP_PARITY_URL = process.env.REACT_APP_FOREIGN_HTTP_PARITY_URL
+  locale = getI18nKey(window.hubLang)
 
   constructor(rootStore) {
     this.alertStore = rootStore.alertStore
@@ -47,21 +50,21 @@ class Web3Store {
     this.getWeb3Promise = getWeb3()
 
     this.getWeb3Promise
-      .then(web3Config => {
+      .then((web3Config) => {
         this.setWeb3State(web3Config)
         this.getBalances(false)
         setInterval(() => {
           this.getBalances(true)
         }, 3000)
       })
-      .catch(e => {
+      .catch((e) => {
         const error = {
           rejected: () => this.alertStore.pushError(e.message),
           unlock: () => this.alertStore.pushError(e.message),
-          install: () => (this.walletInstalled = false)
+          install: () => (this.walletInstalled = false),
         }[e.type]
 
-        console.error(e.message, 'web3 not loaded')
+        console.error(e.message, "web3 not loaded")
         this.errors.push(e.message)
         this.metamaskNotSetted = true
         error()
@@ -83,7 +86,7 @@ class Web3Store {
   @action
   async setWeb3Home() {
     this.homeWeb3 = getWeb3Instance(this.HOME_HTTP_PARITY_URL)
-    this.setHomeWeb3Promise = getNetwork(this.homeWeb3).then(homeNet => {
+    this.setHomeWeb3Promise = getNetwork(this.homeWeb3).then((homeNet) => {
       this.homeNet = homeNet
     })
   }
@@ -107,7 +110,10 @@ class Web3Store {
         }
         this.defaultAccount.address = accounts[0]
       }
-      this.defaultAccount.homeBalance = await getBalance(this.homeWeb3, this.defaultAccount.address)
+      this.defaultAccount.homeBalance = await getBalance(
+        this.homeWeb3,
+        this.defaultAccount.address
+      )
       if (accountUpdated) {
         await this.rootStore.foreignStore.getTokenBalance()
         await this.rootStore.homeStore.getBalance()
@@ -127,7 +133,11 @@ class Web3Store {
   @action
   checkMetamaskConfig() {
     if (!this.metamaskNotSetted) {
-      if (this.metamaskNet.name === '' || this.homeNet.name === '' || this.foreignNet.name === '') {
+      if (
+        this.metamaskNet.name === "" ||
+        this.homeNet.name === "" ||
+        this.foreignNet.name === ""
+      ) {
         setTimeout(() => {
           this.checkMetamaskConfig()
         }, 1000)
@@ -138,10 +148,19 @@ class Web3Store {
         this.metamaskNet.name !== this.foreignNet.name
       ) {
         this.metamaskNotSetted = true
+        var errorText = i18nStores["unknownNetwork"][this.locale]
+        var replaceObj = {
+          "{homeNet}": this.homeNet.name,
+          "{foreignNet}": this.foreignNet.name,
+        }
+        errorText = errorText.replace(
+          /{homeNet}|{foreignNet}/g,
+          function (matched) {
+            return replaceObj[matched]
+          }
+        )
         this.alertStore.pushError(
-          `You are on an unknown network on your wallet. Please select ${this.homeNet.name} or ${
-            this.foreignNet.name
-          } in order to communicate with the bridge.`,
+          errorText,
           this.alertStore.WRONG_NETWORK_ERROR,
           this.homeNet
         )
@@ -151,88 +170,90 @@ class Web3Store {
 
   static switchToExistingNetwork = (chainId) => {
     window.ethereum
-    .request({
-      method: 'wallet_switchEthereumChain',
-      params: [{chainId : "0x1"}] // you must have access to the specified account
-    })
-    .catch(error => {
-      if (error.code === 4001) {
-        // EIP-1193 userRejectedRequest error
-        console.log('We can encrypt anything without the key.')
-      } else {
-        console.error(error)
-      }
-    })
+      .request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x1" }], // you must have access to the specified account
+      })
+      .catch((error) => {
+        if (error.code === 4001) {
+          // EIP-1193 userRejectedRequest error
+          console.log("We can encrypt anything without the key.")
+        } else {
+          console.error(error)
+        }
+      })
   }
-
 
   static autoAddNetwork = (chainID) => {
     if (chainID) {
       const networkInfo = {
         56: {
-          chainId: '0x38',
-          chainName: 'Binance Smart Chain',
-          rpcUrls: ['https://bsc-dataseed.binance.org/', "https://bsc-dataseed1.defibit.io/"],
+          chainId: "0x38",
+          chainName: "Binance Smart Chain",
+          rpcUrls: [
+            "https://bsc-dataseed.binance.org/",
+            "https://bsc-dataseed1.defibit.io/",
+          ],
           // iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
-          blockExplorerUrls: ['https://bscscan.com/'],
+          blockExplorerUrls: ["https://bscscan.com/"],
           nativeCurrency: {
-            name: 'BNB',
-            symbol: 'BNB',
-            decimals: 18
-          }
+            name: "BNB",
+            symbol: "BNB",
+            decimals: 18,
+          },
         },
         108: {
-          chainId: '0x6c',
-          chainName: 'Thundercore Mainnet',
-          rpcUrls: ['https://mainnet-rpc.thundercore.com'],
-          iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
-          blockExplorerUrls: ['https://viewblock.io/thundercore'],
+          chainId: "0x6c",
+          chainName: "Thundercore Mainnet",
+          rpcUrls: ["https://mainnet-rpc.thundercore.com"],
+          iconUrls: ["https://thundercore.github.io/dist/thundercore.png"],
+          blockExplorerUrls: ["https://viewblock.io/thundercore"],
           nativeCurrency: {
-            name: 'Thundercore Token',
-            symbol: 'TT',
-            decimals: 18
-          }
+            name: "Thundercore Token",
+            symbol: "TT",
+            decimals: 18,
+          },
         },
         18: {
-          chainId: '0x12',
-          chainName: 'Thundercore Testnet',
-          rpcUrls: ['https://testnet-rpc.thundercore.com'],
-          iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
-          blockExplorerUrls: ['https://viewblock.io/thundercore'],
+          chainId: "0x12",
+          chainName: "Thundercore Testnet",
+          rpcUrls: ["https://testnet-rpc.thundercore.com"],
+          iconUrls: ["https://thundercore.github.io/dist/thundercore.png"],
+          blockExplorerUrls: ["https://viewblock.io/thundercore"],
           nativeCurrency: {
-            name: 'Thundercore Token',
-            symbol: 'TT',
-            decimals: 18
-          }
+            name: "Thundercore Token",
+            symbol: "TT",
+            decimals: 18,
+          },
         },
         97: {
-          chainId: '0x61',
-          chainName: 'BSC Testnet',
-          rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
+          chainId: "0x61",
+          chainName: "BSC Testnet",
+          rpcUrls: ["https://data-seed-prebsc-1-s1.binance.org:8545/"],
           // iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
-          blockExplorerUrls: ['https://testnet.bscscan.com/'],
+          blockExplorerUrls: ["https://testnet.bscscan.com/"],
           nativeCurrency: {
-            name: 'BNB',
-            symbol: 'BNB',
-            decimals: 18
-          }
+            name: "BNB",
+            symbol: "BNB",
+            decimals: 18,
+          },
         },
       }
       ReactGA.event({
-        category: 'Account',
-        action: 'AutoSwitchNetwork'
+        category: "Account",
+        action: "AutoSwitchNetwork",
       })
-  
+
       if (window.ethereum.isMetaMask) {
         window.ethereum
           .request({
-            method: 'wallet_addEthereumChain',
-            params: [networkInfo[chainID]] // you must have access to the specified account
+            method: "wallet_addEthereumChain",
+            params: [networkInfo[chainID]], // you must have access to the specified account
           })
-          .catch(error => {
+          .catch((error) => {
             if (error.code === 4001) {
               // EIP-1193 userRejectedRequest error
-              console.log('We can encrypt anything without the key.')
+              console.log("We can encrypt anything without the key.")
               window.location.reload()
             } else {
               console.error(error)

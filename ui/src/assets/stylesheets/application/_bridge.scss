@@ -1,984 +1,990 @@
-
 .bridge-container {
-    align-items: center;
-    display: flex;
-    position: relative;
-    width: 100%;
-    margin: 12px auto 40px;
+  align-items: center;
+  display: flex;
+  position: relative;
+  width: 100%;
+  margin: 12px auto 40px;
 
-    @media screen and (max-width: $tablet-width) {
-        margin-top: 10px;
-        margin-bottom: 20px;
-    }
+  @media screen and (max-width: $tablet-width) {
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
 }
 
 .bridge {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+
+  @media screen and (max-width: $tablet-width) {
+    margin-top: 10px;
+  }
+
+  .address-label {
+    color: $primary-color;
+    font-size: 12px;
+  }
+
+  .address-description {
+    color: $primary-color;
+    font-size: 16px;
+    font-weight: 700;
 
     @media screen and (max-width: $tablet-width) {
-        margin-top: 10px;
+      font-size: 9px;
     }
+  }
 
-    .address-label {
-        color: $primary-color;
-        font-size: 12px;
+  .bridge-title {
+    color: $text-color;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.5;
+    padding: 30px 5% 20px;
+
+    @media screen and (max-width: $tablet-width) {
+      max-width: 384px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 20px 8px 20px;
     }
+  }
 
-    .address-description {
-        color: $primary-color;
-        font-size: 16px;
-        font-weight: 700;
+  .bridge-transfer {
+    display: flex;
+    justify-content: center;
+
+    .bridge-transfer-content {
+      background-color: $bridge-background-color;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+
+      // @media screen and (max-width: $tablet-width) {
+      //     border-radius: 8px;
+      //     max-width: 92%;
+      // }
+
+      // @media (min-width: 1200px) {
+      //     width: 1140px;
+      // }
+
+      .bridge-transfer-content-background {
+        display: flex;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        width: 100%;
 
         @media screen and (max-width: $tablet-width) {
-            font-size: 9px;
+          background-image: url("#{ $bridge-image-center-pointing-down }");
+          background-position: center;
+          background-repeat: no-repeat;
+          background-size: 164px 203px;
+          flex-direction: column;
         }
-    }
+      }
+      .network-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-grow: 1;
 
-    .bridge-title {
-        color: $text-color;
+        @media screen and (max-width: $tablet-width) {
+          flex-grow: 0;
+          min-width: 200px;
+        }
+      }
+
+      .network-container-left {
+        display: flex;
+        padding: 0 1% 70px 5%;
+        width: 22%;
+
+        @media screen and (max-width: $tablet-width) {
+          padding: 25px 0 5px 0;
+          width: auto;
+          justify-content: center;
+        }
+      }
+      .network-container-right {
+        display: flex;
+        padding: 0 5% 70px 1%;
+        width: 22%;
+
+        @media screen and (max-width: $tablet-width) {
+          padding: 25px 0 5px 0;
+          width: auto;
+          justify-content: center;
+        }
+      }
+
+      .network-logo {
+        &-container {
+          border: solid 2px #f3f4f6;
+          border-radius: 100px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100px;
+          height: 100px;
+          position: relative;
+          z-index: 10;
+          background-color: #fff;
+        }
+      }
+
+      .bridge-network-data {
+        align-items: flex-start;
+        cursor: pointer;
+        display: flex;
+      }
+      .network-basic-label {
+        font-size: 14px;
+        color: $bridge-label-color;
+      }
+      .network-title {
+        color: $bridge-textfield-color;
+        display: block;
+        font-size: 16px;
+        font-weight: 700;
+        padding-bottom: 20px;
+      }
+      .network-name {
+        color: $bridge-label-color;
+        display: block;
         font-size: 24px;
         font-weight: 700;
-        line-height: 1.5;
-        padding: 30px 5% 20px;
+      }
+      .text {
+        padding-top: 20px;
+        text-align: center;
+      }
+      .network-id {
+        color: $bridge-label-color;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 26px;
+      }
+      .network-id-container {
+        background-color: $bridge-link-color;
+        border-radius: 3px;
+        height: 26px;
+        margin-left: 10px;
+        text-align: center;
+        width: 32px;
+      }
+      .network-balance {
+        color: $bridge-balance-color;
+        font-size: 20px;
+        font-weight: 700;
 
-        @media screen and (max-width: $tablet-width) {
-            max-width: 384px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 20px 8px 20px;
+        &-currency {
+          font-size: 14px;
         }
-    }
-
-    .bridge-transfer {
+      }
+      .network-show-more {
+        color: $bridge-link-color;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .info-icon {
+        align-items: center;
         display: flex;
         justify-content: center;
+        path {
+          fill: $bridge-link-color;
+        }
+      }
+      .info-icon-left {
+        margin-right: 10px;
+      }
+      .info-icon-right {
+        margin-left: 10px;
+      }
 
-        .bridge-transfer-content {
-            background-color: $bridge-background-color;
-            border-radius: 10px;
+      .transfer-line {
+        height: 100px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        @media screen and (max-width: $tablet-width) {
+          display: none;
+        }
+
+        &:after {
+          content: "";
+          position: absolute;
+          height: 2px;
+          background-color: #f3f4f6;
+          top: 50%;
+          left: -80px;
+          right: -80px;
+          margin-top: -1px;
+          z-index: 1;
+        }
+
+        .arrow {
+          width: 40px;
+          height: 40px;
+          border-radius: 40px;
+          border: solid 2px #f3f4f6;
+          background-color: #ffffff;
+          position: relative;
+          z-index: 10;
+        }
+      }
+
+      .transfer-right {
+        .arrow {
+          background-image: url("#{ $bridge-image-center-pointing-right }");
+          background-position: center;
+          background-repeat: no-repeat;
+
+          @media screen and (max-width: $tablet-width) {
+            background-image: none;
+          }
+        }
+      }
+      .transfer-left {
+        .arrow {
+          background-image: url("#{ $bridge-image-center-pointing-left }");
+          background-position: center;
+          background-repeat: no-repeat;
+
+          @media screen and (max-width: $tablet-width) {
+            background-image: none;
+          }
+        }
+      }
+      .form-container {
+        max-width: 384px;
+        margin: 0 auto;
+        width: 44%;
+
+        @media screen and (max-width: $tablet-width) {
+          align-self: center;
+          width: 100%;
+        }
+
+        @media (min-width: 1200px) {
+          max-width: 600px;
+        }
+
+        .bridge-form {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-evenly;
+          @media screen and (max-width: $tablet-width) {
+            width: 100%;
+          }
+          &-controls {
+            border-radius: 5px;
+            padding: 8px;
+
+            @media screen and (max-width: $tablet-width) {
+              flex-direction: column;
+            }
+          }
+
+          &-inputs {
+            @extend %flex-between;
+
+            @media screen and (max-width: $tablet-width) {
+              flex-direction: column;
+            }
+          }
+
+          .bridge-form-input-wrapper {
             display: flex;
             flex-direction: column;
+            width: 292px;
+            margin-bottom: 20px;
 
-            // @media screen and (max-width: $tablet-width) {
-            //     border-radius: 8px;
-            //     max-width: 92%;
-            // }
-
-            // @media (min-width: 1200px) {
-            //     width: 1140px;
-            // }
-
-            .bridge-transfer-content-background {
-                display: flex;
-                flex-shrink: 0;
-                flex-wrap: wrap;
-                width: 100%;
-
-                @media screen and (max-width: $tablet-width) {
-                    background-image: url('#{ $bridge-image-center-pointing-down }');
-                    background-position: center;
-                    background-repeat: no-repeat;
-                    background-size: 164px 203px;
-                    flex-direction: column;
-                }
-            }
-            .network-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                flex-grow: 1;
-
-                @media screen and (max-width: $tablet-width) {
-                    flex-grow: 0;
-                    min-width: 200px;
-                }
+            &:first-child {
+              margin-right: 10px;
             }
 
-            .network-container-left {
-                display: flex;
-                padding: 0 1% 70px 5%;
-                width: 22%;
-
-                @media screen and (max-width: $tablet-width) {
-                    padding: 25px 0 5px 0;
-                    width: auto;
-                    justify-content: center;
-                }
-            }
-            .network-container-right {
-                display: flex;
-                padding: 0 5% 70px 1%;
-                width: 22%;
-
-                @media screen and (max-width: $tablet-width) {
-                    padding: 25px 0 5px 0;
-                    width: auto;
-                    justify-content: center;
-                }
+            &:last-child {
+              margin-left: 10px;
             }
 
-            .network-logo {
-                &-container {
-                    border: solid 2px #f3f4f6;
-                    border-radius: 100px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    width: 100px;
-                    height: 100px;
-                    position: relative;
-                    z-index: 10;
-                    background-color: #fff;
-                }
-            }
+            @media screen and (max-width: $tablet-width) {
+              width: 100%;
 
-            .bridge-network-data {
-                align-items: flex-start;
-                cursor: pointer;
-                display: flex;
-            }
-            .network-basic-label {
-                font-size: 14px;
-                color: $bridge-label-color;
-            }
-            .network-title {
-                color: $bridge-textfield-color;
-                display: block;
-                font-size: 16px;
-                font-weight: 700;
-                padding-bottom: 20px;
-            }
-            .network-name {
-                color: $bridge-label-color;
-                display: block;
-                font-size: 24px;
-                font-weight: 700;
-            }
-            .text {
-                padding-top: 20px;
-                text-align: center;
-            }
-            .network-id {
-                color: $bridge-label-color;
-                font-size: 14px;
-                font-weight: 700;
-                line-height: 26px;
-            }
-            .network-id-container {
-                background-color: $bridge-link-color;
-                border-radius: 3px;
-                height: 26px;
-                margin-left: 10px;
-                text-align: center;
-                width: 32px;
-            }
-            .network-balance {
-                color: $bridge-balance-color;
-                font-size: 20px;
-                font-weight: 700;
+              &:first-child {
+                margin-right: 0;
+              }
 
-                &-currency {
-                    font-size: 14px;
-                }
-            }
-            .network-show-more {
-                color: $bridge-link-color;
-                font-size: 14px;
-                font-weight: 700;
-            }
-            .info-icon {
-              align-items: center;
-              display: flex;
-              justify-content: center;
-              path {
-                fill: $bridge-link-color;
+              &:last-child {
+                margin-left: 0;
               }
             }
-            .info-icon-left {
-                margin-right: 10px;
-            }
-            .info-icon-right {
-                margin-left: 10px;
-            }
+          }
 
-            .transfer-line {
-                height: 100px;
-                position: relative;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-
-                @media screen and (max-width: $tablet-width) {
-                    display: none;
-                }
-
-                &:after {
-                    content: '';
-                    position: absolute;
-                    height: 2px;
-                    background-color: #f3f4f6;
-                    top: 50%;
-                    left: -80px;
-                    right: -80px;
-                    margin-top: -1px;
-                    z-index: 1;
-                }
-
-                .arrow {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 40px;
-                    border: solid 2px #f3f4f6;
-                    background-color: #ffffff;
-                    position: relative;
-                    z-index: 10;
-                }
-            }
-
-            .transfer-right {
-                .arrow {
-                    background-image: url('#{ $bridge-image-center-pointing-right }');
-                    background-position: center;
-                    background-repeat: no-repeat;
-
-                    @media screen and (max-width: $tablet-width) {
-                        background-image: none;
-                    }
-                }
-            }
-            .transfer-left {
-                .arrow {
-                    background-image: url('#{ $bridge-image-center-pointing-left }');
-                    background-position: center;
-                    background-repeat: no-repeat;
-
-                    @media screen and (max-width: $tablet-width) {
-                        background-image: none;
-                    }
-                }
-            }
-            .form-container {
-                max-width: 384px;
-                margin: 0 auto;
-                width: 44%;
-
-                @media screen and (max-width: $tablet-width) {
-                    align-self: center;
-                    width: 100%;
-                }
-
-                @media (min-width: 1200px) {
-                    max-width: 600px;
-                }
-
-                .bridge-form {
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-evenly;
-                    @media screen and (max-width: $tablet-width) {
-                        width: 100%;
-                    }
-                    &-controls {
-                        border-radius: 5px;
-                        padding: 8px;
-
-                        @media screen and (max-width: $tablet-width) {
-                            flex-direction: column;
-                        }
-                    }
-
-                    &-inputs {
-                        @extend %flex-between;
-
-                        @media screen and (max-width: $tablet-width) {
-                            flex-direction: column;
-                        }
-                    }
-
-                    .bridge-form-input-wrapper {
-                        display: flex;
-                        flex-direction: column;
-                        width: 292px;
-                        margin-bottom: 20px;
-
-                        &:first-child {
-                            margin-right: 10px;
-                        }
-
-                        &:last-child {
-                            margin-left: 10px;
-                        }
-
-                        @media screen and (max-width: $tablet-width) {
-                            width: 100%;
-
-                            &:first-child {
-                                margin-right: 0;
-                            }
-
-                            &:last-child {
-                                margin-left: 0;
-                            }
-                        }
-                    }
-
-                    .bridge-form-input-container {
-                        background-color: #f3f4f6;
-                        border-radius: 3px 3px 0 0;
-                        display: flex;
-                    }
-
-                    &-input {
-                        font-family: "Nunito",sans-serif;
-                        background-color: transparent;
-                        color: $bridge-textfield-color;
-                        font-size: 16px;
-                        font-weight: 700;
-                        height: 48px;
-                        padding: 0 15px;
-                        width: 100%;
-                        text-overflow: ellipsis;
-
-                        &::placeholder {
-                            color: $bridge-textfield-placeholder-color;
-                            font-size: 16px;
-                            font-weight: 700;
-                        }
-
-                        &-label {
-                            font-size: 14px;
-                            color: $bridge-label-color;
-                            padding-bottom: 5px;
-                        }
-                    }
-                    &-label {
-                        color: $bridge-input-label-color;
-                        font-size: 16px;
-                        font-weight: 700;
-                        line-height: 48px;
-                        margin-right: 15px;
-                        text-transform: uppercase;
-                        white-space: nowrap;
-                    }
-                    &-button {
-                        background-color: $bridge-button-background-color;
-                        border-radius: 3px;
-                        color: $bridge-button-text-color;
-                        display: block;
-                        flex-shrink: 0;
-                        font-weight: 700;
-                        height: 48px;
-                        text-decoration: none;
-                        width: 100%;
-
-                        &:hover {
-                            background-color: darken($bridge-button-background-color, 10%);
-                        }
-                    }
-                    .bridge-transfer-direction {
-                        font-size: 14px;
-                        color: $bridge-label-color;
-                    }
-                }
-            }
-        }
-    }
-    .bridge-choose {
-        display: flex;
-        justify-content: start;
-        border-top: 1px solid #eef2f9;
-        margin: 0 40px;
-        padding: 40px 0;
-        flex-wrap: wrap;
-
-        @media screen and (max-width: $tablet-width) {
-            flex-direction: column;
-            max-width: 384px;
-            margin: 10px auto 0;
-            padding: 20px 0;
-        }
-
-        &-button {
-            margin: 5px;
-
-            &:hover {
-                .bridge-choose-container {
-                    background-color: #efefef;
-                }
-                .bridge-choose-logo {
-                    filter: grayscale(0);
-                }
-            }
-        }
-
-        &-radio {
-            position: absolute;
-            z-index: -1;
-            opacity: 0;
-
-            &:checked + .bridge-choose-container {
-                border-color: #f8752a;
-                background-color: #fff;
-
-                &:after {
-                    background-color: #f8752a;
-                    opacity: 1;
-                }
-
-                .bridge-choose-arrow {
-                    background-color: #f8752a;
-                }
-
-                .bridge-choose-logo {
-                    filter: grayscale(0);
-                }
-            }
-        }
-
-        &-container {
+          .bridge-form-input-container {
+            background-color: #f3f4f6;
+            border-radius: 3px 3px 0 0;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            background-color: #f9f9fa;
-            padding: 11px;
-            border: solid 1px transparent;
-            position: relative;
-            width: 230px;
+          }
 
-            &:after {
-                content: '';
-                position: absolute;
-                width: 20px;
-                height: 20px;
-                background-color: transparent;
-                background-image: url(#{$base-images-path + '/themes/' + $theme-name + '/bridge/check.svg'});
-                background-position: center;
-                background-repeat: no-repeat;
-                right: -1px;
-                top: -1px;
-                border-radius: 0 4px 0 4px;
-                opacity: 0;
-            }
-        }
-
-        &-logo {
-            width: 24px;
-            height: 24px;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-            display: inline-block;
-            // filter: grayscale(1);
-
-            &-container {
-                width: 40px;
-                height: 40px;
-                border: solid 2px #f3f4f6;
-                background-color: #ffffff;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                border-radius: 40px;
-                position: relative;
-
-                .logo-info {
-                    width: 42px;
-                    height: 17px;
-                    border-radius: 2px;
-                    font-size: 8.5px;
-                    background-color: #626262;
-                    color: white;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    position: absolute;
-                    top: 35px;
-                }
-            }
-        }
-
-        &-text {
-            font-size: 12px;
-            padding: 0 10px;
-            display: inline-flex;
-            align-items: center;
-            flex: 1;
-        }
-
-        &-arrow {
-            mask: url(#{$base-images-path + '/themes/' + $theme-name + '/bridge/arrow-dark.svg'}) no-repeat 50% 50%;
-            background-color: #414141;
-            width: 7px;
-            height: 12px;
-            display: inline-block;
-            margin: 0 10px;
-            flex: 1;
-        }
-    }
-    .bridge-statistics-container {
-        align-self: center;
-        margin-top: 60px;
-
-        @media screen and (max-height: 720px) {
-            margin-top: 30px;
-        }
-    }
-    .network-details {
-        display: flex;
-        min-width: 558px;
-        background-color: $modal-background-color;
-        border-radius: 10px;
-
-        @media screen and (max-width: $tablet-width) {
-            min-width: 100%;
-        }
-
-        .details-logo-container {
-            align-items: center;
-            background-color: $modal-background-color;
-            display: flex;
-            justify-content: center;
-            width: 100px;
-            height: 100px;
-            border: solid 2px #f3f4f6;
-            border-radius: 100px;
-            margin: 24px 0 0 30px;
-
-            @media screen and (max-width: $tablet-width) {
-                display: none;
-            }
-        }
-
-        .details-body {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 24px 30px;
-
-            @media screen and (max-width: $tablet-width) {
-                padding: 20px 15px 20px 15px;
-            }
-
-            .details-data-container {
-                display: flex;
-                justify-content: space-between;
-
-                + .details-data-container {
-                    padding-top: 10px;
-                }
-
-                @media screen and (max-width: $tablet-width) {
-                    flex-direction: column;
-                }
-
-                .details-label {
-                    color: $modal-text-color;
-                    font-size: 14px;
-                    padding-right: 10px;
-                }
-                .details-description {
-                    color: $modal-link-color;
-                    font-size: 14px;
-                }
-                .details-description-black {
-                    color: $modal-text-color;
-                    font-size: 14px;
-                    font-weight: 700;
-                }
-                .details-copy {
-                    cursor: pointer;
-                }
-            }
-        }
-    }
-    .transfer-alert {
-        background-color: $modal-background-color;
-        border-radius: 8px;
-        display: flex;
-        height: 310px;
-        width: 600px;
-        @media screen and (max-width: $tablet-width) {
-            flex-direction: column;
-            height: auto;
+          &-input {
+            font-family: "Nunito", sans-serif;
+            background-color: transparent;
+            color: $bridge-textfield-color;
+            font-size: 16px;
+            font-weight: 700;
+            height: 48px;
+            padding: 0 15px;
             width: 100%;
-        }
-        .image-container {
-            margin-right: 20px;
-            width: 166px;
+            text-overflow: ellipsis;
 
-            @media screen and (max-width: $tablet-width) {
-                width: 100%;
+            &::placeholder {
+              color: $bridge-textfield-placeholder-color;
+              font-size: 16px;
+              font-weight: 700;
             }
-            .arrows-icon {
-                height: 128px;
-                margin-left: 42px;
-                margin-top: 39px;
-                width: 124px;
+
+            &-label {
+              font-size: 14px;
+              color: $bridge-label-color;
+              padding-bottom: 5px;
             }
-        }
-        .alert-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-            padding: 40px 60px;
+          }
+          &-label {
+            color: $bridge-input-label-color;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 48px;
+            margin-right: 15px;
+            text-transform: uppercase;
+            white-space: nowrap;
+          }
+          &-button {
+            background-color: $bridge-button-background-color;
+            border-radius: 3px;
+            color: $bridge-button-text-color;
+            display: block;
+            flex-shrink: 0;
+            font-weight: 700;
+            height: 48px;
+            text-decoration: none;
+            width: 100%;
 
-            @media screen and (max-width: $tablet-width) {
-                padding-left: 5px;
-                padding-top: 0;
-                width: 100%;
+            &:hover {
+              background-color: darken($bridge-button-background-color, 10%);
             }
-            .alert-corner {
-                height: 12px;
-                width: 10px;
-            }
-            .transfer-title {
-                align-items: center;
-                color: $bridge-transfer-title-color;
-                display: flex;
-                font-size: 14px;
-                justify-content: space-between;
-
-                path {
-                    fill: $secondary-color;
-                }
-
-                .alert-logo-box {
-                    align-items: center;
-                    background-color: $alert-logo-box-background-color;
-                    border-radius: 4px;
-                    display: flex;
-                    height: 50px;
-                    justify-content: center;
-                    width: 50px;
-                }
-            }
-            .transfer-description {
-                color: $modal-text-color;
-                font-size: 14px;
-                line-height: 1.71;
-                padding-bottom: 10px;
-                padding-top: 10px;
-            }
-            .transfer-buttons {
-                display: flex;
-                justify-content: space-between;
-                padding: 20px 0 0;
-
-                .transfer-confirm {
-                    background-color: $button-background-color;
-                    border-radius: 3px;
-                    color: $button-text-color;
-                    flex-grow: 1;
-                    font-size: 15px;
-                    font-weight: 700;
-                    height: 40px;
-                    max-width: 49%;
-                    text-decoration: none;
-
-                    &:hover {
-                        background-color: darken($button-background-color, 10%);
-                    }
-                }
-                .transfer-cancel {
-                    background-color: $button-bordered-background-color;
-                    border-radius: 3px;
-                    border: solid 1px $button-bordered-border-color;
-                    color: $button-bordered-text-color;
-                    flex-grow: 1;
-                    font-size: 15px;
-                    font-weight: 700;
-                    height: 40px;
-                    max-width: 49%;
-                    text-decoration: none;
-
-                    &:hover {
-                        opacity: 0.7;
-                    }
-                }
-            }
-        }
-    }
-}
-
-.noWallet-alert {
-    background-color: $modal-background-color;
-    border-radius: 10px 8px 8px 10px;
-    display: flex;
-    height: 380px;
-    width: 540px;
-    @media screen and (max-width: $small-mobile-width) {
-        padding-top: 60px;
-    }
-    @media screen and (max-width: $tablet-width) {
-        flex-direction: column;
-        width: 92%;
-        height: auto;
-        margin-left: 4%;
-    }
-    .noWallet-image-container {
-        background-color: $primary-color;
-        border-radius: 8px 0 0 8px;
-        width: 150px;
-        @media screen and (max-width: $tablet-width) {
-            display: none;
-        }
-        .noWallet-icon {
-            margin-top: 0;
-            width: 150px;
-        }
-    }
-    .noWallet-alert-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-around;
-        padding: 24px 30px;
-        width: 389px;
-
-        @media screen and (max-width: $tablet-width) {
-            align-self: center;
-            padding: 10px 0;
-            width: 88%;
-        }
-        .noWallet-title {
-            color: $modal-title-color;
-            font-size: 24px;
-            line-height: 1;
-
-            @media screen and (max-width: $tablet-width) {
-                font-size: 30px;
-                padding-top: 2%;
-                padding-bottom: 2%;
-            }
-        }
-
-        .noWallet-description {
-            color: #666;
+          }
+          .bridge-transfer-direction {
             font-size: 14px;
-            line-height: 1.71;
-            padding-bottom: 10px;
-            padding-top: 10px;
-            @media screen and (max-width: $tablet-width) {
-                padding-left: 1%;
-                padding-right: 1%;
-            }
+            color: $bridge-label-color;
+          }
         }
+      }
+    }
+  }
+  .bridge-choose {
+    display: flex;
+    justify-content: flex-start;
+    border-top: 1px solid #eef2f9;
+    margin: 0 40px;
+    padding: 40px 0;
+    flex-wrap: wrap;
+
+    @media screen and (max-width: $tablet-width) {
+      flex-direction: column;
+      max-width: 384px;
+      margin: 10px auto 0;
+      padding: 20px 0;
     }
 
-    .noWallet-buttons {
-        column-gap: 10px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        row-gap: 10px;
-        font-size: 16px;
+    &-button {
+      margin: 5px;
 
-        @media screen and (max-width: $mobile-width) {
-            grid-template-columns: 1fr;
+      &:hover {
+        .bridge-choose-container {
+          background-color: #efefef;
         }
-
-        .noWallet-metamask {
-            background-color: $button-background-color;
-            border-radius: 3px;
-            color: $button-text-color;
-            line-height: 36px;
-            text-align: center;
-            text-decoration: none;
-
-            &:hover {
-                background-color: darken($button-background-color, 10%);
-            }
+        .bridge-choose-logo {
+          filter: grayscale(0);
         }
-        .noWallet-niftyWallet {
-            background-color: $button-background-color;
-            border-radius: 3px;
-            color: $button-text-color;
-            line-height: 36px;
-            text-align: center;
-            text-decoration: none;
-
-            &:hover {
-                background-color: darken($button-background-color, 10%);
-            }
-        }
-        .noWallet-alphawallet {
-            background-color: $button-background-color;
-            border-radius: 3px;
-            color: $button-text-color;
-            line-height: 36px;
-            text-align: center;
-            text-decoration: none;
-
-            &:hover {
-                background-color: darken($button-background-color, 10%);
-            }
-        }
-        .noWallet-cancel {
-            background-color: $button-bordered-background-color;
-            border-radius: 3px;
-            border: 1px solid $button-bordered-border-color;
-            color: $button-bordered-text-color;
-            height: 36px;
-            text-decoration: none;
-
-            &:hover {
-                opacity: 0.7;
-            }
-        }
+      }
     }
-}
 
-.disclaimer-alert {
+    &-radio {
+      position: absolute;
+      z-index: -1;
+      opacity: 0;
+
+      &:checked + .bridge-choose-container {
+        border-color: #f8752a;
+        background-color: #fff;
+
+        &:after {
+          background-color: #f8752a;
+          opacity: 1;
+        }
+
+        .bridge-choose-arrow {
+          background-color: #f8752a;
+        }
+
+        .bridge-choose-logo {
+          filter: grayscale(0);
+        }
+      }
+    }
+
+    &-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      background-color: #f9f9fa;
+      padding: 11px;
+      border: solid 1px transparent;
+      position: relative;
+      width: 230px;
+
+      &:after {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background-color: transparent;
+        background-image: url(#{$base-images-path + '/themes/' + $theme-name + '/bridge/check.svg'});
+        background-position: center;
+        background-repeat: no-repeat;
+        right: -1px;
+        top: -1px;
+        border-radius: 0 4px 0 4px;
+        opacity: 0;
+      }
+    }
+
+    &-logo {
+      width: 24px;
+      height: 24px;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      display: inline-block;
+      // filter: grayscale(1);
+
+      &-container {
+        width: 40px;
+        height: 40px;
+        border: solid 2px #f3f4f6;
+        background-color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 40px;
+        position: relative;
+
+        .logo-info {
+          width: 42px;
+          height: 17px;
+          border-radius: 2px;
+          font-size: 8.5px;
+          background-color: #626262;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: absolute;
+          top: 35px;
+        }
+      }
+    }
+
+    &-text {
+      font-size: 12px;
+      padding: 0 10px;
+      display: inline-flex;
+      align-items: center;
+      flex: 1;
+    }
+
+    &-arrow {
+      mask: url(#{$base-images-path + '/themes/' + $theme-name + '/bridge/arrow-dark.svg'})
+        no-repeat 50% 50%;
+      background-color: #414141;
+      width: 7px;
+      height: 12px;
+      display: inline-block;
+      margin: 0 10px;
+      flex: 1;
+    }
+  }
+  .bridge-statistics-container {
+    align-self: center;
+    margin-top: 60px;
+
+    @media screen and (max-height: 720px) {
+      margin-top: 30px;
+    }
+  }
+  .network-details {
+    display: flex;
+    min-width: 558px;
+    background-color: $modal-background-color;
+    border-radius: 10px;
+
+    @media screen and (max-width: $tablet-width) {
+      min-width: 100%;
+    }
+
+    .details-logo-container {
+      align-items: center;
+      background-color: $modal-background-color;
+      display: flex;
+      justify-content: center;
+      width: 100px;
+      height: 100px;
+      border: solid 2px #f3f4f6;
+      border-radius: 100px;
+      margin: 24px 0 0 30px;
+
+      @media screen and (max-width: $tablet-width) {
+        display: none;
+      }
+    }
+
+    .details-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 30px;
+
+      @media screen and (max-width: $tablet-width) {
+        padding: 20px 15px 20px 15px;
+      }
+
+      .details-data-container {
+        display: flex;
+        justify-content: space-between;
+
+        + .details-data-container {
+          padding-top: 10px;
+        }
+
+        @media screen and (max-width: $tablet-width) {
+          flex-direction: column;
+        }
+
+        .details-label {
+          color: $modal-text-color;
+          font-size: 14px;
+          padding-right: 10px;
+        }
+        .details-description {
+          color: $modal-link-color;
+          font-size: 14px;
+        }
+        .details-description-black {
+          color: $modal-text-color;
+          font-size: 14px;
+          font-weight: 700;
+        }
+        .details-copy {
+          cursor: pointer;
+        }
+      }
+    }
+  }
+  .transfer-alert {
     background-color: $modal-background-color;
     border-radius: 8px;
     display: flex;
-    padding: 15px 0;
+    height: 310px;
     width: 600px;
+    @media screen and (max-width: $tablet-width) {
+      flex-direction: column;
+      height: auto;
+      width: 100%;
+    }
+    .image-container {
+      margin-right: 20px;
+      width: 166px;
+
+      @media screen and (max-width: $tablet-width) {
+        width: 100%;
+      }
+      .arrows-icon {
+        height: 128px;
+        margin-left: 42px;
+        margin-top: 39px;
+        width: 124px;
+      }
+    }
+    .alert-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      padding: 40px 60px;
+
+      @media screen and (max-width: $tablet-width) {
+        padding-left: 5px;
+        padding-top: 0;
+        width: 100%;
+      }
+      .alert-corner {
+        height: 12px;
+        width: 10px;
+      }
+      .transfer-title {
+        align-items: center;
+        color: $bridge-transfer-title-color;
+        display: flex;
+        font-size: 14px;
+        justify-content: space-between;
+
+        path {
+          fill: $secondary-color;
+        }
+
+        .alert-logo-box {
+          align-items: center;
+          background-color: $alert-logo-box-background-color;
+          border-radius: 4px;
+          display: flex;
+          height: 50px;
+          justify-content: center;
+          width: 50px;
+        }
+      }
+      .transfer-description {
+        color: $modal-text-color;
+        font-size: 14px;
+        line-height: 1.71;
+        padding-bottom: 10px;
+        padding-top: 10px;
+      }
+      .transfer-buttons {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px 0 0;
+
+        .transfer-confirm {
+          background-color: $button-background-color;
+          border-radius: 3px;
+          color: $button-text-color;
+          flex-grow: 1;
+          font-size: 15px;
+          font-weight: 700;
+          height: 40px;
+          max-width: 49%;
+          text-decoration: none;
+
+          &:hover {
+            background-color: darken($button-background-color, 10%);
+          }
+        }
+        .transfer-cancel {
+          background-color: $button-bordered-background-color;
+          border-radius: 3px;
+          border: solid 1px $button-bordered-border-color;
+          color: $button-bordered-text-color;
+          flex-grow: 1;
+          font-size: 15px;
+          font-weight: 700;
+          height: 40px;
+          max-width: 49%;
+          text-decoration: none;
+
+          &:hover {
+            opacity: 0.7;
+          }
+        }
+      }
+    }
+  }
+}
+
+.noWallet-alert {
+  background-color: $modal-background-color;
+  border-radius: 10px 8px 8px 10px;
+  display: flex;
+  height: 380px;
+  width: 540px;
+  @media screen and (max-width: $small-mobile-width) {
+    padding-top: 60px;
+  }
+  @media screen and (max-width: $tablet-width) {
+    flex-direction: column;
+    width: 92%;
+    height: auto;
+    margin-left: 4%;
+  }
+  .noWallet-image-container {
+    background-color: $primary-color;
+    border-radius: 8px 0 0 8px;
+    width: 150px;
+    @media screen and (max-width: $tablet-width) {
+      display: none;
+    }
+    .noWallet-icon {
+      margin-top: 0;
+      width: 150px;
+    }
+  }
+  .noWallet-alert-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 24px 30px;
 
     @media screen and (max-width: $tablet-width) {
-        flex-direction: column;
-        margin: 0 auto;
-        width: 92%;
+      align-self: center;
+      padding: 10px 0;
+      width: 88%;
+    }
+    .noWallet-title {
+      color: $modal-title-color;
+      font-size: 24px;
+      line-height: 1;
+
+      @media screen and (max-width: $tablet-width) {
+        font-size: 30px;
+        padding-top: 2%;
+        padding-bottom: 2%;
+      }
     }
 
-    .alert-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-around;
-        padding: 40px 46px;
-
-        @media screen and (max-width: $tablet-width) {
-            align-self: center;
-            padding: 10px 0;
-            width: 88%;
-        }
-
-        .alert-corner {
-            height: 12px;
-            width: 10px;
-        }
-        .disclaimer-title {
-            color: $modal-title-color;
-            font-size: 24px;
-            line-height: 1;
-
-            @media screen and (max-width: $tablet-width) {
-                font-size: 30px;
-                padding-bottom: 2%;
-                padding-top: 2%;
-            }
-        }
-        .disclaimer-description {
-            color: $modal-text-color;
-            font-size: 14px;
-            line-height: 1.71;
-            padding-bottom: 10px;
-            padding-top: 10px;
-
-            @media screen and (max-width: $tablet-width) {
-                padding-left: 1%;
-                padding-right: 1%;
-            }
-        }
-        .disclaimer-tos {
-            color: $modal-text-color;
-            padding-left: 5px;
-        }
-        .disclaimer-link {
-            color: $modal-link-color;
-        }
-
-        .disclaimer-buttons {
-            .disclaimer-confirm {
-                background-color: $button-background-color;
-                border-radius: 3px;
-                color: $button-text-color;
-                font-size: 15px;
-                font-weight: 700;
-                height: 40px;
-                text-decoration: none;
-                min-width: 100px;
-
-                &:hover {
-                    background-color: darken($button-background-color, 10%);
-                }
-            }
-            .disclaimer-confirm-disabled {
-                background-color: $button-background-color;
-                border-radius: 3px;
-                color: $button-text-color;
-                cursor: default;
-                font-size: 15px;
-                font-weight: 700;
-                height: 40px;
-                opacity: 0.5;
-                text-decoration: none;
-                min-width: 100px;
-            }
-        }
+    .noWallet-description {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.71;
+      padding-bottom: 10px;
+      padding-top: 10px;
+      @media screen and (max-width: $tablet-width) {
+        padding-left: 1%;
+        padding-right: 1%;
+      }
     }
+  }
+
+  .noWallet-buttons {
+    column-gap: 10px;
+    display: grid;
+    row-gap: 10px;
+    font-size: 16px;
+
+    @media screen and (max-width: $mobile-width) {
+      grid-template-columns: 1fr;
+    }
+
+    .noWallet-metamask {
+      background-color: $button-background-color;
+      border-radius: 3px;
+      color: $button-text-color;
+      line-height: 36px;
+      text-align: center;
+      text-decoration: none;
+
+      &:hover {
+        background-color: darken($button-background-color, 10%);
+      }
+    }
+    .noWallet-niftyWallet {
+      background-color: $button-background-color;
+      border-radius: 3px;
+      color: $button-text-color;
+      line-height: 36px;
+      text-align: center;
+      text-decoration: none;
+
+      &:hover {
+        background-color: darken($button-background-color, 10%);
+      }
+    }
+    .noWallet-alphawallet {
+      background-color: $button-background-color;
+      border-radius: 3px;
+      color: $button-text-color;
+      line-height: 36px;
+      text-align: center;
+      text-decoration: none;
+
+      &:hover {
+        background-color: darken($button-background-color, 10%);
+      }
+    }
+    .noWallet-cancel {
+      background-color: $button-bordered-background-color;
+      border-radius: 3px;
+      border: 1px solid $button-bordered-border-color;
+      color: $button-bordered-text-color;
+      height: 36px;
+      text-decoration: none;
+
+      &:hover {
+        opacity: 0.7;
+      }
+    }
+  }
+}
+
+.disclaimer-alert {
+  background-color: $modal-background-color;
+  border-radius: 8px;
+  display: flex;
+  padding: 15px 0;
+  width: 600px;
+
+  @media screen and (max-width: $tablet-width) {
+    flex-direction: column;
+    margin: 0 auto;
+    width: 92%;
+  }
+
+  .alert-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 40px 46px;
+
+    @media screen and (max-width: $tablet-width) {
+      align-self: center;
+      padding: 10px 0;
+      width: 88%;
+    }
+
+    .alert-corner {
+      height: 12px;
+      width: 10px;
+    }
+    .disclaimer-title {
+      color: $modal-title-color;
+      font-size: 24px;
+      line-height: 1;
+
+      @media screen and (max-width: $tablet-width) {
+        font-size: 30px;
+        padding-bottom: 2%;
+        padding-top: 2%;
+      }
+    }
+    .disclaimer-description {
+      color: $modal-text-color;
+      font-size: 14px;
+      line-height: 1.71;
+      padding-bottom: 10px;
+      padding-top: 10px;
+
+      @media screen and (max-width: $tablet-width) {
+        padding-left: 1%;
+        padding-right: 1%;
+      }
+    }
+    .disclaimer-tos {
+      color: $modal-text-color;
+      padding-left: 5px;
+    }
+    .disclaimer-link {
+      color: $modal-link-color;
+    }
+
+    .disclaimer-buttons {
+      column-gap: 10px;
+      display: grid;
+      row-gap: 10px;
+      font-size: 16px;
+
+      @media screen and (max-width: $mobile-width) {
+        grid-template-columns: 1fr;
+      }
+
+      .disclaimer-metamask {
+        background-color: $button-background-color;
+        border-radius: 3px;
+        color: $button-text-color;
+        line-height: 36px;
+        text-align: center;
+        text-decoration: none;
+
+        &:hover {
+          background-color: darken($button-background-color, 10%);
+        }
+      }
+      .disclaimer-confirm {
+        background-color: $button-bordered-background-color;
+        border-radius: 3px;
+        border: 1px solid $button-bordered-border-color;
+        color: $button-bordered-text-color;
+        height: 36px;
+        text-decoration: none;
+
+        &:hover {
+          opacity: 0.7;
+        }
+      }
+    }
+  }
 }
 
 .logo {
-    &-sai {
-        background-image: url(#{$base-images-path + '/logos/logo-sai.svg'});
-    }
+  &-sai {
+    background-image: url(#{$base-images-path + '/logos/logo-sai.svg'});
+  }
 
-    &-tt-sai {
-        background-image: url(#{$base-images-path + '/logos/tt-sai.png'});
-    }
+  &-tt-sai {
+    background-image: url(#{$base-images-path + '/logos/tt-sai.png'});
+  }
 
-    &-tt-usdt {
-        background-image: url(#{$base-images-path + '/logos/tt-usdt.png'});
-    }
+  &-tt-usdt {
+    background-image: url(#{$base-images-path + '/logos/tt-usdt.png'});
+  }
 
-    &-usdt {
-        background-image: url(#{$base-images-path + '/logos/logo-tether.svg'});
-    }
+  &-usdt {
+    background-image: url(#{$base-images-path + '/logos/logo-tether.svg'});
+  }
 
-    &-tt-wbtc {
-        background-image: url(#{$base-images-path + '/logos/tt-btc.png'});
-    }
+  &-tt-wbtc {
+    background-image: url(#{$base-images-path + '/logos/tt-btc.png'});
+  }
 
-    &-wbtc {
-        background-image: url(#{$base-images-path + '/logos/wbtc.png'});
-    }
+  &-wbtc {
+    background-image: url(#{$base-images-path + '/logos/wbtc.png'});
+  }
 
-    &-tt-usdc {
-        background-image: url(#{$base-images-path + '/logos/tt-usdc.png'});
-    }
+  &-tt-usdc {
+    background-image: url(#{$base-images-path + '/logos/tt-usdc.png'});
+  }
 
-    &-usdc {
-        background-image: url(#{$base-images-path + '/logos/usdc.png'});
-    }
+  &-usdc {
+    background-image: url(#{$base-images-path + '/logos/usdc.png'});
+  }
 
-    &-tt-eth {
-        background-image: url(#{$base-images-path + '/logos/tt-eth.png'});
-    }
+  &-tt-eth {
+    background-image: url(#{$base-images-path + '/logos/tt-eth.png'});
+  }
 
-    &-eth {
-        background-image: url(#{$base-images-path + '/logos/eth.png'});
-    }
+  &-eth {
+    background-image: url(#{$base-images-path + '/logos/eth.png'});
+  }
 
-    &-tt-bnb {
-        background-image: url(#{$base-images-path + '/logos/tt-bnb.svg'});
-    }
-    
-    &-tt-busd {
-        background-image: url(#{$base-images-path + '/logos/tt-busd.svg'});
-    }
+  &-tt-bnb {
+    background-image: url(#{$base-images-path + '/logos/tt-bnb.svg'});
+  }
 
-    &-bnb {
-        background-image: url(#{$base-images-path + '/logos/binance-bnb.svg'});
-    }
+  &-tt-busd {
+    background-image: url(#{$base-images-path + '/logos/tt-busd.svg'});
+  }
 
-    &-busd {
-        background-image: url(#{$base-images-path + '/logos/binance-busd.svg'});
-    }
+  &-bnb {
+    background-image: url(#{$base-images-path + '/logos/binance-bnb.svg'});
+  }
 
-    &-tt, &-bsc-tt {
-        background-image: url('#{ $home-logo-image }');
-    }
+  &-busd {
+    background-image: url(#{$base-images-path + '/logos/binance-busd.svg'});
+  }
+
+  &-tt,
+  &-bsc-tt {
+    background-image: url("#{ $home-logo-image }");
+  }
 }
