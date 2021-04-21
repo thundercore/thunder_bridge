@@ -136,7 +136,6 @@
 
       .bridge-network-data {
         align-items: flex-start;
-        cursor: pointer;
         display: flex;
       }
       .network-basic-label {
@@ -192,6 +191,7 @@
         align-items: center;
         display: flex;
         justify-content: center;
+        cursor: pointer;
         path {
           fill: $bridge-link-color;
         }
