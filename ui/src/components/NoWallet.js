@@ -1,13 +1,14 @@
-import React, { Component } from 'react'
-import noWalletIcon from '../assets/images/no-wallet-modal/i@3x.png'
-import { ModalContainer } from './ModalContainer'
-import { inject, observer } from 'mobx-react'
+import React, { Component } from "react"
+import noWalletIcon from "../assets/images/no-wallet-modal/i@3x.png"
+import { ModalContainer } from "./ModalContainer"
+import { inject, observer } from "mobx-react"
+import { FormattedMessage } from "react-intl"
 
-@inject('RootStore')
+@inject("RootStore")
 @observer
 export class NoWallet extends Component {
   state = {
-    showModal: true
+    showModal: true,
   }
 
   handleCancel = () => {
@@ -17,9 +18,9 @@ export class NoWallet extends Component {
   render() {
     const {
       RootStore: {
-        web3Store: { walletInstalled }
+        web3Store: { walletInstalled },
       },
-      showModal: showNoWallet
+      showModal: showNoWallet,
     } = this.props
     const showModal = showNoWallet && !walletInstalled
 
@@ -28,38 +29,24 @@ export class NoWallet extends Component {
     return (
       <ModalContainer showModal={showModal && this.state.showModal}>
         <div className="noWallet-alert">
-          <div className="noWallet-image-container">
-            <img className="noWallet-icon" src={noWalletIcon} alt="no wallet icon" />
-          </div>
           <div className="noWallet-alert-container">
-            <h2 className="noWallet-title">Wallet not found</h2>
+            <h2 className="noWallet-title">
+              <FormattedMessage id="components.i18n.NoWallet.wrongNetwork" />
+            </h2>
             <p className="noWallet-description">
-              A wallet is not installed. Before continue, please install one (AlphaWallet, Metamask
-              or Nifty Wallet) and return to this page to continue using the application.
-            </p>
-            <p className="noWallet-description">
-              For further information on how to install any of both wallets, please click the
-              buttons below.
+              <FormattedMessage id="components.i18n.NoWallet.switchNetwork" />
             </p>
             <div className="noWallet-buttons">
               <a
                 className="noWallet-metamask"
-                href="https://www.thundercore.com/wallet-instructions/"
+                href="https://support-center.thundercore.com/docs/metamask/"
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                Metamask
-              </a>
-              <a
-                className="noWallet-metamask"
-                href="https://www.thundercore.com/thundercore-hub"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                ThunderCore Hub
+                <FormattedMessage id="components.i18n.NoWallet.learnSetUp" />
               </a>
               <button className="noWallet-cancel" onClick={this.handleCancel}>
-                Cancel
+                <FormattedMessage id="components.i18n.NoWallet.gotIt" />
               </button>
             </div>
           </div>

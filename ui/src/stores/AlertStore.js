@@ -1,4 +1,6 @@
-import { action, observable } from 'mobx'
+import { action, observable } from "mobx"
+import { getI18nKey } from "../utils/locale"
+import { i18nStores } from "./i18n/i18nStores"
 
 class AlertStore {
   @observable
@@ -18,32 +20,33 @@ class AlertStore {
 
   homeConnectionErrorSended = false
   foreignConnectionErrorSended = false
+  locale = getI18nKey(window.hubLang)
 
   loadingSteps = [
-    'Loading',
-    'Waiting for Block Confirmations...',
-    'Validators Verifying Transaction...',
-    'Transfer Complete'
+    i18nStores["loading"][this.locale],
+    i18nStores["waitConfirmations"][this.locale],
+    i18nStores["verifyingTransaction"][this.locale],
+    i18nStores["transferComplete"][this.locale],
   ]
-  WRONG_NETWORK_ERROR = 'Wrong network error'
-  HOME_CONNECTION_ERROR = 'Home Connection Error'
-  FOREIGN_CONNECTION_ERROR = 'Foreign Connection Error'
-  HOME_TRANSFER_SUCCESS = 'Home Transfer Success'
-  FOREIGN_TRANSFER_SUCCESS = 'Foreign Transfer Success'
+  WRONG_NETWORK_ERROR = i18nStores["errWrongNetwork"][this.locale]
+  HOME_CONNECTION_ERROR = i18nStores["errHomeConnection"][this.locale]
+  FOREIGN_CONNECTION_ERROR = i18nStores["errForeignConnection"][this.locale]
+  HOME_TRANSFER_SUCCESS = i18nStores["successHomeTransfer"][this.locale]
+  FOREIGN_TRANSFER_SUCCESS = i18nStores["successForeignTransfer"][this.locale]
 
   @action
   pushError(message, messageType, info = {}) {
-    console.error('Error: ', message)
+    console.error("Error: ", message)
     const shouldPushError = this.checkErrorPush(messageType, messageType)
     if (shouldPushError) {
-      const node = document.createElement('div')
+      const node = document.createElement("div")
       node.innerHTML = message
       const error = {
-        title: 'Error',
+        title: i18nStores["error"][this.locale],
         content: node,
-        icon: 'error',
+        icon: "error",
         messageType,
-        info
+        info,
       }
       this.alerts.push(error)
     }
@@ -71,13 +74,13 @@ class AlertStore {
 
   @action
   pushSuccess(message, messageType) {
-    const node = document.createElement('div')
+    const node = document.createElement("div")
     node.innerHTML = message
     const success = {
-      title: 'Success',
+      title: i18nStores["success"][this.locale],
       content: node,
-      icon: 'success',
-      messageType
+      icon: "success",
+      messageType,
     }
     this.alerts.push(success)
   }

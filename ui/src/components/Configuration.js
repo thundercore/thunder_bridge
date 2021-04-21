@@ -1,38 +1,57 @@
-import React from 'react'
-import numeral from 'numeral'
-import { DataBlock } from './DataBlock'
-import { RenameToken } from './utils/renameToken'
+import React from "react"
+import numeral from "numeral"
+import { DataBlock } from "./DataBlock"
+import { RenameToken } from "./utils/renameToken"
+import { injectIntl } from "react-intl"
 
-export const Configuration = ({
+const Configuration = ({
   requiredSignatures,
   authorities,
   symbol,
   maxSingleDeposit,
-  maxTotalBalance
+  maxTotalBalance,
+  intl,
 }) => (
   <div className="status-configuration-data">
     <DataBlock
-      description="Required Signatures"
-      value={numeral(requiredSignatures).format('0')}
+      description={intl.formatMessage({
+        id: "components.i18n.Configuration.requiredSignatures",
+      })}
+      value={numeral(requiredSignatures).format("0")}
       type=""
     />
     <div className="separator" />
-    <DataBlock description="Authorities" value={numeral(authorities).format('0')} type="" />
+    <DataBlock
+      description={intl.formatMessage({
+        id: "components.i18n.Configuration.authorities",
+      })}
+      value={numeral(authorities).format("0")}
+      type=""
+    />
     {maxSingleDeposit &&
-      maxSingleDeposit !== '0' && <div className="separator" /> && (
+      maxSingleDeposit !== "0" && <div className="separator" /> && (
         <DataBlock
-          description="Max Single Deposit"
-          value={numeral(maxSingleDeposit).format('0.00 a', Math.floor)}
+          description={intl.formatMessage({
+            id: "components.i18n.Configuration.maxSingleDeposit",
+          })}
+          value={numeral(maxSingleDeposit).format("0.00 a", Math.floor)}
           type={symbol}
         />
       )}
     {maxSingleDeposit &&
-      maxSingleDeposit !== '0' && <div className="separator" /> && (
+      maxSingleDeposit !== "0" && <div className="separator" /> && (
         <DataBlock
-          description={`Remaining Daily ${RenameToken(symbol)} Quota`}
-          value={numeral(maxTotalBalance).format('0.00 a', Math.floor)}
+          description={`${intl.formatMessage(
+            {
+              id: "components.i18n.Configuration.remainingDailyQuota",
+            },
+            { tokenName: RenameToken(symbol) }
+          )}`}
+          value={numeral(maxTotalBalance).format("0.00 a", Math.floor)}
           type={symbol}
         />
       )}
   </div>
 )
+
+export default injectIntl(Configuration)

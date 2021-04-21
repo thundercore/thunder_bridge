@@ -1,0 +1,12 @@
+{
+  "presets": ["@babel/typescript", "react-app"],
+  "plugins": [
+    [
+      "react-intl-auto",
+      {
+        "removePrefix": "src/",
+        "filebase": false
+      }
+    ]
+  ]
+}
