@@ -1,6 +1,5 @@
 import BN from "bignumber.js"
 import React from "react"
-import { toHex } from "web3-utils"
 import foreignLogoPurple from "../assets/images/logos/logo-poa-20-purple@2x.png"
 import homeLogoPurple from "../assets/images/logos/logo-poa-sokol-purple@2x.png"
 import swal from "sweetalert"
@@ -95,7 +94,6 @@ class Bridge extends React.Component {
       txStore,
       bridgeMode,
     } = this.props.RootStore
-    const isErcToErcMode = bridgeMode === BRIDGE_MODES.ERC_TO_ERC
     const { isLessThan, isGreaterThan } = this
     const { intl } = this.props
 
