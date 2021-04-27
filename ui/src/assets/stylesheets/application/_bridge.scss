@@ -136,7 +136,6 @@
 
       .bridge-network-data {
         align-items: flex-start;
-        cursor: pointer;
         display: flex;
       }
       .network-basic-label {
@@ -192,6 +191,7 @@
         align-items: center;
         display: flex;
         justify-content: center;
+        cursor: pointer;
         path {
           fill: $bridge-link-color;
         }
@@ -503,6 +503,7 @@
     &-text {
       font-size: 12px;
       padding: 0 10px;
+      height: 20px;
       display: inline-flex;
       align-items: center;
       flex: 1;
@@ -515,7 +516,7 @@
       width: 7px;
       height: 12px;
       display: inline-block;
-      margin: 0 10px;
+      margin: 0 2px;
       flex: 1;
     }
   }
@@ -939,7 +940,7 @@
     background-image: url(#{$base-images-path + '/logos/tt-usdt.png'});
   }
 
-  &-usdt {
+  &-erc20-usdt {
     background-image: url(#{$base-images-path + '/logos/logo-tether.svg'});
   }
 
@@ -947,7 +948,7 @@
     background-image: url(#{$base-images-path + '/logos/tt-btc.png'});
   }
 
-  &-wbtc {
+  &-erc20-wbtc {
     background-image: url(#{$base-images-path + '/logos/wbtc.png'});
   }
 
@@ -955,7 +956,7 @@
     background-image: url(#{$base-images-path + '/logos/tt-usdc.png'});
   }
 
-  &-usdc {
+  &-erc20-usdc {
     background-image: url(#{$base-images-path + '/logos/usdc.png'});
   }
 
@@ -963,7 +964,7 @@
     background-image: url(#{$base-images-path + '/logos/tt-eth.png'});
   }
 
-  &-eth {
+  &-erc20-eth {
     background-image: url(#{$base-images-path + '/logos/eth.png'});
   }
 
@@ -975,16 +976,17 @@
     background-image: url(#{$base-images-path + '/logos/tt-busd.svg'});
   }
 
-  &-bnb {
+  &-bep20-bnb {
     background-image: url(#{$base-images-path + '/logos/binance-bnb.svg'});
   }
 
-  &-busd {
+  &-bep20-busd {
     background-image: url(#{$base-images-path + '/logos/binance-busd.svg'});
   }
 
   &-tt,
-  &-bsc-tt {
+  &-bep20-tt,
+  &-erc20-tt {
     background-image: url("#{ $home-logo-image }");
   }
 }

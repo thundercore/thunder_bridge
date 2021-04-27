@@ -10,7 +10,6 @@ const BridgeChoose = ({
   alert,
   isHome,
   foreignStore,
-  homeStore,
   intl,
 }) => {
   const tokens = getTokenList()
@@ -20,18 +19,25 @@ const BridgeChoose = ({
     fromHome: 0,
     fromForeign: 1,
   }
+  const ERC20 = "ERC20"
+  const BEP20 = "BEP20"
 
   const getPrefix = (token) => {
     if (token === "TT") {
-      return bridgeType === "eth" ? "TT" : "BSC"
+      return bridgeType === "eth" ? ERC20 : BEP20
     }
     return "TT"
+  }
+
+  const getForeignToken = (token) => {
+    if (token === "TT") return token
+    return bridgeType === "eth" ? `${ERC20}-${token}` : `${BEP20}-${token}`
   }
 
   const setItems = (token, type) => {
     if (type === 0) {
       chooseItems.push({
-        from: token,
+        from: getForeignToken(token),
         to: `${getPrefix(token)}-${token}`,
         direction: token === "TT" ? direction.fromHome : direction.fromForeign,
       })
@@ -39,7 +45,7 @@ const BridgeChoose = ({
     if (type === 1) {
       chooseItems.push({
         from: `${getPrefix(token)}-${token}`,
-        to: token,
+        to: getForeignToken(token),
         direction: token === "TT" ? direction.fromForeign : direction.fromHome,
       })
     }
@@ -60,7 +66,8 @@ const BridgeChoose = ({
   }
 
   const renderAdditionalLogoInfo = (item) => {
-    if (item === "BSC-TT") return <div className="logo-info">BEP 20</div>
+    if (item === "BEP20-TT") return <div className="logo-info">BEP20</div>
+    if (item === "ERC20-TT") return <div className="logo-info">ERC20</div>
     return null
   }
 
@@ -80,7 +87,7 @@ const BridgeChoose = ({
         )
       } else {
         alert.setLoading(true)
-        setNewTokenHandler(mode.to === "TT" ? "TT" : mode.from)
+        setNewTokenHandler(mode.to === "TT" ? "TT" : mode.from.split("-")[1])
       }
     } else {
       if (mode.direction === direction.fromForeign) {
@@ -97,7 +104,7 @@ const BridgeChoose = ({
         )
       } else {
         alert.setLoading(true)
-        setNewTokenHandler(mode.from === "TT" ? "TT" : mode.to)
+        setNewTokenHandler(mode.from === "TT" ? "TT" : mode.to.split("-")[1])
       }
     }
   }
@@ -105,12 +112,12 @@ const BridgeChoose = ({
   const verifyTokenMatch = (item, dir) => {
     if (dir === direction.fromHome)
       return (
-        item.to === RenameToken(foreignStore.symbol) ||
-        (item.to === "BSC-TT" && foreignStore.symbol === "TT")
+        item.to.split("-")[1] === RenameToken(foreignStore.symbol) ||
+        (item.to.split("-")[1] === "BEP20-TT" && foreignStore.symbol === "TT")
       )
     return (
-      item.from === RenameToken(foreignStore.symbol) ||
-      (item.to === "TT" && foreignStore.symbol === "TT")
+      item.from.split("-")[1] === RenameToken(foreignStore.symbol) ||
+      (item.to.split("-")[1] === "ERC20-TT" && foreignStore.symbol === "TT")
     )
   }
 
@@ -150,9 +157,10 @@ const BridgeChoose = ({
                 {renderAdditionalLogoInfo(item.from)}
               </span>
               <span className="bridge-choose-text">
-                {RenameToken(item.from)} <i className="bridge-choose-arrow" />{" "}
-                {RenameToken(item.to)}
-              </span>
+                {RenameToken(item.from)}
+              </span>{" "}
+              <i className="bridge-choose-arrow" />{" "}
+              <span className="bridge-choose-text">{RenameToken(item.to)}</span>
               <span className="bridge-choose-logo-container">
                 <span className={chooseLogoClass(item.to)} />
                 {renderAdditionalLogoInfo(item.to)}

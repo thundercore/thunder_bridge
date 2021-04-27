@@ -20,8 +20,8 @@ const BridgeNetwork = ({
     ? numeral(0).format("0,0.00", Math.floor)
     : numeral(balance).format("0,0.00", Math.floor)
   const showMore = (
-    <div className="bridge-network-data" onClick={showModal}>
-      <span className="info-icon">
+    <div className="bridge-network-data">
+      <span className="info-icon" onClick={showModal}>
         <InfoIcon />
       </span>
     </div>
