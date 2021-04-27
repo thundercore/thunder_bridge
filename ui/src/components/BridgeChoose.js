@@ -139,6 +139,12 @@ const BridgeChoose = ({
     }
   }
 
+  const filterNativeToken = (token) => {
+    if (token === `${ERC20}-ETH`) return "ETH"
+    if (token === `${BEP20}-BNB`) return "BNB"
+    return RenameToken(token)
+  }
+
   return (
     <div className="bridge-choose">
       {chooseItems.map((item, index) => {
@@ -153,16 +159,20 @@ const BridgeChoose = ({
             />
             <span className="bridge-choose-container">
               <span className="bridge-choose-logo-container">
-                <span className={chooseLogoClass(item.from)} />
+                <span
+                  className={chooseLogoClass(filterNativeToken(item.from))}
+                />
                 {renderAdditionalLogoInfo(item.from)}
               </span>
               <span className="bridge-choose-text">
-                {RenameToken(item.from)}
+                {filterNativeToken(item.from)}
               </span>{" "}
               <i className="bridge-choose-arrow" />{" "}
-              <span className="bridge-choose-text">{RenameToken(item.to)}</span>
+              <span className="bridge-choose-text">
+                {filterNativeToken(item.to)}
+              </span>
               <span className="bridge-choose-logo-container">
-                <span className={chooseLogoClass(item.to)} />
+                <span className={chooseLogoClass(filterNativeToken(item.to))} />
                 {renderAdditionalLogoInfo(item.to)}
               </span>
             </span>
