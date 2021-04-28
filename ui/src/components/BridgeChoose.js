@@ -79,7 +79,7 @@ const BridgeChoose = ({
             { id: "components.i18n.BridgeChoose.changeNetworkTransfer" },
             {
               networkName: web3Store.homeNet.name,
-              tokenName: RenameToken(mode.from),
+              tokenName: RenameToken(filterNativeToken(mode.from)),
             }
           ),
           alert.WRONG_NETWORK_ERROR,
@@ -96,7 +96,7 @@ const BridgeChoose = ({
             { id: "components.i18n.BridgeChoose.changeNetworkTransfer" },
             {
               networkName: web3Store.foreignNet.name,
-              tokenName: RenameToken(mode.from),
+              tokenName: RenameToken(filterNativeToken(mode.from)),
             }
           ),
           alert.WRONG_NETWORK_ERROR,
