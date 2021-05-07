@@ -24,9 +24,8 @@ export class Wallet extends React.Component {
       : foreignStore.getDailyQuotaCompleted()
     const width = `${completed}%`
 
-    const wallet =
-      web3Store.defaultAccount.address !== "" &&
-      web3Store.defaultAccount.address !== undefined ? (
+    const wallet = (
+      <>
         <a
           href={explorerAddressUrl}
           target="_blank"
@@ -34,19 +33,16 @@ export class Wallet extends React.Component {
         >
           {web3Store.defaultAccount.address.slice(0, 15).concat("...")}
         </a>
-      ) : (
-        <span className="wallet-text">
-          <FormattedMessage
-            id="components.i18n.Wallet.login"
-            values={{ space: " " }}
-          />
-          <span className="wallet-text-metamask">
-            <FormattedMessage id="components.i18n.Wallet.wallet" />
-          </span>
-        </span>
-      )
+        <div className="daily-quota-container">
+          {web3Store.metamaskNet.id && (
+            <div className="daily-quota-progress" style={{ width }} />
+          )}
+        </div>
+      </>
+    )
 
-    return (
+    return web3Store.defaultAccount.address !== "" &&
+      web3Store.defaultAccount.address !== undefined ? (
       <div
         className="header-wallet"
         onMouseEnter={() => alertStore.setShowDailyQuotaInfo(true)}
@@ -54,16 +50,13 @@ export class Wallet extends React.Component {
       >
         <div className="wallet-container">
           <span className="wallet-icon">{<WalletIcon />}</span>
-          <div className="wallet-info">
-            {wallet}
-            <div className="daily-quota-container">
-              {web3Store.metamaskNet.id && (
-                <div className="daily-quota-progress" style={{ width }} />
-              )}
-            </div>
-          </div>
+          <div className="wallet-info">{wallet}</div>
         </div>
       </div>
+    ) : (
+      <span className="wallet-connect">
+        <FormattedMessage id="components.i18n.Wallet.connectWallet" />
+      </span>
     )
   }
 }

@@ -1,6 +1,8 @@
 import React from "react"
 import { RenameToken } from "./utils/renameToken"
 import { FormattedMessage } from "react-intl"
+import numeral from "numeral"
+import Exclamation from "../assets/images/logos/exclamation-circle.png"
 
 export const BridgeForm = ({
   reverse,
@@ -10,6 +12,12 @@ export const BridgeForm = ({
   onRecipientInputChange,
   displayArrow,
   recipient,
+  placeHolder,
+  error,
+  maxCurrentDeposit,
+  maxPerTx,
+  minPerTx,
+  buttonEnabled,
 }) => (
   <div className="form-container">
     {displayArrow && (
@@ -24,7 +32,13 @@ export const BridgeForm = ({
             <label htmlFor="amount" className="bridge-form-input-label">
               <FormattedMessage id="components.i18n.BridgeForm.amount" />
             </label>
-            <div className="bridge-form-input-container">
+            <div
+              className={
+                error.enable
+                  ? "bridge-form-input-container-error"
+                  : "bridge-form-input-container"
+              }
+            >
               <input
                 onChange={onAmountInputChange}
                 name="amount"
@@ -37,6 +51,39 @@ export const BridgeForm = ({
               <label htmlFor="amount" className="bridge-form-label">
                 {RenameToken(currency)}
               </label>
+            </div>
+            <div className="bridge-form-input-wrapper-error">{error.text}</div>
+            <div className="threshold-text-body">
+              <p className="threshold-container">
+                <span className="threshold-label">
+                  <FormattedMessage
+                    id="components.i18n.Configuration.remainingDailyQuota"
+                    values={{ tokenName: RenameToken(currency) }}
+                  />
+                </span>
+                <span className="threshold-description">
+                  {numeral(maxCurrentDeposit).format("0,0", Math.floor)}{" "}
+                  {RenameToken(currency)}
+                </span>
+              </p>
+              <p className="threshold-container">
+                <span className="threshold-label">
+                  <FormattedMessage id="components.i18n.NetworkDetails.maxAmountPerTx" />
+                </span>
+                <span className="threshold-description">
+                  {numeral(maxPerTx).format("0,0", Math.floor)}{" "}
+                  {RenameToken(currency)}
+                </span>
+              </p>
+              <p className="threshold-container">
+                <span className="threshold-label">
+                  <FormattedMessage id="components.i18n.NetworkDetails.minAmountPerTx" />
+                </span>
+                <span className="threshold-description">
+                  {numeral(minPerTx).format("0,0", Math.floor)}{" "}
+                  {RenameToken(currency)}
+                </span>
+              </p>
             </div>
           </div>
           <div className="bridge-form-input-wrapper">
@@ -51,16 +98,32 @@ export const BridgeForm = ({
                 pattern="0x[0-9a-fA-F]{40}"
                 className="bridge-form-input"
                 id="recipient"
-                placeholder="0x0"
+                placeholder={placeHolder}
                 value={recipient}
               />
+            </div>
+            <div className="bridge-form-input-wrapper-warning">
+              <img
+                className="bridge-form-input-wrapper-exclamation"
+                src={Exclamation}
+                alt="exclamation"
+              />
+              <div>
+                <FormattedMessage id="components.i18n.BridgeForm.warningExchangeWallet" />
+              </div>
             </div>
           </div>
         </div>
         <div>
-          <button type="submit" className="bridge-form-button">
-            <FormattedMessage id="components.i18n.BridgeForm.transferButtonText" />
-          </button>
+          {buttonEnabled ? (
+            <button type="submit" className="bridge-form-button">
+              <FormattedMessage id="components.i18n.BridgeForm.transferButtonText" />
+            </button>
+          ) : (
+            <button type="submit" className="bridge-form-disabled-button">
+              <FormattedMessage id="components.i18n.BridgeForm.transferButtonText" />
+            </button>
+          )}
         </div>
       </div>
     </form>

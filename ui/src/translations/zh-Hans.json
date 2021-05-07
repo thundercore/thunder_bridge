@@ -6,6 +6,7 @@
   "components.i18n.Bridge.maxAmountPerTxError": "该金额高于当前每笔交易的最高金额。 \n每笔交易的最高金额为：",
   "components.i18n.Bridge.minAmountPerTxError": "该金额小于当前每笔交易的最低金额。 \n每笔交易的最低金额为：",
   "components.i18n.Bridge.minFeeError": "您输入的金额不包含交易费用。 \n最低交易金额为：",
+  "components.i18n.Bridge.networkAddress": "{networkName} address",
   "components.i18n.Bridge.specifyAmount": "请注明金额",
   "components.i18n.Bridge.switchNetwork": "请将钱包切换到 {networkName} 网络",
   "components.i18n.Bridge.withdrawalDailyLimitError": "该金额高于当前的每日限额。 \n今日的最大提款额：",
@@ -13,6 +14,7 @@
   "components.i18n.BridgeForm.amount": "数量",
   "components.i18n.BridgeForm.recipient": "接收地址",
   "components.i18n.BridgeForm.transferButtonText": "转帐",
+  "components.i18n.BridgeForm.warningExchangeWallet": "交易所中心化钱包无法接收",
   "components.i18n.BridgeNetwork.balance": "钱包余额",
   "components.i18n.BridgeNetwork.from": "从",
   "components.i18n.BridgeNetwork.to": "到",
@@ -64,6 +66,6 @@
   "components.i18n.TransferAlert.continue": "继续",
   "components.i18n.TransferAlert.recipient": "接收地址：{recipient}",
   "components.i18n.TransferAlert.txFee": "交易费用：{fee} {currency}",
-  "components.i18n.Wallet.login": "登入{space}",
+  "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "钱包"
 }

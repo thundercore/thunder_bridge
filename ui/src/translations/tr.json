@@ -6,6 +6,7 @@
   "components.i18n.Bridge.maxAmountPerTxError": "Tutar, işlem başına geçerli maksimum tutarın üzerinde.\nİşlem başına maksimum miktar:",
   "components.i18n.Bridge.minAmountPerTxError": "Tutar, işlem başına geçerli minimum tutardan az.\nİşlem başına minimum miktar:",
   "components.i18n.Bridge.minFeeError": "Girdiğiniz miktar işlem ücretini karşılamıyor.\nMinimum işlem tutarı:",
+  "components.i18n.Bridge.networkAddress": "{networkName} address",
   "components.i18n.Bridge.specifyAmount": "Lütfen miktarı belirtin",
   "components.i18n.Bridge.switchNetwork": "Lütfen cüzdanı {networkName} ağına geçirin",
   "components.i18n.Bridge.withdrawalDailyLimitError": "Miktar, mevcut günlük limitin üzerinde.\nBugün maksimum para çekme:",
@@ -13,6 +14,7 @@
   "components.i18n.BridgeForm.amount": "Miktar",
   "components.i18n.BridgeForm.recipient": "Alıcı",
   "components.i18n.BridgeForm.transferButtonText": "Transfer et",
+  "components.i18n.BridgeForm.warningExchangeWallet": "Centralized exchange wallet cannot receive",
   "components.i18n.BridgeNetwork.balance": "Bakiye",
   "components.i18n.BridgeNetwork.from": "Kimden",
   "components.i18n.BridgeNetwork.to": "Kime",
@@ -64,6 +66,6 @@
   "components.i18n.TransferAlert.continue": "continue",
   "components.i18n.TransferAlert.recipient": "Alıcı: {recipient}",
   "components.i18n.TransferAlert.txFee": "İşlem ücreti: {fee} {currency}",
-  "components.i18n.Wallet.login": "ile Giriş Yapın{space}",
+  "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "Cüzdan"
 }

@@ -6,6 +6,7 @@
   "components.i18n.Bridge.maxAmountPerTxError": "Số tiền cao hơn số tiền tối đa hiện tại cho mỗi giao dịch.\nSố tiền tối đa cho mỗi giao dịch là:",
   "components.i18n.Bridge.minAmountPerTxError": "Số tiền nhỏ hơn số tiền tối thiểu hiện tại cho mỗi giao dịch.\nSố tiền tối thiểu cho mỗi giao dịch là:",
   "components.i18n.Bridge.minFeeError": "Số tiền bạn đã nhập không bao gồm phí giao dịch.\nSố tiền giao dịch tối thiểu là",
+  "components.i18n.Bridge.networkAddress": "{networkName} address",
   "components.i18n.Bridge.specifyAmount": "Vui lòng chỉ định số tiền",
   "components.i18n.Bridge.switchNetwork": "Vui lòng chuyển ví sang mạng {networkName}",
   "components.i18n.Bridge.withdrawalDailyLimitError": "Số tiền vượt quá giới hạn hàng ngày hiện tại.\n Số tiền rút tối đa hôm nay:",
@@ -13,6 +14,7 @@
   "components.i18n.BridgeForm.amount": "Số lượng",
   "components.i18n.BridgeForm.recipient": "Người nhận",
   "components.i18n.BridgeForm.transferButtonText": "Chuyển khoản",
+  "components.i18n.BridgeForm.warningExchangeWallet": "Centralized exchange wallet cannot receive",
   "components.i18n.BridgeNetwork.balance": "Số dư",
   "components.i18n.BridgeNetwork.from": "Từ",
   "components.i18n.BridgeNetwork.to": "Tới",
@@ -64,6 +66,6 @@
   "components.i18n.TransferAlert.continue": "Tiếp tục",
   "components.i18n.TransferAlert.recipient": "Người nhận: {recipient}",
   "components.i18n.TransferAlert.txFee": "Phí giao dịch: {fee} {currency}",
-  "components.i18n.Wallet.login": "Đăng nhập với{space}",
+  "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "ví"
 }

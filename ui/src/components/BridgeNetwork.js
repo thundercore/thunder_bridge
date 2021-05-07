@@ -18,7 +18,9 @@ const BridgeNetwork = ({
   const containerName = isHome ? "home" : "foreign"
   const formattedBalance = isNaN(numeral(balance).format("0.00", Math.floor))
     ? numeral(0).format("0,0.00", Math.floor)
-    : numeral(balance).format("0,0.00", Math.floor)
+    : Number(balance)
+        .toFixed(5)
+        .replace(/(\.0+|0+)$/, "")
   const showMore = (
     <div className="bridge-network-data">
       <span className="info-icon" onClick={showModal}>

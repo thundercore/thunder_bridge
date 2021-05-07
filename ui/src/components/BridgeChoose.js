@@ -11,6 +11,7 @@ const BridgeChoose = ({
   isHome,
   foreignStore,
   intl,
+  resetForm,
 }) => {
   const tokens = getTokenList()
   const chooseItems = []
@@ -72,6 +73,8 @@ const BridgeChoose = ({
   }
 
   const handleOptionChange = (mode) => {
+    resetForm()
+
     if (!isHome) {
       if (mode.direction === direction.fromHome) {
         alert.pushError(

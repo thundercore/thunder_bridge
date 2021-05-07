@@ -8,7 +8,6 @@ import { FormattedMessage } from "react-intl"
 export const HeaderMenu = ({ withoutEvents }) => (
   <div className="header-menu">
     <MenuItems withoutEvents={withoutEvents} />
-    <Wallet />
     <a
       href={`${
         bridgeType === "eth"
@@ -26,5 +25,6 @@ export const HeaderMenu = ({ withoutEvents }) => (
         <FormattedMessage id="components.i18n.HeaderMenu.tutorial" />
       </span>
     </a>
+    <Wallet />
   </div>
 )
