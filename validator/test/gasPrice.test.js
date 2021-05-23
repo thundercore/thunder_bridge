@@ -35,6 +35,56 @@ describe('gasPrice', () => {
       // then
       expect(gasPrice).to.equal('1')
     })
+    it('test oracle return zero gas price', async () => {
+      // given
+      const oracleFnMock = () => Promise.resolve({
+        standard: 0,
+        fast: 10,
+        instant: 20,
+      })
+      const bridgeContractMock = {
+        methods: {
+          gasPrice: sinon.stub().returns({
+            call: sinon.stub().returns(Promise.resolve('5')),
+          }),
+        },
+      }
+
+      // when
+      const gasPrice = await fetchGasPrice({
+        bridgeContract: bridgeContractMock,
+        oracleFn: oracleFnMock,
+      })
+
+      // then
+      expect(gasPrice).to.deep.equal({ standard: '5', fast: '10', instant: '20' })
+    })
+
+    it('test oracle return all zero gas price', async () => {
+      // given
+      const oracleFnMock = () => Promise.resolve({
+        standard: 0,
+        fast: 0,
+        instant: 0,
+      })
+      const bridgeContractMock = {
+        methods: {
+          gasPrice: sinon.stub().returns({
+            call: sinon.stub().returns(Promise.resolve('5')),
+          }),
+        },
+      }
+
+      // when
+      const gasPrice = await fetchGasPrice({
+        bridgeContract: bridgeContractMock,
+        oracleFn: oracleFnMock,
+      })
+
+      // then
+      expect(gasPrice).to.deep.equal({ standard: '5', fast: '5', instant: '5' })
+    })
+
     it('should fetch the gas price from the contract if the oracle fails', async () => {
       // given
       const oracleFnMock = () => Promise.reject(new Error('oracle failed'))

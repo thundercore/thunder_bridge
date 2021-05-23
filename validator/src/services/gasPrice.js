@@ -57,7 +57,7 @@ async function fetchGasPriceFromOracle(oracleUrl) {
   for (let i = 0; i < speedTypes.length; i++) {
     const speedType = speedTypes[i]
     const price = json[speedType]
-    if (!price) {
+    if (price === undefined || price < 0) {
       throw new Error(`Response from Oracle didn't include gas price for ${speedType} type.`)
     }
     const gasPrice = gasPriceWithinLimits(price)
