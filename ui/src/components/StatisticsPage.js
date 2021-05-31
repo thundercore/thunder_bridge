@@ -54,6 +54,7 @@ export class StatisticsPage extends React.Component {
               homeNativeSupplyTitle={isNativeToErc}
               foreignSymbol={foreignStore.symbol}
               foreignSupply={foreignStore.totalSupply}
+              foreignNetwork={foreignStore.networkName}
             />
           </div>
           {homeStore.depositFeeCollected.finished &&
