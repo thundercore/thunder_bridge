@@ -6,6 +6,7 @@
   "components.i18n.Bridge.maxAmountPerTxError": "Сумма превышает текущее максимальное количество для одной транзакции.\nМаксимальная сумма для одной транзакции:",
   "components.i18n.Bridge.minAmountPerTxError": "Сумма меньше текущего минимума для одной транзакции.\nМинимальная сумма для одной транзакции:",
   "components.i18n.Bridge.minFeeError": "Количество, которое вы ввели не покрывает комиссию за газ.\nМинимальная транзакция:",
+  "components.i18n.Bridge.networkAddress": "{networkName} address",
   "components.i18n.Bridge.specifyAmount": "Пожалуйста, укажите сумму",
   "components.i18n.Bridge.switchNetwork": "Пожалуйста переключите кошелек на сеть {networkName}",
   "components.i18n.Bridge.withdrawalDailyLimitError": "Сумма превышает текущий суточный лимит.\nМаксимальный вывод сегодня:",
@@ -13,6 +14,7 @@
   "components.i18n.BridgeForm.amount": "Количество",
   "components.i18n.BridgeForm.recipient": "Получатель",
   "components.i18n.BridgeForm.transferButtonText": "Перевод",
+  "components.i18n.BridgeForm.warningExchangeWallet": "Centralized exchange wallet cannot receive",
   "components.i18n.BridgeNetwork.balance": "Баланс",
   "components.i18n.BridgeNetwork.from": "От",
   "components.i18n.BridgeNetwork.to": "На",
@@ -64,6 +66,6 @@
   "components.i18n.TransferAlert.continue": "Продолжить",
   "components.i18n.TransferAlert.recipient": "Получатель: {recipient}",
   "components.i18n.TransferAlert.txFee": "Комиссия за транзакцию: {fee} {currency}",
-  "components.i18n.Wallet.login": "Войти с помощью{space}",
+  "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "кошелек"
 }

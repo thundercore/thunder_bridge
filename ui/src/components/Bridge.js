@@ -3,6 +3,7 @@ import React from "react"
 import foreignLogoPurple from "../assets/images/logos/logo-poa-20-purple@2x.png"
 import homeLogoPurple from "../assets/images/logos/logo-poa-sokol-purple@2x.png"
 import swal from "sweetalert"
+import { RenameToken } from "./utils/renameToken"
 import { BRIDGE_MODES, ERC_TYPES } from "../stores/utils/bridgeMode"
 import { BridgeForm } from "./index"
 import { BridgeNetwork } from "./index"
@@ -29,11 +30,21 @@ class Bridge extends React.Component {
     confirmationData: {},
     showModal: false,
     showConfirmation: false,
+    error: { enable: false, text: "" },
+    transferButtonEnabled: false,
   }
 
   handleInputChange = (name) => (event) => {
     this.setState({
       [name]: event.target.value,
+    })
+    this.setState({ error: { enable: false, text: "" } })
+
+    const { amount, recipient } = this.state
+    const textFieldToCheck = name === "amount" ? recipient : amount
+    this.setState({
+      transferButtonEnabled:
+        event.target.value !== "" && textFieldToCheck !== "",
     })
   }
 
@@ -64,15 +75,6 @@ class Bridge extends React.Component {
       if (reverse !== this.state.reverse) {
         this.setState({
           reverse,
-        })
-      }
-      if (
-        !this.state.recipient &&
-        web3Store.defaultAccount.address &&
-        !prevState.recipient
-      ) {
-        this.setState({
-          recipient: web3Store.defaultAccount.address,
         })
       }
     })
@@ -111,35 +113,47 @@ class Bridge extends React.Component {
       return
     }
     if (isLessThan(amount, homeStore.minPerTx)) {
-      alertStore.pushError(
-        `${intl.formatMessage({
-          id: "components.i18n.Bridge.minAmountPerTxError",
-        })} ${homeStore.minPerTx} ${homeStore.symbol}`
-      )
+      this.setState({
+        error: {
+          enable: true,
+          text: `${intl.formatMessage({
+            id: "components.i18n.Bridge.minAmountPerTxError",
+          })} ${homeStore.minPerTx} ${homeStore.symbol}`,
+        },
+      })
       return
     }
     if (isGreaterThan(amount, homeStore.maxPerTx)) {
-      alertStore.pushError(
-        `${intl.formatMessage({
-          id: "components.i18n.Bridge.maxAmountPerTxError",
-        })} ${homeStore.maxPerTx} ${homeStore.symbol}`
-      )
+      this.setState({
+        error: {
+          enable: true,
+          text: `${intl.formatMessage({
+            id: "components.i18n.Bridge.maxAmountPerTxError",
+          })} ${homeStore.maxPerTx} ${homeStore.symbol}`,
+        },
+      })
       return
     }
     if (isGreaterThan(amount, homeStore.maxCurrentDeposit)) {
-      alertStore.pushError(
-        `${intl.formatMessage({
-          id: "components.i18n.Bridge.depositDailyLimitError",
-        })} ${homeStore.maxCurrentDeposit} ${homeStore.symbol}`
-      )
+      this.setState({
+        error: {
+          enable: true,
+          text: `${intl.formatMessage({
+            id: "components.i18n.Bridge.depositDailyLimitError",
+          })} ${homeStore.maxCurrentDeposit} ${homeStore.symbol}`,
+        },
+      })
       return
     }
     if (isGreaterThan(amount, homeStore.getDisplayedBalance())) {
-      alertStore.pushError(
-        intl.formatMessage({
-          id: "components.i18n.Bridge.insufficientBalance",
-        })
-      )
+      this.setState({
+        error: {
+          enable: true,
+          text: intl.formatMessage({
+            id: "components.i18n.Bridge.insufficientBalance",
+          }),
+        },
+      })
     } else {
       try {
         alertStore.setLoading(true)
@@ -193,35 +207,49 @@ class Bridge extends React.Component {
       return
     }
     if (isLessThan(amount, foreignStore.minPerTx)) {
-      alertStore.pushError(
-        `${intl.formatMessage({
-          id: "components.i18n.Bridge.minAmountPerTxError",
-        })} ${foreignStore.minPerTx} ${foreignStore.symbol}`
-      )
+      this.setState({
+        error: {
+          enable: true,
+          text: `${intl.formatMessage({
+            id: "components.i18n.Bridge.minAmountPerTxError",
+          })} ${foreignStore.minPerTx} ${RenameToken(foreignStore.symbol)}`,
+        },
+      })
       return
     }
     if (isGreaterThan(amount, foreignStore.maxPerTx)) {
-      alertStore.pushError(
-        `${intl.formatMessage({
-          id: "components.i18n.Bridge.maxAmountPerTxError",
-        })} ${foreignStore.maxPerTx} ${foreignStore.symbol}`
-      )
+      this.setState({
+        error: {
+          enable: true,
+          text: `${intl.formatMessage({
+            id: "components.i18n.Bridge.maxAmountPerTxError",
+          })} ${foreignStore.maxPerTx} ${RenameToken(foreignStore.symbol)}`,
+        },
+      })
       return
     }
     if (isGreaterThan(amount, foreignStore.maxCurrentDeposit)) {
-      alertStore.pushError(
-        `${intl.formatMessage({
-          id: "components.i18n.Bridge.withdrawalDailyLimitError",
-        })} ${foreignStore.maxCurrentDeposit} ${foreignStore.symbol}`
-      )
+      this.setState({
+        error: {
+          enable: true,
+          text: `${intl.formatMessage({
+            id: "components.i18n.Bridge.withdrawalDailyLimitError",
+          })} ${foreignStore.maxCurrentDeposit} ${RenameToken(
+            foreignStore.symbol
+          )}`,
+        },
+      })
       return
     }
     if (isGreaterThan(amount, foreignStore.balance)) {
-      alertStore.pushError(
-        `${intl.formatMessage({
-          id: "components.i18n.Bridge.insufficientBalance2",
-        })} ${foreignStore.balance} ${foreignStore.symbol}`
-      )
+      this.setState({
+        error: {
+          enable: true,
+          text: `${intl.formatMessage({
+            id: "components.i18n.Bridge.insufficientBalance2",
+          })} ${foreignStore.balance} ${RenameToken(foreignStore.symbol)}`,
+        },
+      })
     } else {
       try {
         alertStore.setLoading(true)
@@ -254,16 +282,19 @@ class Bridge extends React.Component {
   onTransfer = async (e) => {
     e.preventDefault()
 
-    const amount = this.state.amount.trim()
+    const { amount } = this.state
+    const inputAmount = amount.trim()
     const { intl } = this.props
-    if (!amount) {
-      swal(
-        intl.formatMessage({ id: "components.i18n.Bridge.error" }),
-        intl.formatMessage({
-          id: "components.i18n.Bridge.specifyAmount",
-        }),
-        "error"
-      )
+
+    if (!inputAmount) {
+      this.setState({
+        error: {
+          enable: true,
+          text: intl.formatMessage({
+            id: "components.i18n.Bridge.specifyAmount",
+          }),
+        },
+      })
       return
     }
 
@@ -303,11 +334,14 @@ class Bridge extends React.Component {
     }
 
     if (finalAmount.lte(new BN(0))) {
-      alertStore.pushError(
-        `${intl.formatMessage({
-          id: "components.i18n.Bridge.minFeeError",
-        })} ${fee} ${homeStore.symbol}`
-      )
+      this.setState({
+        error: {
+          enable: true,
+          text: `${intl.formatMessage({
+            id: "components.i18n.Bridge.minFeeError",
+          })} ${fee} ${homeStore.symbol}`,
+        },
+      })
       return
     }
 
@@ -330,19 +364,20 @@ class Bridge extends React.Component {
 
   onTransferConfirmation = async () => {
     const { alertStore } = this.props.RootStore
-    const { reverse, recipient } = this.state
+    const { reverse, recipient, amount } = this.state
 
     this.setState({ showConfirmation: false, confirmationData: {} })
-    const amount = this.state.amount.trim()
+    const inputAmount = amount.trim()
     const { intl } = this.props
-    if (!amount) {
-      swal(
-        intl.formatMessage({ id: "components.i18n.Bridge.error" }),
-        intl.formatMessage({
-          id: "components.i18n.Bridge.specifyAmount",
-        }),
-        "error"
-      )
+    if (!inputAmount) {
+      this.setState({
+        error: {
+          enable: true,
+          text: intl.formatMessage({
+            id: "components.i18n.Bridge.specifyAmount",
+          }),
+        },
+      })
       return
     }
 
@@ -454,7 +489,14 @@ class Bridge extends React.Component {
     return networkName.substring(index + 1, networkName.length)
   }
 
+  resetForm = () => {
+    this.setState({
+      error: { enable: false, text: "" },
+    })
+  }
+
   render() {
+    const { intl } = this.props
     const {
       web3Store,
       foreignStore,
@@ -467,8 +509,10 @@ class Bridge extends React.Component {
       modalData,
       showConfirmation,
       confirmationData,
+      transferButtonEnabled,
     } = this.state
     const formCurrency = reverse ? foreignStore.symbol : homeStore.symbol
+    const store = reverse ? foreignStore : homeStore
 
     if (showModal && Object.keys(modalData).length !== 0) {
       if (
@@ -489,6 +533,11 @@ class Bridge extends React.Component {
     const foreignNetworkName = this.getNetworkTitle(foreignStore.networkName)
     const foreignNetworkSubtitle = this.getNetworkSubTitle(
       foreignStore.networkName
+    )
+    const network = reverse ? homeNetworkName : foreignNetworkName
+    const textFieldPlaceHolder = intl.formatMessage(
+      { id: "components.i18n.Bridge.networkAddress" },
+      { networkName: network }
     )
 
     return (
@@ -522,6 +571,12 @@ class Bridge extends React.Component {
                   onRecipientInputChange={this.handleInputChange("recipient")}
                   onTransfer={this.onTransfer}
                   reverse={reverse}
+                  placeHolder={textFieldPlaceHolder}
+                  error={this.state.error}
+                  maxCurrentDeposit={store.maxCurrentDeposit}
+                  maxPerTx={store.maxPerTx}
+                  minPerTx={store.minPerTx}
+                  buttonEnabled={transferButtonEnabled}
                 />
                 <BridgeNetwork
                   balance={
@@ -548,6 +603,7 @@ class Bridge extends React.Component {
                 isHome={!reverse}
                 foreignStore={foreignStore}
                 homeStore={homeStore}
+                resetForm={this.resetForm}
               />
             </div>
           </div>

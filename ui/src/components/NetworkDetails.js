@@ -93,7 +93,9 @@ const NetworkDetails = ({
               />
             </span>
             <span className="details-description-black">
-              {numeral(maxCurrentLimit).format("0,0.0", Math.floor)}{" "}
+              {Number(maxCurrentLimit)
+                .toFixed(5)
+                .replace(/(\.0+|0+)$/, "")}{" "}
               {displayCurrency}
             </span>
           </p>
@@ -104,7 +106,10 @@ const NetworkDetails = ({
               <FormattedMessage id="components.i18n.NetworkDetails.maxAmountPerTx" />
             </span>
             <span className="details-description-black">
-              {numeral(maxPerTx).format("0,0.0", Math.floor)} {displayCurrency}
+              {Number(maxPerTx)
+                .toFixed(5)
+                .replace(/(\.0+|0+)$/, "")}{" "}
+              {displayCurrency}
             </span>
           </p>
         )}
@@ -114,7 +119,9 @@ const NetworkDetails = ({
               <FormattedMessage id="components.i18n.NetworkDetails.minAmountPerTx" />
             </span>
             <span className="details-description-black">
-              {numeral(minPerTx).format("0,0.000", Math.floor)}{" "}
+              {Number(minPerTx)
+                .toFixed(5)
+                .replace(/(\.0+|0+)$/, "")}{" "}
               {displayCurrency}
             </span>
           </p>
@@ -125,7 +132,9 @@ const NetworkDetails = ({
               <FormattedMessage id="components.i18n.NetworkDetails.minFee" />
             </span>
             <span className="details-description-black">
-              {numeral(fixedFee).format("0,0.000", Math.floor)}{" "}
+              {Number(fixedFee)
+                .toFixed(5)
+                .replace(/(\.0+|0+)$/, "")}{" "}
               {RenameToken(feeCurrency)}
             </span>
           </p>
@@ -174,7 +183,9 @@ const NetworkDetails = ({
         <p className="details-data-container">
           <span className="details-label">{totalTitle}</span>
           <span className="details-description-black">
-            {numeral(totalAmount).format("0,0.000", Math.floor)}{" "}
+            {Number(totalAmount)
+              .toFixed(5)
+              .replace(/(\.0+|0+)$/, "")}{" "}
             {displayCurrency}
           </span>
         </p>

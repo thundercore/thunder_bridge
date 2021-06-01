@@ -99,7 +99,7 @@
       .network-container-left {
         display: flex;
         padding: 0 1% 70px 5%;
-        width: 22%;
+        width: 14%;
 
         @media screen and (max-width: $tablet-width) {
           padding: 25px 0 5px 0;
@@ -110,7 +110,7 @@
       .network-container-right {
         display: flex;
         padding: 0 5% 70px 1%;
-        width: 22%;
+        width: 14%;
 
         @media screen and (max-width: $tablet-width) {
           padding: 25px 0 5px 0;
@@ -174,6 +174,9 @@
         width: 32px;
       }
       .network-balance {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         color: $bridge-balance-color;
         font-size: 20px;
         font-weight: 700;
@@ -262,7 +265,7 @@
       .form-container {
         max-width: 384px;
         margin: 0 auto;
-        width: 44%;
+        width: 100%;
 
         @media screen and (max-width: $tablet-width) {
           align-self: center;
@@ -270,7 +273,7 @@
         }
 
         @media (min-width: 1200px) {
-          max-width: 600px;
+          max-width: 710px;
         }
 
         .bridge-form {
@@ -300,7 +303,7 @@
           .bridge-form-input-wrapper {
             display: flex;
             flex-direction: column;
-            width: 292px;
+            width: 342px;
             margin-bottom: 20px;
 
             &:first-child {
@@ -309,6 +312,38 @@
 
             &:last-child {
               margin-left: 10px;
+            }
+
+            &-error {
+              min-height: 20px;
+              font-size: 12px;
+              color: #fe1c1c;
+              margin: 4px 0px 0px 6px;
+            }
+
+            &-warning {
+              display: flex;
+              height: 20px;
+              font-size: 12px;
+              color: $warning-text-color;
+              margin: 4px 0px 0px 6px;
+            }
+
+            &-exclamation {
+              width: 14px;
+              height: 17px;
+              margin-right: 4px;
+            }
+
+            &-threshold-text {
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              font-size: 12px;
+              line-height: 20px;
+              color: $warning-text-color;
+              background-color: #f9f9fa;
+              padding: 12px 11px;
             }
 
             @media screen and (max-width: $tablet-width) {
@@ -324,10 +359,46 @@
             }
           }
 
+          .threshold-text-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: #f9f9fa;
+            font-size: 12px;
+            padding: 12px 5px;
+            line-height: 20px;
+
+            @media screen and (max-width: $tablet-width) {
+              padding: 20px 15px 20px 15px;
+            }
+
+            .threshold-container {
+              display: flex;
+              justify-content: space-between;
+
+              @media screen and (max-width: $tablet-width) {
+                flex-direction: column;
+              }
+
+              .threshold-label {
+                color: $warning-text-color;
+              }
+
+              .threshold-description {
+                color: $warning-text-color;
+              }
+            }
+          }
+
           .bridge-form-input-container {
             background-color: #f3f4f6;
             border-radius: 3px 3px 0 0;
             display: flex;
+
+            &-error {
+              @extend .bridge-form-input-container;
+              border: solid 1px #fe1c1c;
+            }
           }
 
           &-input {
@@ -353,6 +424,7 @@
               padding-bottom: 5px;
             }
           }
+
           &-label {
             color: $bridge-input-label-color;
             font-size: 16px;
@@ -362,6 +434,7 @@
             text-transform: uppercase;
             white-space: nowrap;
           }
+
           &-button {
             background-color: $bridge-button-background-color;
             border-radius: 3px;
@@ -377,6 +450,13 @@
               background-color: darken($bridge-button-background-color, 10%);
             }
           }
+
+          &-disabled-button {
+            @extend .bridge-form-button;
+            pointer-events: none;
+            background-color: #dcdbda;
+          }
+
           .bridge-transfer-direction {
             font-size: 14px;
             color: $bridge-label-color;

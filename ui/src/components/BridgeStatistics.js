@@ -4,8 +4,12 @@ import { DataBlock } from "./DataBlock"
 import { RenameToken } from "./utils/renameToken"
 import { injectIntl } from "react-intl"
 
-const checkSymbol = (symbol) => {
-  return symbol === "TT" ? RenameToken("BEP20-TT") : symbol
+const checkSymbol = (symbol, foreignNetwork) => {
+  return symbol === "TT"
+    ? foreignNetwork === "Ethereum"
+      ? RenameToken("ERC20-TT")
+      : RenameToken("BEP20-TT")
+    : symbol
 }
 
 const BridgeStatistics = ({
@@ -16,6 +20,7 @@ const BridgeStatistics = ({
   foreignSupply,
   homeSymbol,
   foreignSymbol,
+  foreignNetwork,
   intl,
 }) => (
   <div className="statistics-bridge-data">
@@ -30,10 +35,10 @@ const BridgeStatistics = ({
     <DataBlock
       description={intl.formatMessage(
         { id: "components.i18n.BridgeStatistics.totalBridged" },
-        { tokenName: checkSymbol(foreignSymbol) }
+        { tokenName: checkSymbol(foreignSymbol, foreignNetwork) }
       )}
       value={numeral(totalBridged).format("0,0.00 a", Math.floor)}
-      type={checkSymbol(foreignSymbol)}
+      type={checkSymbol(foreignSymbol, foreignNetwork)}
     />
     <div className="separator" />
     <DataBlock
@@ -51,11 +56,14 @@ const BridgeStatistics = ({
     />
     <div className="separator" />
     <DataBlock
-      description={`${checkSymbol(foreignSymbol)} ${intl.formatMessage({
+      description={`${checkSymbol(
+        foreignSymbol,
+        foreignNetwork
+      )} ${intl.formatMessage({
         id: "components.i18n.BridgeStatistics.tokensAmount",
       })}`}
       value={numeral(foreignSupply).format("0,0.00 a", Math.floor)}
-      type={checkSymbol(foreignSymbol)}
+      type={checkSymbol(foreignSymbol, foreignNetwork)}
     />
   </div>
 )

@@ -1,6 +1,6 @@
 import { defineMessages } from "react-intl"
 
 export default defineMessages({
-  login: "Login with{space}",
+  connectWallet: "Connect Wallet",
   wallet: "wallet",
 })

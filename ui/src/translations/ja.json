@@ -6,6 +6,7 @@
   "components.i18n.Bridge.maxAmountPerTxError": "金額は、トランザクションごとの現在の最大金額を上回っています。\nトランザクションごとの最大金額は次のとおりです。",
   "components.i18n.Bridge.minAmountPerTxError": "金額は、トランザクションごとの現在の最小金額よりも少なくなっています。\nランザクションごとの最小金額は次のとおりです。",
   "components.i18n.Bridge.minFeeError": "入力した金額には取引手数料は含まれていません。\n最小取引金額は次のとおりです。",
+  "components.i18n.Bridge.networkAddress": "{networkName} address",
   "components.i18n.Bridge.specifyAmount": "金額をご指定ください",
   "components.i18n.Bridge.switchNetwork": "ウォレットを {networkName} ネットワークに切り替えてください",
   "components.i18n.Bridge.withdrawalDailyLimitError": "金額は現在の1日の制限を超えています。\n今日の最大引き出し額：",
@@ -13,6 +14,7 @@
   "components.i18n.BridgeForm.amount": "量",
   "components.i18n.BridgeForm.recipient": "受信者",
   "components.i18n.BridgeForm.transferButtonText": "転送",
+  "components.i18n.BridgeForm.warningExchangeWallet": "Centralized exchange wallet cannot receive",
   "components.i18n.BridgeNetwork.balance": "残高",
   "components.i18n.BridgeNetwork.from": "から",
   "components.i18n.BridgeNetwork.to": "に",
@@ -64,6 +66,6 @@
   "components.i18n.TransferAlert.continue": "継続する",
   "components.i18n.TransferAlert.recipient": "受けるアドレス：{recipient}",
   "components.i18n.TransferAlert.txFee": "取引手数料：{fee} {currency}",
-  "components.i18n.Wallet.login": "でログイン{space}",
+  "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "財布"
 }

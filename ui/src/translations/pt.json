@@ -6,6 +6,7 @@
   "components.i18n.Bridge.maxAmountPerTxError": "O valor está acima do valor máximo atual por transação. \n O valor máximo por transação é:",
   "components.i18n.Bridge.minAmountPerTxError": "O valor é menor que o valor mínimo atual por transação. \n O valor mínimo por transação é:",
   "components.i18n.Bridge.minFeeError": "O valor que você inseriu não cobre a taxa de transação. \n O valor mínimo da transação é:",
+  "components.i18n.Bridge.networkAddress": "{networkName} address",
   "components.i18n.Bridge.specifyAmount": "Por favor, especifique o valor",
   "components.i18n.Bridge.switchNetwork": "Por favor, mude a carteira para a rede {networkName}",
   "components.i18n.Bridge.withdrawalDailyLimitError": "O valor está acima do limite diário atual. \n O saque máximo hoje:",
@@ -13,6 +14,7 @@
   "components.i18n.BridgeForm.amount": "Quantia",
   "components.i18n.BridgeForm.recipient": "Destinatário",
   "components.i18n.BridgeForm.transferButtonText": "Transferir",
+  "components.i18n.BridgeForm.warningExchangeWallet": "Centralized exchange wallet cannot receive",
   "components.i18n.BridgeNetwork.balance": "Equilíbrio",
   "components.i18n.BridgeNetwork.from": "A partir de",
   "components.i18n.BridgeNetwork.to": "Para",
@@ -64,6 +66,6 @@
   "components.i18n.TransferAlert.continue": "Continuar",
   "components.i18n.TransferAlert.recipient": "Destinatário: {destinatário}",
   "components.i18n.TransferAlert.txFee": "Taxa de transação: {fee} {currency}",
-  "components.i18n.Wallet.login": "Entrar com{space}",
+  "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "carteira"
 }
