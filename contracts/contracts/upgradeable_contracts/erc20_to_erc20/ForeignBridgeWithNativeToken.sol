@@ -5,8 +5,8 @@ import "./ForeignBridgeErcToErcV2.sol";
 
 contract ForeignBridgeWithNativeToken is ForeignBridgeErcToErcV2 {
 
-  string public constant name = "Thunder Wrapped BNB";
-  string public constant symbol = "BNB";
+  string public constant name = "Thunder Wrapped HT";
+  string public constant symbol = "HT";
   uint8 public constant decimals = 18;
 
   event Transfer(
