@@ -2,6 +2,7 @@ import React from "react"
 import { RenameToken } from "./utils/renameToken"
 import { FormattedMessage } from "react-intl"
 import numeral from "numeral"
+import { valueFormatter } from "../stores/utils/utils"
 import Exclamation from "../assets/images/logos/exclamation-circle.png"
 
 export const BridgeForm = ({
@@ -62,8 +63,7 @@ export const BridgeForm = ({
                   />
                 </span>
                 <span className="threshold-description">
-                  {numeral(maxCurrentDeposit).format("0,0", Math.floor)}{" "}
-                  {RenameToken(currency)}
+                  {valueFormatter(maxCurrentDeposit)} {RenameToken(currency)}
                 </span>
               </p>
               <p className="threshold-container">

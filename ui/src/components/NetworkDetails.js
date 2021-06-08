@@ -2,7 +2,7 @@ import React from "react"
 import numeral from "numeral"
 import { CopyIcon } from "./icons/CopyIcon"
 import { CopyToClipboard } from "react-copy-to-clipboard"
-import { updateForeignLogo } from "../stores/utils/utils"
+import { updateForeignLogo, valueFormatter } from "../stores/utils/utils"
 import { RenameToken } from "./utils/renameToken"
 import { injectIntl, FormattedMessage } from "react-intl"
 
@@ -51,9 +51,6 @@ const NetworkDetails = ({
         id: "components.i18n.BridgeStatistics.tokensAmount",
       })}`
   const totalAmount = isHome ? totalBalance : totalSupply
-  const formattedBalance = isNaN(numeral(balance).format("0.00", Math.floor))
-    ? numeral(0).format("0,0.00", Math.floor)
-    : numeral(balance).format("0,0.000", Math.floor)
 
   return (
     <div className="network-details" data-testid="network-details">
@@ -93,10 +90,7 @@ const NetworkDetails = ({
               />
             </span>
             <span className="details-description-black">
-              {Number(maxCurrentLimit)
-                .toFixed(5)
-                .replace(/(\.0+|0+)$/, "")}{" "}
-              {displayCurrency}
+              {valueFormatter(maxCurrentLimit)} {displayCurrency}
             </span>
           </p>
         )}
@@ -106,10 +100,7 @@ const NetworkDetails = ({
               <FormattedMessage id="components.i18n.NetworkDetails.maxAmountPerTx" />
             </span>
             <span className="details-description-black">
-              {Number(maxPerTx)
-                .toFixed(5)
-                .replace(/(\.0+|0+)$/, "")}{" "}
-              {displayCurrency}
+              {valueFormatter(maxPerTx)} {displayCurrency}
             </span>
           </p>
         )}
@@ -197,7 +188,7 @@ const NetworkDetails = ({
             />
           </span>
           <span className="details-description-black">
-            {formattedBalance} {displayCurrency}
+            {valueFormatter(balance)} {displayCurrency}
           </span>
         </p>
       </div>
