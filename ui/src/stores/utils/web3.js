@@ -1,12 +1,12 @@
-import Web3 from 'web3'
-import { fromWei, toHex } from 'web3-utils'
+import Web3 from "web3"
+import { fromWei, toHex } from "web3-utils"
 
-const updateTitle = (networkName = 'No chain specified') => {
-  const defaultTitle = 'Thunder Token Bridge'
+const updateTitle = (networkName = "No chain specified") => {
+  const defaultTitle = "Thunder Token Bridge"
   if (!process.env.REACT_APP_TITLE) {
     document.title = defaultTitle
   } else {
-    const titleReplaceString = '%c'
+    const titleReplaceString = "%c"
     let appTitle = process.env.REACT_APP_TITLE || defaultTitle
 
     if (appTitle.indexOf(titleReplaceString) !== -1) {
@@ -18,9 +18,9 @@ const updateTitle = (networkName = 'No chain specified') => {
 }
 
 const getWeb3 = () => {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     // Wait for loading completion to avoid race conditions with web3 injection timing.
-    window.addEventListener('load', async function() {
+    window.addEventListener("load", async function () {
       let web3 = window.web3
       const { ethereum } = window
 
@@ -32,24 +32,24 @@ const getWeb3 = () => {
           // Request account access
           await ethereum.enable()
           await processWeb3(web3, resolve, reject)
-          ethereum.on('chainChanged', () => {
+          ethereum.on("chainChanged", () => {
             document.location.reload()
           })
         } catch (error) {
           console.log(error)
           const errorMsg = `Wallet account rejected by user. You need to unlock your wallet.
            Please refresh the page and click 'Connect' button in your wallet popup.`
-          reject({ type: 'rejected', message: errorMsg })
+          reject({ type: "rejected", message: errorMsg })
         }
-      } else if (typeof web3 !== 'undefined') {
+      } else if (typeof web3 !== "undefined") {
         web3 = new Web3(web3.currentProvider)
         await processWeb3(web3, resolve, reject)
       } else {
         // Fallback to localhost if no web3 injection.
-        const errorMsg = ''
-        reject({ type: 'install', message: errorMsg })
-        console.log('No web3 instance injected, using Local web3.')
-        console.error('wallet not found')
+        const errorMsg = ""
+        reject({ type: "install", message: errorMsg })
+        console.log("No web3 instance injected, using Local web3.")
+        console.error("wallet not found")
       }
     })
   })
@@ -58,45 +58,47 @@ const getWeb3 = () => {
 export default getWeb3
 
 export const networks = {
-  1: 'Ethereum Mainnet',
-  3: 'Ropsten',
-  4: 'Rinkeby',
-  18: 'Thunder Testnet',
-  30: 'RSK Mainnet',
-  31: 'RSK Testnet',
-  42: 'Kovan',
-  56: 'BSC Mainnet',
-  61: 'Ethereum Classic',
-  77: 'Sokol',
-  97: 'BSC Testnet',
-  99: 'POA Network',
-  100: 'Dai Chain',
-  108: 'Thunder',
-};
+  1: "Ethereum Mainnet",
+  3: "Ropsten",
+  4: "Rinkeby",
+  18: "Thunder Testnet",
+  30: "RSK Mainnet",
+  31: "RSK Testnet",
+  42: "Kovan",
+  56: "BSC Mainnet",
+  61: "Ethereum Classic",
+  77: "Sokol",
+  97: "BSC Testnet",
+  99: "POA Network",
+  100: "Dai Chain",
+  108: "Thunder",
+  128: "HECO Mainnet",
+  256: "HECO Testnet",
+}
 
-export const getNetworkName = id => networks[id] || 'Unknown'
+export const getNetworkName = (id) => networks[id] || "Unknown"
 
 export const getBalance = async (web3, address) => {
   const balance = await web3.eth.getBalance(address)
   return fromWei(balance)
 }
 
-export const getWeb3Instance = provider => {
+export const getWeb3Instance = (provider) => {
   const web3Provider = new Web3.providers.HttpProvider(provider)
   return new Web3(web3Provider)
 }
 
-export const getNetwork = async web3 => {
+export const getNetwork = async (web3) => {
   const id = await web3.eth.getChainId()
-  console.log('id:', id)
+  console.log("id:", id)
   const name = getNetworkName(id)
   return {
     id,
-    name
+    name,
   }
 }
 
-export const getBlockNumber = web3 => web3.eth.getBlockNumber()
+export const getBlockNumber = (web3) => web3.eth.getBlockNumber()
 
 export const estimateGas = async (web3, to, gasPrice, from, value, data) => {
   const gas = await web3.eth.estimateGas({ to, gasPrice, from, value, data })
@@ -109,9 +111,9 @@ const processWeb3 = async (web3, resolve, reject) => {
     netId = await web3.eth.getChainId()
   } catch (error) {
     reject({
-      type: 'unlock',
+      type: "unlock",
       message:
-        'Wallet does not support getting the Chain ID. Please use another wallet or specify a RPC url of a node that supports eth_chainId call'
+        "Wallet does not support getting the Chain ID. Please use another wallet or specify a RPC url of a node that supports eth_chainId call",
     })
   }
   const netIdName = getNetworkName(netId)
@@ -122,7 +124,10 @@ const processWeb3 = async (web3, resolve, reject) => {
   const defaultAccount = accounts[0] || null
 
   if (defaultAccount === null) {
-    reject({ type: 'unlock', message: 'Please unlock your wallet and refresh the page' })
+    reject({
+      type: "unlock",
+      message: "Please unlock your wallet and refresh the page",
+    })
   }
 
   updateTitle(netIdName)
@@ -132,7 +137,7 @@ const processWeb3 = async (web3, resolve, reject) => {
     netIdName,
     netId,
     injectedWeb3: true,
-    defaultAccount
+    defaultAccount,
   }
   resolve(results)
 }
