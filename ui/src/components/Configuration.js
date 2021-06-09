@@ -47,11 +47,7 @@ const Configuration = ({
             },
             { tokenName: RenameToken(symbol) }
           )}`}
-          value={
-            isNaN(numeral(maxTotalBalance).format("0.00 a", Math.floor))
-              ? numeral(0).format("0,0", Math.floor)
-              : numeral(maxTotalBalance).format("0.00 a", Math.floor)
-          }
+          value={numeral(maxTotalBalance).format("0.00 a", Math.floor)}
           type={symbol}
         />
       )}
