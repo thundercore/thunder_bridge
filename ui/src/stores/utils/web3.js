@@ -90,7 +90,6 @@ export const getWeb3Instance = (provider) => {
 
 export const getNetwork = async (web3) => {
   const id = await web3.eth.getChainId()
-  console.log("id:", id)
   const name = getNetworkName(id)
   return {
     id,

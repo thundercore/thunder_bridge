@@ -73,15 +73,15 @@ class App extends React.Component {
               {/* <Route exact path="/events" component={RelayEvents} /> */}
               <Route
                 exact
-                path={["/status", "/(eth|bsc)/status"]}
+                path={["/status", "/(eth|bsc|heco)/status"]}
                 component={StatusPage}
               />
               <Route
                 exact
-                path={["/statistics", "/(eth|bsc)/statistics"]}
+                path={["/statistics", "/(eth|bsc|heco)/statistics"]}
                 component={StatisticsPage}
               />
-              <Route exact path={["/", "/(eth|bsc)"]} component={Bridge} />
+              <Route exact path={["/", "/(eth|bsc|heco)"]} component={Bridge} />
               <Route component={NotFound} />
             </Switch>
           </div>

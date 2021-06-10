@@ -58,6 +58,7 @@
   "components.i18n.SweetAlert.switchNetwork": "Değiştir {networkName}",
   "components.i18n.SwithChainButton.bscNetwork": "Binance Smart Chain Networkü",
   "components.i18n.SwithChainButton.ethereumNetwork": "Ethereum Networkü",
+  "components.i18n.SwithChainButton.hecoNetwork": "HECO Network",
   "components.i18n.SwithChainButton.switchTo": "Değiştir",
   "components.i18n.TransactionsStatistics.totalValue": "Toplam Değer",
   "components.i18n.TransactionsStatistics.transactions": "İşlemler",

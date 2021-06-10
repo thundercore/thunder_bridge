@@ -187,21 +187,6 @@ class Web3Store {
   static autoAddNetwork = (chainID) => {
     if (chainID) {
       const networkInfo = {
-        56: {
-          chainId: "0x38",
-          chainName: "Binance Smart Chain",
-          rpcUrls: [
-            "https://bsc-dataseed.binance.org/",
-            "https://bsc-dataseed1.defibit.io/",
-          ],
-          // iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
-          blockExplorerUrls: ["https://bscscan.com/"],
-          nativeCurrency: {
-            name: "BNB",
-            symbol: "BNB",
-            decimals: 18,
-          },
-        },
         108: {
           chainId: "0x6c",
           chainName: "Thundercore Mainnet",
@@ -226,6 +211,21 @@ class Web3Store {
             decimals: 18,
           },
         },
+        56: {
+          chainId: "0x38",
+          chainName: "Binance Smart Chain",
+          rpcUrls: [
+            "https://bsc-dataseed.binance.org/",
+            "https://bsc-dataseed1.defibit.io/",
+          ],
+          // iconUrls: ['https://thundercore.github.io/dist/thundercore.png'],
+          blockExplorerUrls: ["https://bscscan.com/"],
+          nativeCurrency: {
+            name: "BNB",
+            symbol: "BNB",
+            decimals: 18,
+          },
+        },
         97: {
           chainId: "0x61",
           chainName: "BSC Testnet",
@@ -235,6 +235,28 @@ class Web3Store {
           nativeCurrency: {
             name: "BNB",
             symbol: "BNB",
+            decimals: 18,
+          },
+        },
+        128: {
+          chainId: "0x80",
+          chainName: "Huobi ECO Chain Mainnet",
+          rpcUrls: ["https://http-mainnet-node.huobichain.com"],
+          blockExplorerUrls: ["https://hecoinfo.com/"],
+          nativeCurrency: {
+            name: "HT",
+            symbol: "HT",
+            decimals: 18,
+          },
+        },
+        256: {
+          chainId: "0x100",
+          chainName: "Huobi ECO Chain Testnet",
+          rpcUrls: ["https://http-testnet.hecochain.com"],
+          blockExplorerUrls: ["https://testnet.hecoinfo.com/"],
+          nativeCurrency: {
+            name: "HT",
+            symbol: "HT",
             decimals: 18,
           },
         },

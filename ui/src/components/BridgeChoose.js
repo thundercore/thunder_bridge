@@ -22,17 +22,36 @@ const BridgeChoose = ({
   }
   const ERC20 = "ERC20"
   const BEP20 = "BEP20"
+  const HRC20 = "HRC20"
 
   const getPrefix = (token) => {
     if (token === "TT") {
-      return bridgeType === "eth" ? ERC20 : BEP20
+      switch (bridgeType) {
+        case "eth":
+          return ERC20
+        case "bsc":
+          return BEP20
+        case "heco":
+          return HRC20
+        default:
+          return BEP20
+      }
     }
     return "TT"
   }
 
   const getForeignToken = (token) => {
     if (token === "TT") return token
-    return bridgeType === "eth" ? `${ERC20}-${token}` : `${BEP20}-${token}`
+    switch (bridgeType) {
+      case "eth":
+        return `${ERC20}-${token}`
+      case "bsc":
+        return `${BEP20}-${token}`
+      case "heco":
+        return `${HRC20}-${token}`
+      default:
+        return `${BEP20}-${token}`
+    }
   }
 
   const setItems = (token, type) => {
@@ -69,6 +88,7 @@ const BridgeChoose = ({
   const renderAdditionalLogoInfo = (item) => {
     if (item === "BEP20-TT") return <div className="logo-info">BEP20</div>
     if (item === "ERC20-TT") return <div className="logo-info">ERC20</div>
+    if (item === "HRC20-TT") return <div className="logo-info">HRC20</div>
     return null
   }
 
@@ -145,6 +165,7 @@ const BridgeChoose = ({
   const filterNativeToken = (token) => {
     if (token === `${ERC20}-ETH`) return "ETH"
     if (token === `${BEP20}-BNB`) return "BNB"
+    if (token === `${HRC20}-HT`) return "HT"
     return RenameToken(token)
   }
 

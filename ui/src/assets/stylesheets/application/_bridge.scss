@@ -1051,21 +1051,38 @@
     background-image: url(#{$base-images-path + '/logos/tt-bnb.svg'});
   }
 
-  &-tt-busd {
-    background-image: url(#{$base-images-path + '/logos/tt-busd.svg'});
-  }
-
   &-bnb {
     background-image: url(#{$base-images-path + '/logos/binance-bnb.svg'});
+  }
+
+  &-tt-busd {
+    background-image: url(#{$base-images-path + '/logos/tt-busd.svg'});
   }
 
   &-bep20-busd {
     background-image: url(#{$base-images-path + '/logos/binance-busd.svg'});
   }
 
+  &-tt-ht {
+    background-image: url(#{$base-images-path + '/logos/tt-ht.png'});
+  }
+
+  &-ht {
+    background-image: url(#{$base-images-path + '/logos/ht.png'});
+  }
+
+  &-tt-husd {
+    background-image: url(#{$base-images-path + '/logos/tt-husd.png'});
+  }
+
+  &-hrc20-husd {
+    background-image: url(#{$base-images-path + '/logos/husd.png'});
+  }
+
   &-tt,
   &-bep20-tt,
-  &-erc20-tt {
+  &-erc20-tt,
+  &-hrc20-tt {
     background-image: url("#{ $home-logo-image }");
   }
 }

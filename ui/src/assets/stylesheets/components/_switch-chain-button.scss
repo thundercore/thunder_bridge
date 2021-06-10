@@ -1,5 +1,12 @@
+.switch-chain-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
 .switch-chain-wrapper {
-  margin-left: auto;
+  display: flex;
+  margin-left: 10px;
   margin-top: 12px;
 
   @media screen and (max-width: $tablet-width) {

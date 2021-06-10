@@ -2,9 +2,23 @@ import { bridgeType } from "./bridgeMode"
 import numeral from "numeral"
 import Bsc from "../../assets/images/themes/core/logos/logo-foreign-bsc.svg"
 import Eth from "../../assets/images/themes/core/logos/logo-foreign-eth.svg"
+import Heco from "../../assets/images/themes/core/logos/logo-foreign-heco.png"
 
 export function updateForeignLogo() {
-  const ForeignImg = bridgeType === "eth" ? Eth : Bsc
+  let ForeignImg
+  switch (bridgeType) {
+    case "eth":
+      ForeignImg = Eth
+      break
+    case "bsc":
+      ForeignImg = Bsc
+      break
+    case "heco":
+      ForeignImg = Heco
+      break
+    default:
+      ForeignImg = Bsc
+  }
   return { backgroundImage: `url(${ForeignImg})` }
 }
 
