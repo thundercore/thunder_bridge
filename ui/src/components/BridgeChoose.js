@@ -41,7 +41,6 @@ const BridgeChoose = ({
   }
 
   const getForeignToken = (token) => {
-    console.log("getForeignToken bridgeType", bridgeType)
     if (token === "TT") return token
     switch (bridgeType) {
       case "eth":
@@ -134,7 +133,6 @@ const BridgeChoose = ({
   }
 
   const verifyTokenMatch = (item, dir) => {
-    console.log(item, dir, foreignStore.symbol)
     if (dir === direction.fromHome)
       return (
         item.to.split("-")[1] === RenameToken(foreignStore.symbol) ||

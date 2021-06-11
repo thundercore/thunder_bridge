@@ -5,7 +5,6 @@ import Eth from "../../assets/images/themes/core/logos/logo-foreign-eth.svg"
 import Heco from "../../assets/images/themes/core/logos/logo-foreign-heco.png"
 
 export function updateForeignLogo() {
-  console.log("updateForeignLogo bridgeType", bridgeType)
   let ForeignImg
   switch (bridgeType) {
     case "eth":

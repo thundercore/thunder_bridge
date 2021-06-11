@@ -23,7 +23,6 @@ const SwithChainButton = () => {
   const renderChains = ["eth", "bsc", "heco"].filter((n) => {
     return n !== bridgeType
   })
-  console.log("renderChains", bridgeType, renderChains)
 
   const chainText1 = textSelector(renderChains[0])
   const chainText2 = textSelector(renderChains[1])
