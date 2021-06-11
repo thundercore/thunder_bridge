@@ -2,8 +2,6 @@ import React from "react"
 import { bridgeType } from "../stores/utils/bridgeMode"
 import { FormattedMessage } from "react-intl"
 
-const chainList = ["eth", "bsc", "heco"]
-
 const textSelector = (chain) => {
   switch (chain) {
     case "eth":
@@ -22,9 +20,10 @@ const textSelector = (chain) => {
 }
 
 const SwithChainButton = () => {
-  const renderChains = chainList.filter((n) => {
+  const renderChains = ["eth", "bsc", "heco"].filter((n) => {
     return n !== bridgeType
   })
+  console.log("renderChains", bridgeType, renderChains)
 
   const chainText1 = textSelector(renderChains[0])
   const chainText2 = textSelector(renderChains[1])

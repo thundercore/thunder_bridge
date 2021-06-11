@@ -15,6 +15,7 @@ class SweetAlert extends React.Component {
     if (alertStore.alerts.length > 0) {
       const alert = alertStore.alerts.slice()[0]
       const isWrongNetwork = alert.messageType == alertStore.WRONG_NETWORK_ERROR
+      console.log("SweetAlert", alert.info.id)
       const isNotEthereumChains = alert.info.id !== 1 && alert.info.id !== 42 // check not eth network. For eth, check this PR: https://github.com/ethereum/EIPs/pull/3326
       const isAddNetwork =
         isWrongNetwork &&
