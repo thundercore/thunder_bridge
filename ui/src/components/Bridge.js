@@ -539,6 +539,14 @@ class Bridge extends React.Component {
       { id: "components.i18n.Bridge.networkAddress" },
       { networkName: network }
     )
+    console.log(
+      "Bridge render",
+      "Foreign balance:",
+      foreignStore.balance,
+      ",",
+      "Home balance:",
+      homeStore.getDisplayedBalance()
+    )
 
     return (
       <div className="bridge-container">

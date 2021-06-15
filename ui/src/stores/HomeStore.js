@@ -1,9 +1,9 @@
-import { action, observable } from 'mobx'
-import BRIDGE_VALIDATORS_ABI from '../../abis/BridgeValidators.abi'
-import ERC677_ABI from '../../abis/ERC677BridgeToken.abi'
-import { getBlockNumber, getBalance } from './utils/web3'
-import { getBridgeAddress } from './utils/getBridgeAddress'
-import { fromDecimals } from './utils/decimals'
+import { action, observable } from "mobx"
+import BRIDGE_VALIDATORS_ABI from "../../abis/BridgeValidators.abi"
+import ERC677_ABI from "../../abis/ERC677BridgeToken.abi"
+import { getBlockNumber, getBalance } from "./utils/web3"
+import { getBridgeAddress } from "./utils/getBridgeAddress"
+import { fromDecimals } from "./utils/decimals"
 import {
   getMaxPerTxLimit,
   getMinPerTxLimit,
@@ -23,18 +23,18 @@ import {
   getWithdrawFixedFee,
   getWithdrawFee,
   getDepositFee,
-} from './utils/contract'
-import { balanceLoaded, removePendingTransaction } from './utils/testUtils'
-import sleep from './utils/sleep'
-import BN from 'bignumber.js'
+} from "./utils/contract"
+import { balanceLoaded, removePendingTransaction } from "./utils/testUtils"
+import sleep from "./utils/sleep"
+import BN from "bignumber.js"
+import { getBridgeABIs, getUnit, BRIDGE_MODES } from "./utils/bridgeMode"
+import ERC20Bytes32Abi from "./utils/ERC20Bytes32.abi"
+import { getRewardableData } from "./utils/rewardable"
 import {
-  getBridgeABIs,
-  getUnit,
-  BRIDGE_MODES,
-} from './utils/bridgeMode'
-import ERC20Bytes32Abi from './utils/ERC20Bytes32.abi'
-import { getRewardableData } from './utils/rewardable'
-import { ReadPrometheusStatus, ReadValidators, LoadPrometheusFile } from './utils/PrometheusStatus'
+  ReadPrometheusStatus,
+  ReadValidators,
+  LoadPrometheusFile,
+} from "./utils/PrometheusStatus"
 
 async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
@@ -56,16 +56,16 @@ class HomeStore {
   errors = []
 
   @observable
-  balance = ''
+  balance = ""
 
   @observable
   filter = false
 
   @observable
-  maxCurrentDeposit = ''
+  maxCurrentDeposit = ""
 
   @observable
-  maxPerTx = ''
+  maxPerTx = ""
 
   @observable
   latestBlockNumber = 0
@@ -77,7 +77,7 @@ class HomeStore {
   validatorsCount = 0
 
   @observable
-  homeBridgeValidators = ''
+  homeBridgeValidators = ""
 
   @observable
   requiredSignatures = 0
@@ -89,16 +89,19 @@ class HomeStore {
   totalSpentPerDay = 0
 
   @observable
-  tokenAddress = ''
+  tokenAddress = ""
 
   @observable
-  symbol = process.env.REACT_APP_HOME_NATIVE_NAME || 'NONAME'
+  symbol = process.env.REACT_APP_HOME_NATIVE_NAME || "NONAME"
 
   @observable
-  tokenName = ''
+  tokenName = ""
 
   @observable
   userBalance = 0
+
+  @observable
+  intervalID = 0
 
   @observable
   statistics = {
@@ -108,23 +111,23 @@ class HomeStore {
     withdrawsValue: BN(0),
     totalBridged: BN(0),
     users: new Set(),
-    finished: false
+    finished: false,
   }
 
   @observable
   depositFeeCollected = {
     value: BN(0),
-    type: '',
+    type: "",
     shouldDisplay: false,
-    finished: false
+    finished: false,
   }
 
   @observable
   withdrawFeeCollected = {
     value: BN(0),
-    type: '',
+    type: "",
     shouldDisplay: false,
-    finished: false
+    finished: false,
   }
 
   feeManager = {
@@ -135,12 +138,16 @@ class HomeStore {
     depositFixedFee: BN(0),
     depositFeePercent: BN(0),
   }
-  networkName = process.env.REACT_APP_HOME_NETWORK_NAME || 'Unknown'
+  networkName = process.env.REACT_APP_HOME_NETWORK_NAME || "Unknown"
   filteredBlockNumber = 0
   homeBridge = {}
-  HOME_BRIDGE_ADDRESS = process.env.REACT_APP_BRIDGE_TYPE === "eth" ? process.env.REACT_APP_HOME_USDT_BRIDGE_ADDRESS  : process.env.REACT_APP_HOME_BUSD_BRIDGE_ADDRESS
-  explorerTxTemplate = process.env.REACT_APP_HOME_EXPLORER_TX_TEMPLATE || ''
-  explorerAddressTemplate = process.env.REACT_APP_HOME_EXPLORER_ADDRESS_TEMPLATE || ''
+  HOME_BRIDGE_ADDRESS =
+    process.env.REACT_APP_BRIDGE_TYPE === "eth"
+      ? process.env.REACT_APP_HOME_USDT_BRIDGE_ADDRESS
+      : process.env.REACT_APP_HOME_BUSD_BRIDGE_ADDRESS
+  explorerTxTemplate = process.env.REACT_APP_HOME_EXPLORER_TX_TEMPLATE || ""
+  explorerAddressTemplate =
+    process.env.REACT_APP_HOME_EXPLORER_ADDRESS_TEMPLATE || ""
   tokenContract = {}
   tokenDecimals = 18
   blockRewardContract = {}
@@ -155,11 +162,18 @@ class HomeStore {
   }
 
   readStatistics(name, defaultVal, formatter) {
-    return ReadPrometheusStatus(this.status, this.symbol, 'home', name, defaultVal, formatter)
+    return ReadPrometheusStatus(
+      this.status,
+      this.symbol,
+      "home",
+      name,
+      defaultVal,
+      formatter
+    )
   }
 
   readValidators(symbol) {
-    return ReadValidators(this.status, symbol, 'home')
+    return ReadValidators(this.status, symbol, "home")
   }
 
   async setHome(tokenName) {
@@ -174,13 +188,15 @@ class HomeStore {
       this.status = await LoadPrometheusFile()
     }, 10000)
 
-    if (!tokenName)
-      tokenName = process.env.REACT_APP_HOME_NATIVE_NAME
+    if (!tokenName) tokenName = process.env.REACT_APP_HOME_NATIVE_NAME
 
-    this.HOME_BRIDGE_ADDRESS = getBridgeAddress(tokenName, 'home')
+    this.HOME_BRIDGE_ADDRESS = getBridgeAddress(tokenName, "home")
 
     const { HOME_ABI } = getBridgeABIs(this.rootStore.bridgeMode)
-    this.homeBridge = new this.homeWeb3.eth.Contract(HOME_ABI, this.HOME_BRIDGE_ADDRESS)
+    this.homeBridge = new this.homeWeb3.eth.Contract(
+      HOME_ABI,
+      this.HOME_BRIDGE_ADDRESS
+    )
     if (this.rootStore.bridgeMode === BRIDGE_MODES.ERC_TO_ERC) {
       await this.getTokenInfo()
     }
@@ -196,7 +212,7 @@ class HomeStore {
     this.getStatistics()
     this.calculateCollectedFees()
 
-    setInterval(() => {
+    this.intervalID = setInterval(() => {
       // this.getEvents()
       this.getBalance()
       this.getBlockNumber()
@@ -208,23 +224,29 @@ class HomeStore {
   async getTokenInfo() {
     try {
       this.tokenAddress = await getErc677TokenAddress(this.homeBridge)
-      this.tokenContract = new this.homeWeb3.eth.Contract(ERC677_ABI, this.tokenAddress)
+      this.tokenContract = new this.homeWeb3.eth.Contract(
+        ERC677_ABI,
+        this.tokenAddress
+      )
       this.symbol = await getSymbol(this.tokenContract)
       this.tokenName = await getName(this.tokenContract)
-      const alternativeContract = new this.homeWeb3.eth.Contract(ERC20Bytes32Abi, this.tokenAddress)
+      const alternativeContract = new this.homeWeb3.eth.Contract(
+        ERC20Bytes32Abi,
+        this.tokenAddress
+      )
       try {
         this.symbol = await getSymbol(this.tokenContract)
       } catch (e) {
         this.symbol = this.homeWeb3.utils
           .hexToAscii(await getSymbol(alternativeContract))
-          .replace(/\u0000*$/, '')
+          .replace(/\u0000*$/, "")
       }
       try {
         this.tokenName = await getName(this.tokenContract)
       } catch (e) {
         this.tokenName = this.homeWeb3.utils
           .hexToAscii(await getName(alternativeContract))
-          .replace(/\u0000*$/, '')
+          .replace(/\u0000*$/, "")
       }
       this.tokenDecimals = await getDecimals(this.tokenContract)
     } catch (e) {
@@ -244,7 +266,10 @@ class HomeStore {
   @action
   async getMaxPerTxLimit() {
     try {
-      this.maxPerTx = await getMaxPerTxLimit(this.homeBridge, this.tokenDecimals)
+      this.maxPerTx = await getMaxPerTxLimit(
+        this.homeBridge,
+        this.tokenDecimals
+      )
     } catch (e) {
       console.error(e)
     }
@@ -253,7 +278,10 @@ class HomeStore {
   @action
   async getMinPerTxLimit() {
     try {
-      this.minPerTx = await getMinPerTxLimit(this.homeBridge, this.tokenDecimals)
+      this.minPerTx = await getMinPerTxLimit(
+        this.homeBridge,
+        this.tokenDecimals
+      )
     } catch (e) {
       console.error(e)
     }
@@ -265,7 +293,9 @@ class HomeStore {
 
     try {
       if (this.rootStore.bridgeMode === BRIDGE_MODES.ERC_TO_ERC) {
-        this.balance = this.readStatistics('totalSupply', 0, x => this.homeWeb3.utils.toBN(x).toString())
+        this.balance = this.readStatistics("totalSupply", 0, (x) =>
+          this.homeWeb3.utils.toBN(x).toString()
+        )
         this.web3Store.getWeb3Promise.then(async () => {
           this.userBalance = await getBalanceOf(
             this.tokenContract,
@@ -277,7 +307,10 @@ class HomeStore {
       } else if (this.rootStore.bridgeMode === BRIDGE_MODES.ERC_TO_NATIVE) {
         const mintedCoins = await mintedTotally(this.blockRewardContract)
         const burntCoins = await totalBurntCoins(this.homeBridge)
-        this.balance = fromDecimals(mintedCoins.minus(burntCoins).toString(10), this.tokenDecimals)
+        this.balance = fromDecimals(
+          mintedCoins.minus(burntCoins).toString(10),
+          this.tokenDecimals
+        )
       } else {
         this.balance = await getBalance(this.homeWeb3, this.HOME_BRIDGE_ADDRESS)
       }
@@ -289,10 +322,18 @@ class HomeStore {
 
   @action
   async getFee() {
-    this.feeManager.withdrawFeePercent = await this.deFeePercent(await getWithdrawFeePercent(this.homeBridge))
-    this.feeManager.withdrawFixedFee = await this.deDecimals(await getWithdrawFixedFee(this.homeBridge))
-    this.feeManager.depositFeePercent = await this.deFeePercent(await getDepositFeePercent(this.homeBridge))
-    this.feeManager.depositFixedFee = await this.deDecimals(await getDepositFixedFee(this.homeBridge))
+    this.feeManager.withdrawFeePercent = await this.deFeePercent(
+      await getWithdrawFeePercent(this.homeBridge)
+    )
+    this.feeManager.withdrawFixedFee = await this.deDecimals(
+      await getWithdrawFixedFee(this.homeBridge)
+    )
+    this.feeManager.depositFeePercent = await this.deFeePercent(
+      await getDepositFeePercent(this.homeBridge)
+    )
+    this.feeManager.depositFixedFee = await this.deDecimals(
+      await getDepositFixedFee(this.homeBridge)
+    )
   }
 
   async deFeePercent(feePercent) {
@@ -302,44 +343,58 @@ class HomeStore {
 
   async deDecimals(tokenWithDecimals) {
     const decimals = new BN(await getDecimals(this.tokenContract)).toNumber()
-    const base = (new BN(10)).pow(decimals)
+    const base = new BN(10).pow(decimals)
     return tokenWithDecimals.div(base)
   }
 
   async toDecimals(tokenWithoutDecimals) {
     const bnAmount = new BN(tokenWithoutDecimals)
     const decimals = new BN(await getDecimals(this.tokenContract)).toNumber()
-    const base = (new BN(10)).pow(decimals)
+    const base = new BN(10).pow(decimals)
     return bnAmount.multipliedBy(base)
   }
 
   async getWithdrawFee(amount) {
-    return this.deDecimals(await getWithdrawFee(this.homeBridge, await this.toDecimals(amount)))
+    return this.deDecimals(
+      await getWithdrawFee(this.homeBridge, await this.toDecimals(amount))
+    )
   }
 
   async getDepositFee(amount) {
-    return this.deDecimals(await getDepositFee(this.homeBridge, await this.toDecimals(amount)))
+    return this.deDecimals(
+      await getDepositFee(this.homeBridge, await this.toDecimals(amount))
+    )
   }
 
   @action
   async getEvents(fromBlock, toBlock) {
     try {
-      fromBlock = fromBlock || this.filteredBlockNumber || this.latestBlockNumber - 50
-      toBlock = toBlock || this.filteredBlockNumber || 'latest'
+      fromBlock =
+        fromBlock || this.filteredBlockNumber || this.latestBlockNumber - 50
+      toBlock = toBlock || this.filteredBlockNumber || "latest"
 
       if (fromBlock < 0) {
         fromBlock = 0
       }
 
-      let events = await getPastEvents(this.homeBridge, fromBlock, toBlock).catch(e => {
+      let events = await getPastEvents(
+        this.homeBridge,
+        fromBlock,
+        toBlock
+      ).catch((e) => {
         console.error("Couldn't get events", e)
         return []
       })
 
       let homeEvents = []
-      await asyncForEach(events, async event => {
-        if (event.event === 'SignedForUserRequest' || event.event === 'CollectedSignatures') {
-          event.signedTxHash = await this.getSignedTx(event.returnValues.messageHash)
+      await asyncForEach(events, async (event) => {
+        if (
+          event.event === "SignedForUserRequest" ||
+          event.event === "CollectedSignatures"
+        ) {
+          event.signedTxHash = await this.getSignedTx(
+            event.returnValues.messageHash
+          )
         }
         homeEvents.push(event)
       })
@@ -350,11 +405,11 @@ class HomeStore {
 
       if (this.waitingForConfirmation.size) {
         const confirmationEvents = homeEvents.filter(
-          event =>
-            event.event === 'AffirmationCompleted' &&
+          (event) =>
+            event.event === "AffirmationCompleted" &&
             this.waitingForConfirmation.has(event.returnValues.transactionHash)
         )
-        confirmationEvents.forEach(event => {
+        confirmationEvents.forEach((event) => {
           this.alertStore.setLoadingStepIndex(3)
           const urlExplorer = this.getExplorerTxUrl(event.transactionHash)
           const unitReceived = getUnit(this.rootStore.bridgeMode).unitHome
@@ -387,29 +442,33 @@ class HomeStore {
   async getSignedTx(messageHash) {
     try {
       const message = await getMessage(this.homeBridge, messageHash)
-      return '0x' + message.substring(106, 170)
+      return "0x" + message.substring(106, 170)
     } catch (e) {
       console.error(e)
     }
   }
 
   getExplorerTxUrl(txHash) {
-    return this.explorerTxTemplate.replace('%s', txHash)
+    return this.explorerTxTemplate.replace("%s", txHash)
   }
 
   getExplorerAddressUrl(address) {
-    return this.explorerAddressTemplate.replace('%s', address)
+    return this.explorerAddressTemplate.replace("%s", address)
   }
 
   @action
   async filterByTxHashInReturnValues(transactionHash) {
-    const events = await this.getEvents(1, 'latest')
-    this.events = events.filter(event => event.returnValues.transactionHash === transactionHash)
+    const events = await this.getEvents(1, "latest")
+    this.events = events.filter(
+      (event) => event.returnValues.transactionHash === transactionHash
+    )
   }
   @action
   async filterByTxHash(transactionHash) {
-    const events = await this.getEvents(1, 'latest')
-    this.events = events.filter(event => event.transactionHash === transactionHash)
+    const events = await this.getEvents(1, "latest")
+    this.events = events.filter(
+      (event) => event.transactionHash === transactionHash
+    )
     if (
       this.events.length > 0 &&
       this.events[0].returnValues &&
@@ -453,14 +512,20 @@ class HomeStore {
   @action
   async getValidators() {
     try {
-      const homeValidatorsAddress = await this.homeBridge.methods.validatorContract().call()
+      const homeValidatorsAddress = await this.homeBridge.methods
+        .validatorContract()
+        .call()
       this.homeBridgeValidators = new this.homeWeb3.eth.Contract(
         BRIDGE_VALIDATORS_ABI,
         homeValidatorsAddress
       )
 
-      this.requiredSignatures = await this.homeBridgeValidators.methods.requiredSignatures().call()
-      this.validatorsCount = await this.homeBridgeValidators.methods.validatorCount().call()
+      this.requiredSignatures = await this.homeBridgeValidators.methods
+        .requiredSignatures()
+        .call()
+      this.validatorsCount = await this.homeBridgeValidators.methods
+        .validatorCount()
+        .call()
 
       this.validators = this.readValidators(this.symbol)
     } catch (e) {
@@ -470,34 +535,58 @@ class HomeStore {
 
   async getStatistics() {
     const BNfromDecimal = (x) => BN(fromDecimals(x, this.tokenDecimals))
-    this.statistics.deposits= this.readStatistics('deposits', 0, this.homeWeb3.utils.toBN)
-    this.statistics.depositsValue = this.readStatistics('depositValue', 0, BNfromDecimal)
-    this.statistics.withdraws = this.readStatistics('withdrawals', 0, this.homeWeb3.utils.toBN)
-    this.statistics.withdrawsValue = this.readStatistics('withdrawalValue', 0, BNfromDecimal)
-    this.statistics.users = this.readStatistics('withdrawalUsers', 0, Number)
-    this.statistics.totalBridged = this.statistics.depositsValue.plus(this.statistics.withdrawsValue)
+    this.statistics.deposits = this.readStatistics(
+      "deposits",
+      0,
+      this.homeWeb3.utils.toBN
+    )
+    this.statistics.depositsValue = this.readStatistics(
+      "depositValue",
+      0,
+      BNfromDecimal
+    )
+    this.statistics.withdraws = this.readStatistics(
+      "withdrawals",
+      0,
+      this.homeWeb3.utils.toBN
+    )
+    this.statistics.withdrawsValue = this.readStatistics(
+      "withdrawalValue",
+      0,
+      BNfromDecimal
+    )
+    this.statistics.users = this.readStatistics("withdrawalUsers", 0, Number)
+    this.statistics.totalBridged = this.statistics.depositsValue.plus(
+      this.statistics.withdrawsValue
+    )
     this.statistics.finished = true
   }
 
-  processEvent = event => {
+  processEvent = (event) => {
     if (event.returnValues && event.returnValues.recipient) {
       this.statistics.users.add(event.returnValues.recipient)
     }
-    if (event.event === 'UserRequestForSignature' || event.event === 'Deposit') {
+    if (
+      event.event === "UserRequestForSignature" ||
+      event.event === "Deposit"
+    ) {
       this.statistics.deposits++
       this.statistics.depositsValue = this.statistics.depositsValue.plus(
         BN(fromDecimals(event.returnValues.value, this.tokenDecimals))
       )
-    } else if (event.event === 'AffirmationCompleted' || event.event === 'Withdraw') {
+    } else if (
+      event.event === "AffirmationCompleted" ||
+      event.event === "Withdraw"
+    ) {
       this.statistics.withdraws++
       this.statistics.withdrawsValue = this.statistics.withdrawsValue.plus(
         BN(fromDecimals(event.returnValues.value, this.tokenDecimals))
       )
-    } else if (event.event === 'FeeDistributedFromSignatures') {
+    } else if (event.event === "FeeDistributedFromSignatures") {
       this.feeManager.totalFeeDistributedFromSignatures = this.feeManager.totalFeeDistributedFromSignatures.plus(
         BN(fromDecimals(event.returnValues.feeAmount, this.tokenDecimals))
       )
-    } else if (event.event === 'FeeDistributedFromAffirmation') {
+    } else if (event.event === "FeeDistributedFromAffirmation") {
       this.feeManager.totalFeeDistributedFromAffirmation = this.feeManager.totalFeeDistributedFromAffirmation.plus(
         BN(fromDecimals(event.returnValues.feeAmount, this.tokenDecimals))
       )
@@ -518,24 +607,33 @@ class HomeStore {
       return
     }
 
-    const data = getRewardableData(this.feeManager, this.rootStore.foreignStore.feeManager)
+    const data = getRewardableData(
+      this.feeManager,
+      this.rootStore.foreignStore.feeManager
+    )
 
     this.depositFeeCollected.type =
-      data.depositSymbol === 'home' ? this.symbol : this.rootStore.foreignStore.symbol
+      data.depositSymbol === "home"
+        ? this.symbol
+        : this.rootStore.foreignStore.symbol
     this.withdrawFeeCollected.type =
-      data.withdrawSymbol === 'home' ? this.symbol : this.rootStore.foreignStore.symbol
+      data.withdrawSymbol === "home"
+        ? this.symbol
+        : this.rootStore.foreignStore.symbol
     this.depositFeeCollected.shouldDisplay = data.displayDeposit
     this.withdrawFeeCollected.shouldDisplay = data.displayWithdraw
 
     this.depositFeeCollected.value =
-      data.depositSymbol === 'home'
+      data.depositSymbol === "home"
         ? this.feeManager.totalFeeDistributedFromSignatures
-        : this.rootStore.foreignStore.feeManager.totalFeeDistributedFromSignatures
+        : this.rootStore.foreignStore.feeManager
+            .totalFeeDistributedFromSignatures
 
     this.withdrawFeeCollected.value =
-      data.withdrawSymbol === 'home'
+      data.withdrawSymbol === "home"
         ? this.feeManager.totalFeeDistributedFromAffirmation
-        : this.rootStore.foreignStore.feeManager.totalFeeDistributedFromAffirmation
+        : this.rootStore.foreignStore.feeManager
+            .totalFeeDistributedFromAffirmation
 
     this.depositFeeCollected.finished = true
     this.withdrawFeeCollected.finished = true
@@ -555,14 +653,22 @@ class HomeStore {
     const web3 = this.rootStore.foreignStore.foreignWeb3
     const bridge = this.homeBridge
 
-    const messageHash = web3.utils.soliditySha3(recipient, web3.utils.toBN(value).toString(), txHash)
-    const numSigned = await bridge.methods.numAffirmationsSigned(messageHash).call()
+    const messageHash = web3.utils.soliditySha3(
+      recipient,
+      web3.utils.toBN(value).toString(),
+      txHash
+    )
+    const numSigned = await bridge.methods
+      .numAffirmationsSigned(messageHash)
+      .call()
     const processed = await bridge.methods.isAlreadyProcessed(numSigned).call()
 
     if (processed) {
       return Promise.resolve()
     } else {
-      return sleep(5000).then(() => this.waitUntilProcessed(txHash, value, recipient))
+      return sleep(5000).then(() =>
+        this.waitUntilProcessed(txHash, value, recipient)
+      )
     }
   }
 }

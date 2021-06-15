@@ -1,6 +1,6 @@
-import { action, observable } from 'mobx'
-import ERC677_ABI from '../../abis/ERC677BridgeToken.abi'
-import { getBlockNumber } from './utils/web3'
+import { action, observable } from "mobx"
+import ERC677_ABI from "../../abis/ERC677BridgeToken.abi"
+import { getBlockNumber } from "./utils/web3"
 import {
   getMaxPerTxLimit,
   getMinPerTxLimit,
@@ -15,22 +15,22 @@ import {
   getForeignFee,
   getDeployedAtBlock,
   getValidatorList,
-  getTokenType
-} from './utils/contract'
-import { balanceLoaded, removePendingTransaction } from './utils/testUtils'
-import sleep from './utils/sleep'
+  getTokenType,
+} from "./utils/contract"
+import { balanceLoaded, removePendingTransaction } from "./utils/testUtils"
+import sleep from "./utils/sleep"
+import { getBridgeABIs, getUnit, BRIDGE_MODES } from "./utils/bridgeMode"
+const BRIDGE_VALIDATORS_ABI = require("../../abis/BridgeValidators.abi")
+import ERC20Bytes32Abi from "./utils/ERC20Bytes32.abi"
+import BN from "bignumber.js"
+import { processLargeArrayAsync } from "./utils/array"
+import { fromDecimals } from "./utils/decimals"
 import {
-  getBridgeABIs,
-  getUnit,
-  BRIDGE_MODES
-} from './utils/bridgeMode'
-const BRIDGE_VALIDATORS_ABI = require('../../abis/BridgeValidators.abi')
-import ERC20Bytes32Abi from './utils/ERC20Bytes32.abi'
-import BN from 'bignumber.js'
-import { processLargeArrayAsync } from './utils/array'
-import { fromDecimals } from './utils/decimals'
-import { ReadPrometheusStatus, ReadValidators, LoadPrometheusFile } from './utils/PrometheusStatus'
-import { getBridgeAddress } from './utils/getBridgeAddress'
+  ReadPrometheusStatus,
+  ReadValidators,
+  LoadPrometheusFile,
+} from "./utils/PrometheusStatus"
+import { getBridgeAddress } from "./utils/getBridgeAddress"
 
 class ForeignStore {
   @observable
@@ -43,28 +43,28 @@ class ForeignStore {
   events = []
 
   @observable
-  totalSupply = ''
+  totalSupply = ""
 
   @observable
-  symbol = 'NOSYM'
+  symbol = "NOSYM"
 
   @observable
-  tokenName = ''
+  tokenName = ""
 
   @observable
-  balance = ''
+  balance = ""
 
   @observable
   filter = false
 
   @observable
-  maxCurrentDeposit = ''
+  maxCurrentDeposit = ""
 
   @observable
-  maxPerTx = ''
+  maxPerTx = ""
 
   @observable
-  minPerTx = ''
+  minPerTx = ""
 
   @observable
   latestBlockNumber = 0
@@ -76,7 +76,7 @@ class ForeignStore {
   validatorsCount = 0
 
   @observable
-  foreignBridgeValidators = ''
+  foreignBridgeValidators = ""
 
   @observable
   requiredSignatures = 0
@@ -88,26 +88,30 @@ class ForeignStore {
   totalSpentPerDay = 0
 
   @observable
-  tokenAddress = ''
+  tokenAddress = ""
 
   @observable
   feeEventsFinished = false
 
   @observable
-  tokenType = ''
+  tokenType = ""
+
+  @observable
+  intervalID = 0
 
   feeManager = {
     totalFeeDistributedFromSignatures: BN(0),
-    totalFeeDistributedFromAffirmation: BN(0)
+    totalFeeDistributedFromAffirmation: BN(0),
   }
-  networkName = process.env.REACT_APP_FOREIGN_NETWORK_NAME || 'Unknown'
+  networkName = process.env.REACT_APP_FOREIGN_NETWORK_NAME || "Unknown"
   filteredBlockNumber = 0
   foreignBridge = {}
   tokenContract = {}
   tokenDecimals = 18
   FOREIGN_BRIDGE_ADDRESS = process.env.REACT_APP_FOREIGN_BUSD_BRIDGE_ADDRESS
-  explorerTxTemplate = process.env.REACT_APP_FOREIGN_EXPLORER_TX_TEMPLATE || ''
-  explorerAddressTemplate = process.env.REACT_APP_FOREIGN_EXPLORER_ADDRESS_TEMPLATE || ''
+  explorerTxTemplate = process.env.REACT_APP_FOREIGN_EXPLORER_TX_TEMPLATE || ""
+  explorerAddressTemplate =
+    process.env.REACT_APP_FOREIGN_EXPLORER_ADDRESS_TEMPLATE || ""
 
   constructor(rootStore) {
     this.web3Store = rootStore.web3Store
@@ -120,11 +124,18 @@ class ForeignStore {
   }
 
   readStatistics(name, defaultVal, formatter) {
-    return ReadPrometheusStatus(this.status, this.symbol, 'foreign', name, defaultVal, formatter)
+    return ReadPrometheusStatus(
+      this.status,
+      this.symbol,
+      "foreign",
+      name,
+      defaultVal,
+      formatter
+    )
   }
 
   readValidators() {
-    return ReadValidators(this.status, this.symbol, 'foreign')
+    return ReadValidators(this.status, this.symbol, "foreign")
   }
 
   async setForeign(tokenName) {
@@ -139,13 +150,15 @@ class ForeignStore {
       this.status = await LoadPrometheusFile()
     }, 10000)
 
-    if (!tokenName)
-    tokenName = process.env.REACT_APP_HOME_NATIVE_NAME
+    if (!tokenName) tokenName = process.env.REACT_APP_HOME_NATIVE_NAME
 
     this.FOREIGN_BRIDGE_ADDRESS = getBridgeAddress(tokenName, "foreign")
 
     const { FOREIGN_ABI } = getBridgeABIs(this.rootStore.bridgeMode)
-    this.foreignBridge = new this.foreignWeb3.eth.Contract(FOREIGN_ABI, this.FOREIGN_BRIDGE_ADDRESS)
+    this.foreignBridge = new this.foreignWeb3.eth.Contract(
+      FOREIGN_ABI,
+      this.FOREIGN_BRIDGE_ADDRESS
+    )
     await this.getBlockNumber()
     await this.getTokenInfo()
     this.getMinPerTxLimit()
@@ -156,7 +169,7 @@ class ForeignStore {
     this.getFee()
     this.getValidators()
     // this.getFeeEvents()
-    setInterval(() => {
+    this.intervalID = setInterval(() => {
       this.getBlockNumber()
       // this.getEvents()
       this.getTokenBalance()
@@ -176,7 +189,10 @@ class ForeignStore {
   @action
   async getMaxPerTxLimit() {
     try {
-      this.maxPerTx = await getMaxPerTxLimit(this.foreignBridge, this.tokenDecimals)
+      this.maxPerTx = await getMaxPerTxLimit(
+        this.foreignBridge,
+        this.tokenDecimals
+      )
     } catch (e) {
       console.error(e)
     }
@@ -185,7 +201,10 @@ class ForeignStore {
   @action
   async getMinPerTxLimit() {
     try {
-      this.minPerTx = await getMinPerTxLimit(this.foreignBridge, this.tokenDecimals)
+      this.minPerTx = await getMinPerTxLimit(
+        this.foreignBridge,
+        this.tokenDecimals
+      )
     } catch (e) {
       console.error(e)
     }
@@ -199,8 +218,14 @@ class ForeignStore {
         this.rootStore.bridgeMode === BRIDGE_MODES.ERC_TO_NATIVE
           ? await getErc20TokenAddress(this.foreignBridge)
           : await getErc677TokenAddress(this.foreignBridge)
-      this.tokenContract = new this.foreignWeb3.eth.Contract(ERC677_ABI, this.tokenAddress)
-      this.tokenType = await getTokenType(this.tokenContract, this.FOREIGN_BRIDGE_ADDRESS)
+      this.tokenContract = new this.foreignWeb3.eth.Contract(
+        ERC677_ABI,
+        this.tokenAddress
+      )
+      this.tokenType = await getTokenType(
+        this.tokenContract,
+        this.FOREIGN_BRIDGE_ADDRESS
+      )
       const alternativeContract = new this.foreignWeb3.eth.Contract(
         ERC20Bytes32Abi,
         this.tokenAddress
@@ -210,14 +235,14 @@ class ForeignStore {
       } catch (e) {
         this.symbol = this.foreignWeb3.utils
           .hexToAscii(await getSymbol(alternativeContract))
-          .replace(/\u0000*$/, '')
+          .replace(/\u0000*$/, "")
       }
       try {
         this.tokenName = await getName(this.tokenContract)
       } catch (e) {
         this.tokenName = this.foreignWeb3.utils
           .hexToAscii(await getName(alternativeContract))
-          .replace(/\u0000*$/, '')
+          .replace(/\u0000*$/, "")
       }
 
       this.tokenDecimals = await getDecimals(this.tokenContract)
@@ -229,9 +254,21 @@ class ForeignStore {
   @action
   async getTokenBalance() {
     try {
-      this.totalSupply = this.readStatistics('totalSupply', 0, x => this.foreignWeb3.utils.toBN(x).toString())
+      this.totalSupply = this.readStatistics("totalSupply", 0, (x) =>
+        this.foreignWeb3.utils.toBN(x).toString()
+      )
       this.web3Store.getWeb3Promise.then(async () => {
-        this.balance = await getBalanceOf(this.tokenContract, this.web3Store.defaultAccount.address, this.tokenDecimals)
+        this.balance = await getBalanceOf(
+          this.tokenContract,
+          this.web3Store.defaultAccount.address,
+          this.tokenDecimals
+        )
+        console.log(
+          "Foreign store getTokenBalance:",
+          this.balance,
+          this.tokenContract,
+          this.tokenDecimals
+        )
         balanceLoaded()
       })
     } catch (e) {
@@ -247,14 +284,19 @@ class ForeignStore {
   @action
   async getEvents(fromBlock, toBlock) {
     try {
-      fromBlock = fromBlock || this.filteredBlockNumber || this.latestBlockNumber - 50
-      toBlock = toBlock || this.filteredBlockNumber || 'latest'
+      fromBlock =
+        fromBlock || this.filteredBlockNumber || this.latestBlockNumber - 50
+      toBlock = toBlock || this.filteredBlockNumber || "latest"
 
       if (fromBlock < 0) {
         fromBlock = 0
       }
 
-      let foreignEvents = await getPastEvents(this.foreignBridge, fromBlock, toBlock).catch(e => {
+      let foreignEvents = await getPastEvents(
+        this.foreignBridge,
+        fromBlock,
+        toBlock
+      ).catch((e) => {
         console.error("Couldn't get events", e)
         return []
       })
@@ -265,11 +307,11 @@ class ForeignStore {
 
       if (this.waitingForConfirmation.size) {
         const confirmationEvents = foreignEvents.filter(
-          event =>
-            event.event === 'RelayedMessage' &&
+          (event) =>
+            event.event === "RelayedMessage" &&
             this.waitingForConfirmation.has(event.returnValues.transactionHash)
         )
-        confirmationEvents.forEach(async event => {
+        confirmationEvents.forEach(async (event) => {
           const TxReceipt = await this.getTxReceipt(event.transactionHash)
           if (
             TxReceipt &&
@@ -288,7 +330,9 @@ class ForeignStore {
                 this.alertStore.FOREIGN_TRANSFER_SUCCESS
               )
             }, 2000)
-            this.waitingForConfirmation.delete(event.returnValues.transactionHash)
+            this.waitingForConfirmation.delete(
+              event.returnValues.transactionHash
+            )
           }
         })
 
@@ -312,7 +356,10 @@ class ForeignStore {
     try {
       // we need to take limits from Home side because Foreign side cannot count incoming transfers
       // so we use `executed` amount from home side as totalSpentPerDay on foreign
-      const result = await getForeignLimit(this.homeStore.homeBridge, this.tokenDecimals)
+      const result = await getForeignLimit(
+        this.homeStore.homeBridge,
+        this.tokenDecimals
+      )
       this.maxCurrentDeposit = result.maxCurrentDeposit
       this.dailyLimit = result.dailyLimit
       this.totalSpentPerDay = result.totalSpentPerDay
@@ -340,7 +387,9 @@ class ForeignStore {
       const to = txReceipt.blockNumber + 20
       const events = await this.getEvents(from, to)
       this.events = events.filter(
-        event => event.transactionHash === transactionHash || event.signedTxHash === transactionHash
+        (event) =>
+          event.transactionHash === transactionHash ||
+          event.signedTxHash === transactionHash
       )
     } catch (e) {
       this.events = []
@@ -385,17 +434,19 @@ class ForeignStore {
   }
 
   getExplorerTxUrl(txHash) {
-    return this.explorerTxTemplate.replace('%s', txHash)
+    return this.explorerTxTemplate.replace("%s", txHash)
   }
 
   getExplorerAddressUrl(address) {
-    return this.explorerAddressTemplate.replace('%s', address)
+    return this.explorerAddressTemplate.replace("%s", address)
   }
 
   @action
   async getValidators() {
     try {
-      const foreignValidatorsAddress = await this.foreignBridge.methods.validatorContract().call()
+      const foreignValidatorsAddress = await this.foreignBridge.methods
+        .validatorContract()
+        .call()
       this.foreignBridgeValidators = new this.foreignWeb3.eth.Contract(
         BRIDGE_VALIDATORS_ABI,
         foreignValidatorsAddress
@@ -404,7 +455,9 @@ class ForeignStore {
       this.requiredSignatures = await this.foreignBridgeValidators.methods
         .requiredSignatures()
         .call()
-      this.validatorsCount = await this.foreignBridgeValidators.methods.validatorCount().call()
+      this.validatorsCount = await this.foreignBridgeValidators.methods
+        .validatorCount()
+        .call()
 
       this.validators = this.readValidators()
     } catch (e) {
@@ -415,7 +468,11 @@ class ForeignStore {
   async getFeeEvents() {
     try {
       const deployedAtBlock = await getDeployedAtBlock(this.foreignBridge)
-      const events = await getPastEvents(this.foreignBridge, deployedAtBlock, 'latest')
+      const events = await getPastEvents(
+        this.foreignBridge,
+        deployedAtBlock,
+        "latest"
+      )
 
       processLargeArrayAsync(events, this.processEvent, () => {
         this.feeEventsFinished = true
@@ -430,12 +487,12 @@ class ForeignStore {
     }
   }
 
-  processEvent = event => {
-    if (event.event === 'FeeDistributedFromSignatures') {
+  processEvent = (event) => {
+    if (event.event === "FeeDistributedFromSignatures") {
       this.feeManager.totalFeeDistributedFromSignatures = this.feeManager.totalFeeDistributedFromSignatures.plus(
         BN(fromDecimals(event.returnValues.feeAmount, this.tokenDecimals))
       )
-    } else if (event.event === 'FeeDistributedFromAffirmation') {
+    } else if (event.event === "FeeDistributedFromAffirmation") {
       this.feeManager.totalFeeDistributedFromAffirmation = this.feeManager.totalFeeDistributedFromAffirmation.plus(
         BN(fromDecimals(event.returnValues.feeAmount, this.tokenDecimals))
       )
