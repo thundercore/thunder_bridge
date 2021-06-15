@@ -264,8 +264,10 @@ class ForeignStore {
         this.tokenName,
         this.tokenDecimals
       )
-      this.totalSupply = this.readStatistics("totalSupply", 0, (x) =>
-        this.foreignWeb3.utils.toBN(x).toString()
+      this.totalSupply = this.readStatistics(
+        "totalSupply",
+        0,
+        this.foreignWeb3.utils.toBN
       )
       this.web3Store.getWeb3Promise.then(async () => {
         this.balance = await getBalanceOf(
