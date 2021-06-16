@@ -246,11 +246,6 @@ class ForeignStore {
       }
 
       this.tokenDecimals = await getDecimals(this.tokenContract)
-      console.log(
-        "ForeignStore getTokenInfo:",
-        this.tokenName,
-        this.tokenDecimals
-      )
     } catch (e) {
       console.error(e)
     }
@@ -259,11 +254,6 @@ class ForeignStore {
   @action
   async getTokenBalance() {
     try {
-      console.log(
-        "ForeignStore getTokenBalance:",
-        this.tokenName,
-        this.tokenDecimals
-      )
       this.totalSupply = this.readStatistics("totalSupply", 0, (x) =>
         x > 1e20
           ? this.foreignWeb3.utils.toBN(0).toString()
@@ -273,12 +263,6 @@ class ForeignStore {
         this.balance = await getBalanceOf(
           this.tokenContract,
           this.web3Store.defaultAccount.address,
-          this.tokenDecimals
-        )
-        console.log(
-          "ForeignStore getTokenBalance:",
-          this.balance,
-          this.tokenContract,
           this.tokenDecimals
         )
         balanceLoaded()
