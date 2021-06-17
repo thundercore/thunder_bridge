@@ -15,8 +15,8 @@ if (env.BRIDGE_MODE === 'NATIVE_TO_ERC') {
   console.log('Deploy ForeignBridgeWithNativeToken contract')
   ForeignBridge = require('../../../build/contracts/ForeignBridgeWithNativeToken.json')
 } else if (env.BRIDGE_MODE === 'ERC_TO_ERC') {
-  console.log('Deploy ForeignBridgeErcToErcV2 contract')
-  ForeignBridge = require('../../../build/contracts/ForeignBridgeErcToErcV2.json')
+  console.log('Deploy ForeignBridgeErcToErcV3 contract')
+  ForeignBridge = require('../../../build/contracts/ForeignBridgeErcToErcV3.json')
 } else if (env.BRIDGE_MODE === 'ERC_TO_NATIVE') {
   console.log('Deploy ForeignBridgeErc677ToNative contract')
   ForeignBridge = require('../../../build/contracts/ForeignBridgeERC677ToNative.json')
@@ -262,11 +262,28 @@ async function deployForeign(erc20TokenAddress) {
       .encodeABI({
         from: DEPLOYMENT_ACCOUNT_ADDRESS
       })
-  } else {
+  } else if (BRIDGE_MODE === 'ERC_TO_ERC') {
     initializeFBridgeData = await foreignBridgeImplementation.methods
       .initialize(
         storageValidatorsForeign.options.address,
-        BRIDGE_MODE === 'ERC_TO_NATIVE' ? initializableToken.options.address : erc20TokenAddress,
+        erc20TokenAddress,
+        FOREIGN_REQUIRED_BLOCK_CONFIRMATIONS,
+        FOREIGN_GAS_PRICE,
+        FOREIGN_MAX_AMOUNT_PER_TX,
+        HOME_DAILY_LIMIT,
+        HOME_MAX_AMOUNT_PER_TX,
+        FOREIGN_BRIDGE_OWNER,
+        FOREIGN_FEE_PERCENT,
+        FOREIGN_FALLBACK_RECIPIENT
+      )
+      .encodeABI({
+        from: DEPLOYMENT_ACCOUNT_ADDRESS
+      })
+  } else { // ERC_TO_NATIVE
+    initializeFBridgeData = await foreignBridgeImplementation.methods
+      .initialize(
+        storageValidatorsForeign.options.address,
+        initializableToken.options.address,
         FOREIGN_REQUIRED_BLOCK_CONFIRMATIONS,
         FOREIGN_GAS_PRICE,
         FOREIGN_MAX_AMOUNT_PER_TX,
