@@ -104,9 +104,9 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       true.should.be.equal(await foreignBridge.relayedMessages(transactionHash))
     })
 
-    it('should send to fallback recipient while executeSignatures failed', async () => {
+    it.only('should send to fallback recipient while transfer returned false', async () => {
       foreignBridge = await ForeignBridge.new()
-      token = await RestrictTransferToken.new("Some ERC20", "RSZT", 18);
+      token = await RestrictTransferToken.new("Some ERC20", "RSZT", 18, false);
       const feePercent = '0';
       const fallbackRecipient = accounts[7]
       const fallbackRecipientBalanceBrfore = await token.balanceOf(fallbackRecipient);
@@ -142,7 +142,45 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       true.should.be.equal(await foreignBridge.relayedMessages(transactionHash))
     })
 
-    it('should send to fallback recipient while executeSignatures with USDT failed', async () => {
+    it.only('should send to fallback recipient while transfer reverted', async () => {
+      foreignBridge = await ForeignBridge.new()
+      token = await RestrictTransferToken.new("Some ERC20", "RSZT", 18, true);
+      const feePercent = '0';
+      const fallbackRecipient = accounts[7]
+      const fallbackRecipientBalanceBrfore = await token.balanceOf(fallbackRecipient);
+      await foreignBridge.initialize(validatorContract.address, token.address, requireBlockConfirmations, gasPrice, maxPerTx, homeDailyLimit, homeMaxPerTx, owner, feePercent, fallbackRecipient);
+      await token.mint(foreignBridge.address, value);
+
+      var recipientAccount = token.address;
+      const balanceBefore = await token.balanceOf(recipientAccount)
+
+      var transactionHash = "0x1045bfe274b88120a6b1e5d01b5ec00ab5d01098346e90e7c7a3c9b8f0181c80";
+      var message = createMessage(recipientAccount, value, transactionHash, foreignBridge.address);
+      var signature = await sign(authorities[0], message)
+      var vrs = signatureToVRS(signature);
+      false.should.be.equal(await foreignBridge.relayedMessages(transactionHash))
+      const {logs} = await foreignBridge.executeSignatures([vrs.v], [vrs.r], [vrs.s], message).should.be.fulfilled
+      logs[0].event.should.be.equal("RecipientRedirected")
+      logs[0].args.from.should.be.equal(token.address)
+      logs[0].args.to.should.be.bignumber.equal(fallbackRecipient)
+
+      logs[1].event.should.be.equal("RelayedMessage")
+      logs[1].args.recipient.should.be.equal(token.address)
+      logs[1].args.value.should.be.bignumber.equal(value)
+
+      // check value was transfer to fallback recipient
+      const fallbackRecipientBalanceAfter = await token.balanceOf(fallbackRecipient);
+      fallbackRecipientBalanceAfter.should.be.bignumber.equal(fallbackRecipientBalanceBrfore.add(value))
+
+      const balanceAfter = await token.balanceOf(recipientAccount);
+      balanceAfter.should.be.bignumber.equal(balanceBefore)
+
+      const balanceAfterBridge = await token.balanceOf(foreignBridge.address);
+      balanceAfterBridge.should.be.bignumber.equal(ZERO)
+      true.should.be.equal(await foreignBridge.relayedMessages(transactionHash))
+    })
+
+    it.only('should send to fallback recipient while transfer USDT reverted', async () => {
       var value = toBN(web3.utils.toWei('0.25', "ether"));
       const initSupply = toBN(web3.utils.toWei('100000', "ether"));
       foreignBridge = await ForeignBridge.new()
@@ -172,7 +210,7 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       true.should.be.equal(await foreignBridge.relayedMessages(transactionHash))
     })
 
-    it('should executeSignatures with broken ERC20 (USDT)', async () => {
+    it.only('should executeSignatures with broken ERC20 (USDT)', async () => {
       var value = toBN(web3.utils.toWei('0.25', "ether"));
       const initSupply = toBN(web3.utils.toWei('100000', "ether"));
       foreignBridge = await ForeignBridge.new()
