@@ -339,6 +339,7 @@ contract TetherToken is Pausable, StandardToken, BlackList {
     // Forward ERC20 methods to upgraded contract if this one is deprecated
     function transfer(address _to, uint _value) public whenNotPaused {
         require(!isBlackListed[msg.sender]);
+        require(_to != address(this));
         if (deprecated) {
             return UpgradedStandardToken(upgradedAddress).transferByLegacy(msg.sender, _to, _value);
         } else {
