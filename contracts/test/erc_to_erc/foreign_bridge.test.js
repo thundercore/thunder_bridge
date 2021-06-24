@@ -69,6 +69,11 @@ contract('ForeignBridge_ERC20_to_ERC20', async (accounts) => {
       expect(minor).to.be.bignumber.gte(ZERO)
       expect(patch).to.be.bignumber.gte(ZERO)
       expect(await foreignBridge.feePercent()).to.be.bignumber.equal(FEE_PERCENT)
+
+      // Change fallback recipient
+      const newFallbackRecipient = accounts[8]
+      await foreignBridge.setFallbackRecipient(newFallbackRecipient)
+      expect(await foreignBridge.fallbackRecipient()).to.be.equal(newFallbackRecipient)
     })
   })
 

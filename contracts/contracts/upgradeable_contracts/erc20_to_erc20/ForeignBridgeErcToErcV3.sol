@@ -44,6 +44,10 @@ contract ForeignBridgeErcToErcV3 is ForeignBridgeErcToErcV2 {
         ] = _recipient;
     }
 
+    function setFallbackRecipient(address _recipient) public onlyOwner {
+      _setFallbackRecipient(_recipient);
+    }
+
     function fallbackRecipient() public view returns (address) {
         return addressStorage[keccak256(abi.encodePacked("fallbackRecipient"))];
     }
