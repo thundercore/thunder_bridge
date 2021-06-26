@@ -5,16 +5,16 @@ const ONE = toBN(1)
 const TWO = toBN(2)
 const queryRange = toBN(1000)
 
-function *getPastEventsIter({ contract, event, fromBlock, toBlock, options, token }) {
+function* getPastEventsIter({ contract, event, fromBlock, toBlock, options, token }) {
   logger.debug(`${token} *getPastEventsIter: ${event} from: ${fromBlock} to: ${toBlock}`)
   let from = toBN(fromBlock)
   let to = toBN(fromBlock).add(queryRange)
   while (to.lt(toBlock)) {
-    yield getPastEvents({contract, event, fromBlock: from, toBlock: to, options, token})
+    yield getPastEvents({ contract, event, fromBlock: from, toBlock: to, options, token })
     from = to.add(ONE)
     to = to.add(queryRange)
   }
-  yield getPastEvents({contract, event, fromBlock: from, toBlock, options, token})
+  yield getPastEvents({ contract, event, fromBlock: from, toBlock, options, token })
 }
 
 async function getPastEvents({ contract, event, fromBlock, toBlock, options, token }) {
@@ -24,7 +24,7 @@ async function getPastEvents({ contract, event, fromBlock, toBlock, options, tok
     events = await contract.getPastEvents(event, {
       ...options,
       fromBlock,
-      toBlock
+      toBlock,
     })
   } catch (e) {
     if (e.message && /query returned more than \d+ results/.test(e.message)) {
@@ -36,24 +36,28 @@ async function getPastEvents({ contract, event, fromBlock, toBlock, options, tok
         event,
         fromBlock,
         toBlock: middle,
-        options
+        options,
       })
       const secondHalfEvents = await getPastEvents({
         contract,
         event,
         fromBlock: middlePlusOne,
         toBlock,
-        options
+        options,
       })
       events = [...firstHalfEvents, ...secondHalfEvents]
     } else {
-      throw new Error(e)
+      logger.error(
+        { error: JSON.stringify(e), token, event, fromBlock, toBlock },
+        'failed to run getPastEvent',
+      )
+      throw e
     }
   }
   return events
 }
 
-const getBlockNumberCall = web3 => web3.eth.getBlockNumber()
+const getBlockNumberCall = (web3) => web3.eth.getBlockNumber()
 
 async function getBlockNumber(web3Home, web3Foreign) {
   return (await Promise.all([web3Home, web3Foreign].map(getBlockNumberCall))).map(toBN)
@@ -62,5 +66,5 @@ async function getBlockNumber(web3Home, web3Foreign) {
 module.exports = {
   getPastEvents,
   getPastEventsIter,
-  getBlockNumber
+  getBlockNumber,
 }
