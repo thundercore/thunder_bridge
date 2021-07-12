@@ -73,7 +73,7 @@
       .bridge-transfer-content-background {
         display: flex;
         flex-shrink: 0;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         width: 100%;
 
         @media screen and (max-width: $tablet-width) {

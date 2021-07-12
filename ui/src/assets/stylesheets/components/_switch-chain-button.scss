@@ -21,7 +21,10 @@
     flex-shrink: 0;
     height: 48px;
     text-decoration: none;
-    padding: 0px 15px;
+    padding: 0px 6px;
+    @media screen and (max-width: $tablet-width) {
+      height: 60px;
+    }
 
     &:hover {
       background-color: #514747;

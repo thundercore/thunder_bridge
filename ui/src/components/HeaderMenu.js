@@ -11,8 +11,10 @@ export const HeaderMenu = ({ withoutEvents }) => (
     <a
       href={`${
         bridgeType === "eth"
-          ? "https://docs.thundercore.com/docs/ThunderStableCoinTutorial.pdf"
-          : "https://docs.thundercore.com/docs/TransferringCrossChainAssets-BSC.pdf"
+          ? "https://thundercore.zendesk.com/hc/en-us/articles/4402401778841-ThunderCore-Bridge-Transferring-into-ThunderCore-from-Ethereum"
+          : bridgeType === "bsc"
+          ? "https://thundercore.zendesk.com/hc/en-us/articles/4402401303577-ThunderCore-Bridge-Transferring-into-ThunderCore-from-Binance-Smart-Chain-"
+          : "https://thundercore.zendesk.com/hc/en-us/articles/4402658518169"
       }`}
       target="_blank"
       className="menu-items"
