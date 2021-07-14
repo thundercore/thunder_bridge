@@ -67,6 +67,9 @@
   "components.i18n.TransferAlert.continue": "계속하기",
   "components.i18n.TransferAlert.recipient": "받는 주소: {recipient}",
   "components.i18n.TransferAlert.txFee": "거래수수료: {fee} {currency}",
+  "components.i18n.TransferWarning.noExchangeAddress": "코인을 중앙화 거래소의 입금 주소로 전송하지 마세요. ",
+  "components.i18n.TransferWarning.readRules": "자산의 영구 손실을 방지하기 위해, 브리지 규칙을 읽어보세요. ",
+  "components.i18n.TransferWarning.warning": "경고",
   "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "지갑"
 }

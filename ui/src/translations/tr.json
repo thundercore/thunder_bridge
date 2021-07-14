@@ -67,6 +67,9 @@
   "components.i18n.TransferAlert.continue": "continue",
   "components.i18n.TransferAlert.recipient": "Alıcı: {recipient}",
   "components.i18n.TransferAlert.txFee": "İşlem ücreti: {fee} {currency}",
+  "components.i18n.TransferWarning.noExchangeAddress": "Merkezi borsaların depozit adreslerine token göndermeyin.",
+  "components.i18n.TransferWarning.readRules": "Kalıcı varlık kaybını önlemek için lütfen kuralları okuyun.",
+  "components.i18n.TransferWarning.warning": "Uyarı",
   "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "Cüzdan"
 }

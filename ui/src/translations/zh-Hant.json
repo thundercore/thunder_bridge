@@ -67,6 +67,9 @@
   "components.i18n.TransferAlert.continue": "繼續",
   "components.i18n.TransferAlert.recipient": "接收地址：{recipient}",
   "components.i18n.TransferAlert.txFee": "交易費用：{fee} {currency}",
+  "components.i18n.TransferWarning.noExchangeAddress": "勿將代幣發送到中心化交易所的存款地址。",
+  "components.i18n.TransferWarning.readRules": "為防止永久性資產丟失，請閱讀代幣橋規則。",
+  "components.i18n.TransferWarning.warning": "警告",
   "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "錢包"
 }

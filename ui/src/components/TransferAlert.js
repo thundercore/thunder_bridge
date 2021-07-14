@@ -83,11 +83,11 @@ const TransferAlert = ({
           />
         </p>
         <div className="transfer-buttons">
-          <button className="transfer-confirm" onClick={onConfirmation}>
-            <FormattedMessage id="components.i18n.TransferAlert.continue" />
-          </button>
           <button className="transfer-cancel" onClick={onCancel}>
             <FormattedMessage id="components.i18n.TransferAlert.cancel" />
+          </button>
+          <button className="transfer-confirm" onClick={onConfirmation}>
+            <FormattedMessage id="components.i18n.TransferAlert.continue" />
           </button>
         </div>
       </div>

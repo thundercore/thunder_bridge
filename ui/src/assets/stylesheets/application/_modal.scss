@@ -18,8 +18,10 @@
     }
 
     @media screen and (max-width: $mobile-width) {
+      display: flex;
       min-width: 100%;
       top: 0;
+      justify-content: center;
     }
 
     .title {
@@ -63,6 +65,5 @@
         right: 0;
       }
     }
-
   }
 }

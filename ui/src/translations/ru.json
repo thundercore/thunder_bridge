@@ -67,6 +67,9 @@
   "components.i18n.TransferAlert.continue": "Продолжить",
   "components.i18n.TransferAlert.recipient": "Получатель: {recipient}",
   "components.i18n.TransferAlert.txFee": "Комиссия за транзакцию: {fee} {currency}",
+  "components.i18n.TransferWarning.noExchangeAddress": "Не отправляйте токены на адреса депозита централизованных бирж.",
+  "components.i18n.TransferWarning.readRules": "Для избежания безвозвратной потери средств, пожалуйста прочитайте правила работы моста.",
+  "components.i18n.TransferWarning.warning": "Предупреждение",
   "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "кошелек"
 }

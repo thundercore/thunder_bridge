@@ -67,6 +67,9 @@
   "components.i18n.TransferAlert.continue": "Continuar",
   "components.i18n.TransferAlert.recipient": "Destinatario: {recipient}",
   "components.i18n.TransferAlert.txFee": "Comisión: {fee} {currency}",
+  "components.i18n.TransferWarning.noExchangeAddress": "No envíe tokens a una dirección de un exchange centralizado u otra aplicación centralizada.",
+  "components.i18n.TransferWarning.readRules": "Para evitar la pérdida permanente de activos, lea las reglas del bridge.",
+  "components.i18n.TransferWarning.warning": "Advertencia",
   "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "billetera"
 }

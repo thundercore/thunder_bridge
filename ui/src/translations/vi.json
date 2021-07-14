@@ -67,6 +67,9 @@
   "components.i18n.TransferAlert.continue": "Tiếp tục",
   "components.i18n.TransferAlert.recipient": "Người nhận: {recipient}",
   "components.i18n.TransferAlert.txFee": "Phí giao dịch: {fee} {currency}",
+  "components.i18n.TransferWarning.noExchangeAddress": "Không gửi mã thông báo đến địa chỉ gửi tiền của sàn giao dịch tập trung.",
+  "components.i18n.TransferWarning.readRules": "Để ngăn ngừa mất mát tài sản vĩnh viễn, vui lòng đọc các quy tắc bridge.",
+  "components.i18n.TransferWarning.warning": "Cảnh báo",
   "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "ví"
 }

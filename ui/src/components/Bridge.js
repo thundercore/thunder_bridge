@@ -11,6 +11,7 @@ import { BridgeChoose } from "./index"
 import { ModalContainer } from "./ModalContainer"
 import { default as NetworkDetails } from "./NetworkDetails"
 import { default as TransferAlert } from "./TransferAlert"
+import { default as TransferWarning } from "./TransferWarning"
 import { inject, observer } from "mobx-react"
 import { toDecimals } from "../stores/utils/decimals"
 import {
@@ -30,6 +31,7 @@ class Bridge extends React.Component {
     confirmationData: {},
     showModal: false,
     showConfirmation: false,
+    showExchangeWarning: true,
     error: { enable: false, text: "" },
     transferButtonEnabled: false,
   }
@@ -89,13 +91,8 @@ class Bridge extends React.Component {
   }
 
   async _sendToHome(amount, recipient) {
-    const {
-      web3Store,
-      homeStore,
-      alertStore,
-      txStore,
-      bridgeMode,
-    } = this.props.RootStore
+    const { web3Store, homeStore, alertStore, txStore, bridgeMode } =
+      this.props.RootStore
     const { isLessThan, isGreaterThan } = this
     const { intl } = this.props
 
@@ -183,12 +180,8 @@ class Bridge extends React.Component {
   }
 
   async _sendToForeign(amount, recipient) {
-    const {
-      web3Store,
-      foreignStore,
-      alertStore,
-      txStore,
-    } = this.props.RootStore
+    const { web3Store, foreignStore, alertStore, txStore } =
+      this.props.RootStore
     const isExternalErc20 = foreignStore.tokenType === ERC_TYPES.ERC20
     const { isLessThan, isGreaterThan } = this
     const { intl } = this.props
@@ -298,12 +291,8 @@ class Bridge extends React.Component {
       return
     }
 
-    const {
-      foreignStore,
-      web3Store,
-      homeStore,
-      alertStore,
-    } = this.props.RootStore
+    const { foreignStore, web3Store, homeStore, alertStore } =
+      this.props.RootStore
 
     if (
       (web3Store.metamaskNotSetted && web3Store.metamaskNet.name === "") ||
@@ -367,6 +356,7 @@ class Bridge extends React.Component {
     const { reverse, recipient, amount } = this.state
 
     this.setState({ showConfirmation: false, confirmationData: {} })
+    this.setState({ showExchangeWarning: true })
     const inputAmount = amount.trim()
     const { intl } = this.props
     if (!inputAmount) {
@@ -497,17 +487,14 @@ class Bridge extends React.Component {
 
   render() {
     const { intl } = this.props
-    const {
-      web3Store,
-      foreignStore,
-      homeStore,
-      alertStore,
-    } = this.props.RootStore
+    const { web3Store, foreignStore, homeStore, alertStore } =
+      this.props.RootStore
     const {
       reverse,
       showModal,
       modalData,
       showConfirmation,
+      showExchangeWarning,
       confirmationData,
       transferButtonEnabled,
     } = this.state
@@ -616,13 +603,31 @@ class Bridge extends React.Component {
             <NetworkDetails {...modalData} />
           </ModalContainer>
           <ModalContainer showModal={showConfirmation}>
-            <TransferAlert
-              onConfirmation={this.onTransferConfirmation}
-              onCancel={() => {
-                this.setState({ showConfirmation: false, confirmationData: {} })
-              }}
-              {...confirmationData}
-            />
+            {showExchangeWarning ? (
+              <TransferWarning
+                onConfirmation={() => {
+                  this.setState({ showExchangeWarning: false })
+                }}
+                onCancel={() => {
+                  this.setState({
+                    showConfirmation: false,
+                    confirmationData: {},
+                  })
+                }}
+              />
+            ) : (
+              <TransferAlert
+                onConfirmation={this.onTransferConfirmation}
+                onCancel={() => {
+                  this.setState({
+                    showConfirmation: false,
+                    showExchangeWarning: true,
+                    confirmationData: {},
+                  })
+                }}
+                {...confirmationData}
+              />
+            )}
           </ModalContainer>
         </div>
       </div>

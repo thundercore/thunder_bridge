@@ -67,6 +67,9 @@
   "components.i18n.TransferAlert.continue": "Terus",
   "components.i18n.TransferAlert.recipient": "Penerima: {recipient}",
   "components.i18n.TransferAlert.txFee": "Biaya transaksi: {fee} {currency}",
+  "components.i18n.TransferWarning.noExchangeAddress": "Jangan mengirim token ke alamat deposit bursa terpusat.",
+  "components.i18n.TransferWarning.readRules": "Untuk mencegah hilangnya aset permanen, harap baca aturan jembatan.",
+  "components.i18n.TransferWarning.warning": "Peringatan",
   "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "dompet"
 }

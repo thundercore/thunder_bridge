@@ -67,6 +67,9 @@
   "components.i18n.TransferAlert.continue": "継続する",
   "components.i18n.TransferAlert.recipient": "受けるアドレス：{recipient}",
   "components.i18n.TransferAlert.txFee": "取引手数料：{fee} {currency}",
+  "components.i18n.TransferWarning.noExchangeAddress": "一元化された取引所の預金アドレスにトークンを送信しないでください。",
+  "components.i18n.TransferWarning.readRules": "永久的な資産の損失を防ぐために、ブリッジルールをお読みください。",
+  "components.i18n.TransferWarning.warning": "警告",
   "components.i18n.Wallet.connectWallet": "Connect Wallet",
   "components.i18n.Wallet.wallet": "財布"
 }
