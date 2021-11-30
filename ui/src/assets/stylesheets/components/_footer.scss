@@ -4,113 +4,89 @@
   bottom: 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
   color: $footer-text-color;
   padding: 18px 0 25px 0px;
-  @media screen and (min-width: $tablet-width) {
-    height: 10vh;
-  }
-  @media screen and (max-width: $tablet-width) {
-    height: 25vh;
-  }
-  @media screen and (max-width: 350px) {
-    height: 32vh;
-  }
 
-  .container {
+  .footer-section {
     display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    flex-direction: row;
-    justify-content: space-between;
-
+    justify-content: center;
+    padding-top: 20px;
     @media screen and (max-width: $tablet-width) {
       width: 100%;
       flex-direction: column;
     }
+  }
 
-    .link-container {
-      display: flex;
-      @media screen and (min-width: $tablet-width) {
-        flex-direction: row;
-      }
-      @media screen and (max-width: $tablet-width) {
-        width: 100%;
-        flex-direction: column;
-      }
-      .outer-footer-link-container {
-        display: flex;
-        flex-direction: row;
-        @media screen and (max-width: $tablet-width) {
-          width: 100%;
-          justify-content: space-between;
-        }
-      }
-      .inner-footer-link-container {
-        display: flex;
-        flex-direction: row;
-        flex: 1;
-      }
-      .divider-1 {
-        display: flex;
-        margin-right: 12px;
-        @media screen and (max-width: $tablet-width) {
-          margin: 0 8px 0 19%;
-        }
-        @media screen and (max-width: 350px) {
-          margin: 0 8px 0 15%;
-        }
-      }
-      .divider-2 {
-        display: flex;
-        margin-right: 12px;
-        @media screen and (max-width: $tablet-width) {
-          margin-right: 8px;
-        }
-        @media screen and (max-width: 350px) {
-          margin-right: 8px;
-        }
-      }
-      .footer-link {
-        @media screen and (min-width: $tablet-width) {
-          width: max-content;
-        }
-        display: flex;
-        font-size: 16px;
-        font-weight: 400;
-        margin-right: 24px;
-      }
+  .footer-main {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 85vw;
+    @media screen and (max-width: $tablet-width) {
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
     }
   }
 
-  p {
-    font-size: 14px;
-    font-weight: 500;
-    color: $footer-text-color;
+  .footer-logo {
+    display: flex;
+    flex-direction: column;
+    color: white;
+    @media screen and (max-width: $tablet-width) {
+      align-items: center;
+    }
+  }
+
+  .subscribe {
+    width: 160px;
+    margin: 40px 0;
+    border: 1px solid white;
+    border-radius: 25px;
+    padding: 12px 20px;
     text-align: center;
-    margin-top: 40px;
+    vertical-align: middle;
+  }
 
+  .footer-info {
+    width: 65%;
+    display: flex;
+    flex-wrap: wrap;
+    margin: 2rem 0;
+    justify-content: center;
+    margin-top: 0;
+  }
+
+  .group-column {
+    margin: 0 50px;
+    @media screen and (max-width: $tablet-width-landscape) {
+      margin: 0 25px;
+    }
     @media screen and (max-width: $tablet-width) {
-      margin-top: 35px;
+      width: 100%;
+      margin: 20px 0;
+      text-align: center;
+      align-items: center;
     }
   }
 
-  .social-icons {
-    order: 2;
-
-    @media screen and (max-width: $tablet-width) {
-      margin-top: 45px;
-      order: 1;
-    }
+  .info-header {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
   }
 
-  &-logo {
-    background-image: url("#{ $logo-image }");
-    background-repeat: no-repeat;
-    background-size: contain;
-    display: block;
-    height: $footer-logo-height;
-    left: 0;
-    order: 0;
-    width: $footer-logo-width;
+  .info-list {
+    font-size: 1rem;
+    padding: 5px 0;
+    list-style-type: none;
+  }
+
+  .copy-right {
+    @media screen and (max-width: $mobile-width) {
+      margin: 0 10px;
+      text-align: center;
+    }
   }
 }

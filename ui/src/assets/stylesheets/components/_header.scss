@@ -1,12 +1,12 @@
 .header {
-  background-color: $header-background-color;
+  background-image: linear-gradient(to bottom, #fcf082, #f9dd4b);
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
   width: 100%;
   z-index: 9999;
 
-  .header-logo-container{
+  .header-logo-container {
     flex: 1;
     text-decoration: none;
     display: flex;
@@ -19,10 +19,6 @@
       padding-right: 4px;
       margin-right: 8px;
       border-right: 1px solid black;
-
-      @media (max-width: $mobile-width) {
-        display: none;
-      }
     }
 
     .header-icon {
@@ -45,6 +41,10 @@
     align-items: center;
   }
 
+  .header-section.buttons {
+    justify-content: space-between;
+  }
+
   .container {
     align-items: center;
     display: flex;
@@ -59,22 +59,19 @@
       align-items: stretch;
     }
     .header-section {
-      padding: 0 24px;
+      margin: 0;
+      padding-left: 20px;
       height: 60px;
     }
     .header-section.buttons {
-      margin-left: -15px;
-      background-color: #E7D136;
-
+      justify-content: space-around;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      background-image: linear-gradient(to bottom, #fcf082, #f9dd4b);
       .daily-quota-container {
-        background-color: $header-background-color;
+        background-color: $secondary-color-dark;
       }
-    }
-  }
-
-  @media (max-width: $mobile-width) {
-    .header-section.buttons {
-      display: none;
     }
   }
 }

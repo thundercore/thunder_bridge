@@ -1,13 +1,12 @@
 .header-menu {
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
-    max-width: 700px;
-    @media screen and (max-width: $mobile-width) {
-        display: none;
-    }
-    @media screen and (max-width: $tablet-width) {
-        justify-content: flex-end;
-        width: auto;
-    }
+  width: 100%;
+  align-items: center;
+  display: flex;
+  justify-content: space-around;
+  max-width: 700px;
+  @media screen and (max-width: $mobile-width) {
+    width: 100%;
+  }
+  @media screen and (max-width: $tablet-width) {
+  }
 }

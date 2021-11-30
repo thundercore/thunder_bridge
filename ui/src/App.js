@@ -1,74 +1,57 @@
-import React from "react"
+import React from "react";
 import {
   Header,
   Bridge,
-  RelayEvents,
   Footer,
   SweetAlert,
   Loading,
   StatusPage,
   StatisticsPage,
-} from "./components"
-import { Route, Switch } from "react-router-dom"
-import "./assets/stylesheets/application.css"
-import { Disclaimer } from "./components"
-import { ModalContainer } from "./components"
-import { NoWallet } from "./components"
+} from "./components";
+import { Route, Switch } from "react-router-dom";
+import "./assets/stylesheets/application.css";
+import { Disclaimer } from "./components";
+import { ModalContainer } from "./components";
+import { NoWallet } from "./components";
 import {
   setItem,
   getItem,
   DISCLAIMER_KEY,
-} from "./components/utils/localstorage"
-import Banner from "./components/Banner"
-import SwithChainButton from "./components/SwithChainButton"
-import NotFound from "./components/NotFound"
-import { LocaleProvider } from "./contexts/localeContext"
+} from "./components/utils/localstorage";
+import Banner from "./components/Banner";
+import SwithChainButton from "./components/SwithChainButton";
+import NotFound from "./components/NotFound";
+import { LocaleProvider } from "./contexts/localeContext";
 
 class App extends React.Component {
   state = {
     showDisclaimer: false,
-    showMobileMenu: false,
     isBannerOpen: false,
-  }
+  };
 
   componentDidMount() {
-    const disclaimerDisplayed = getItem(DISCLAIMER_KEY)
+    const disclaimerDisplayed = getItem(DISCLAIMER_KEY);
 
     if (!disclaimerDisplayed) {
-      this.setState({ showDisclaimer: true })
+      this.setState({ showDisclaimer: true });
     }
   }
 
   closeDisclaimer = () => {
-    setItem(DISCLAIMER_KEY, true)
-    this.setState({ showDisclaimer: false })
-  }
-  toggleMobileMenu = () => {
-    this.setState((prevState) => ({
-      showMobileMenu: !prevState.showMobileMenu,
-    }))
-  }
+    setItem(DISCLAIMER_KEY, true);
+    this.setState({ showDisclaimer: false });
+  };
 
   render() {
-    const { showDisclaimer, showMobileMenu, isBannerOpen } = this.state
+    const { showDisclaimer, isBannerOpen } = this.state;
     return (
       <LocaleProvider>
-        <div className={showMobileMenu ? "mobile-menu-is-open" : ""}>
+        <div>
           <Route component={Loading} />
           <Route component={SweetAlert} />
-          <Route
-            render={() => (
-              <Header
-                onMenuToggle={this.toggleMobileMenu}
-                showMobileMenu={showMobileMenu}
-              />
-            )}
-          />
+          <Route render={() => <Header />} />
           <div className="app-container">
             <SwithChainButton />
-            {showMobileMenu && (
-              <Route render={() => <div className="mobile-menu-open" />} />
-            )}
             <Switch>
               {/* <Route exact path="/events" component={RelayEvents} /> */}
               <Route
@@ -95,8 +78,8 @@ class App extends React.Component {
           <NoWallet showModal={!showDisclaimer} />
         </div>
       </LocaleProvider>
-    )
+    );
   }
 }
 
-export default App
+export default App;

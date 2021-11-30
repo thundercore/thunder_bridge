@@ -1,18 +1,14 @@
 import React from "react"
 import { inject, observer } from "mobx-react"
-import { WalletIcon } from "./menu-icons/WalletIcon"
+
 import { FormattedMessage } from "react-intl"
 
 @inject("RootStore")
 @observer
 export class Wallet extends React.Component {
   render() {
-    const {
-      web3Store,
-      homeStore,
-      foreignStore,
-      alertStore,
-    } = this.props.RootStore
+    const { web3Store, homeStore, foreignStore, alertStore } =
+      this.props.RootStore
     const isHome =
       web3Store.metamaskNet.id.toString() === web3Store.homeNet.id.toString()
     const address = web3Store.defaultAccount.address
@@ -49,7 +45,6 @@ export class Wallet extends React.Component {
         onMouseLeave={() => alertStore.setShowDailyQuotaInfo(false)}
       >
         <div className="wallet-container">
-          <span className="wallet-icon">{<WalletIcon />}</span>
           <div className="wallet-info">{wallet}</div>
         </div>
       </div>

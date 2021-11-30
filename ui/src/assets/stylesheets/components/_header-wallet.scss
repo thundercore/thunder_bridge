@@ -2,17 +2,10 @@
   display: flex;
   justify-content: center;
 
-  @media (max-width: 650px) {
-    display: none;
-  }
-
   .wallet-container {
     display: flex;
+    padding-left: 30px;
 
-    .wallet-icon {
-      margin-right: 10px;
-      height: 26px;
-    }
     .wallet-info {
       display: flex;
       flex-direction: column;
@@ -37,7 +30,7 @@
   }
 
   .daily-quota-container {
-    background-color: $daily-quota-background;
+    background-color: $secondary-color-dark;
     border-radius: 2px;
     height: 4px;
 
@@ -46,6 +39,9 @@
       border-radius: 2px;
       height: 4px;
     }
+  }
+  @media (max-width: 980px) {
+    display: none;
   }
 }
 

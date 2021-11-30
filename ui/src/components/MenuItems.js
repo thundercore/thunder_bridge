@@ -3,7 +3,7 @@ import { /*EventsIcon, */ StatusIcon, StatisticsIcon } from "./menu-icons"
 import { Link } from "react-router-dom"
 import { injectIntl } from "react-intl"
 
-const MenuItems = ({ onMenuToggle = null, withoutEvents, intl }) => {
+const MenuItems = ({ intl }) => {
   const menuItems = [
     /*{
       hide: withoutEvents,
@@ -12,7 +12,6 @@ const MenuItems = ({ onMenuToggle = null, withoutEvents, intl }) => {
       text: 'Events'
     },*/
     {
-      hide: false,
       icon: <StatusIcon />,
       link: "/status",
       text: intl.formatMessage({
@@ -20,7 +19,6 @@ const MenuItems = ({ onMenuToggle = null, withoutEvents, intl }) => {
       }),
     },
     {
-      hide: withoutEvents,
       icon: <StatisticsIcon />,
       link: "/statistics",
       text: intl.formatMessage({
@@ -31,13 +29,7 @@ const MenuItems = ({ onMenuToggle = null, withoutEvents, intl }) => {
 
   return menuItems.map((item, index) => {
     return (
-      <Link
-        key={index}
-        to={item.link}
-        className="menu-items"
-        onClick={onMenuToggle}
-      >
-        <span className="menu-items-icon">{item.icon}</span>
+      <Link key={index} to={item.link} className="menu-items">
         <span className="menu-items-text">{item.text}</span>
       </Link>
     )
