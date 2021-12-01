@@ -52,10 +52,13 @@
   .footer-info {
     width: 65%;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     margin: 2rem 0;
     justify-content: center;
     margin-top: 0;
+    @media screen and (max-width: $tablet-width) {
+      flex-wrap: wrap;
+    }
   }
 
   .group-column {
