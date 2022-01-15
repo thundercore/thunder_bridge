@@ -14,7 +14,7 @@
     "dotenv": "^6.0.0",
     "mocha": "^5.2.0",
     "promise-retry": "^1.1.1",
-    "shelljs": "^0.8.2",
+    "shelljs": "^0.8.5",
     "tree-kill": "^1.2.0",
     "web3": "^1.2.9",
     "websocket": "^1.0.28"
