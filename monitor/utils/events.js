@@ -35,6 +35,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
 
 
       const homeDeposits = await getPastEvents({
+        web3: web3Home,
         contract: homeBridge,
         event: 'UserRequestForSignature',
         fromBlock: HOME_DEPLOYMENT_BLOCK,
@@ -43,6 +44,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
       })
 
       const foreignDeposits = await getPastEvents({
+        web3: web3Foreign,
         contract: foreignBridge,
         event: 'RelayedMessage',
         fromBlock: FOREIGN_DEPLOYMENT_BLOCK,
@@ -51,6 +53,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
       })
 
       const homeWithdrawals = await getPastEvents({
+        web3: web3Home,
         contract: homeBridge,
         event: 'AffirmationCompleted',
         fromBlock: HOME_DEPLOYMENT_BLOCK,
@@ -60,6 +63,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
 
       const foreignWithdrawals = isExternalErc20
         ? await getPastEvents({
+            web3: web3Foreign,
             contract: erc20Contract,
             event: 'Transfer',
             fromBlock: FOREIGN_DEPLOYMENT_BLOCK,
@@ -69,6 +73,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
             }
           })
         : await getPastEvents({
+            web3: web3Foreign,
             contract: foreignBridge,
             event: 'UserRequestForAffirmation',
             fromBlock: FOREIGN_DEPLOYMENT_BLOCK,

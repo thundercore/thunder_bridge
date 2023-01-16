@@ -1,7 +1,8 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 
+const { BatchRequest } = require('./batch')
+const { encodeEventAbi } = require("./contract")
 const bridgeValidatorsAbi = require('../abis/BridgeValidators.abi')
-const { getPastEvents } = require('./contract')
 
 const parseValidatorEvent = event => {
   if (
@@ -43,17 +44,37 @@ const processValidatorsEvents = events => {
   return Array.from(validatorList)
 }
 
-
-
 const filterAsync = (array, filter) =>
   Promise.all(array.map(entry => filter(entry)))
     .then(bits => array.filter(entry => bits.shift()));
 
-const getValidatorList = async (address, eth, fromBlock, toBlock) => {
-  const validatorsContract = new eth.Contract(bridgeValidatorsAbi, address)
-  let validators = (await validatorsContract.getPastEvents("ValidatorAdded", { fromBlock, toBlock })).map(e => e.returnValues.validator);
+const getValidatorList = async (address, web3, fromBlock, toBlock) => {
+  const validatorsContract = new web3.eth.Contract(bridgeValidatorsAbi, address)
 
-  validators = await filterAsync(validators, async v => await validatorsContract.methods.isValidator(v).call());
+  const event = validatorsContract.options.jsonInterface.find(e => e.type === 'event' && e.name === 'ValidatorAdded')
+
+  const batch = new BatchRequest(web3)
+  const logFilter = encodeEventAbi(web3, validatorsContract, event, fromBlock, toBlock)
+
+  batch.add(web3.eth.getPastLogs.request(logFilter));
+
+  let result;
+  try {
+    result = await batch.execute()
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
+
+  let [ logs ] = result
+
+  logs = logs.map(e => web3.eth.abi.decodeLog(event.inputs, e.data, e.topics.slice(1)))
+
+  validators = await filterAsync(logs, async e => 
+    await validatorsContract.methods.isValidator(e.validator).call()
+  );
+
+  validators = validators.map(e => e.validator);
 
   return validators;
 }

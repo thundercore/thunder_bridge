@@ -74,14 +74,14 @@ function main ({
 
       const foreignValidators = await getValidatorList(
         foreignValidatorsAddress,
-        web3Foreign.eth,
+        web3Foreign,
         (parseInt(FOREIGN_DEPLOYMENT_BLOCK)-1000).toString(),
         (parseInt(FOREIGN_DEPLOYMENT_BLOCK)+1000).toString(),
       )
 
       const homeValidators = await getValidatorList(
         homeValidatorsAddress,
-        web3Home.eth,
+        web3Home,
         (parseInt(HOME_DEPLOYMENT_BLOCK)-1000).toString(),
         (parseInt(HOME_DEPLOYMENT_BLOCK)+1000).toString(),
       )
