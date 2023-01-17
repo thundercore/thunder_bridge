@@ -3,8 +3,9 @@ const aws = require('aws-sdk')
 const { privateKeyToAddress } = require('../src/utils/utils')
 
 const s3 = new aws.S3()
+const kms = new aws.KMS()
 
-const { KEY_BUCKET_NAME, KEY_PATH } = process.env
+const { KEY_BUCKET_NAME, KEY_PATH, KEY_ID } = process.env
 let cachedValidatorPrivateKey = null
 
 async function getValidatorKey() {
@@ -30,9 +31,21 @@ async function getValidatorKey() {
 }
 
 async function loadValidatorFromAWS() {
-  var privateKey = await getValidatorKey()
-  if (!privateKey) {
+  var encrypedPrivateKey = await getValidatorKey()
+  if (!encrypedPrivateKey) {
     throw new Error('Failed to get validator private key from AWS')
+  }
+
+  const decryptedParam = {
+    CiphertextBlob: Buffer.from(encrypedPrivateKey, 'base64'),
+    KeyId: KEY_ID,
+  }
+
+  const res = await kms.decrypt(decryptedParam).promise()
+  const privateKey = res.Plaintext.toString('utf-8')
+
+  if (!privateKey) {
+    throw new Error('Failed to decrypt validator private key')
   }
 
   const validatorAddress = privateKeyToAddress(privateKey)
