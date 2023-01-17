@@ -104,6 +104,11 @@ export const estimateGas = async (web3, to, gasPrice, from, value, data) => {
   return toHex(gas.toString())
 }
 
+export const getGasPrice = async (web3) => {
+  const gasPrice = await web3.eth.getGasPrice()
+  return toHex(gasPrice.toString())
+}
+
 const processWeb3 = async (web3, resolve, reject) => {
   let netId
   try {

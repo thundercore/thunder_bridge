@@ -4,25 +4,30 @@
   font-weight: bold;
   margin: 0 15px;
   text-decoration: none;
+  font-family: Montserrat;
 
   @media screen and (max-width: $tablet-width) {
-    background-image: linear-gradient(to bottom, #fcf082, #f9dd4b);
-    margin: 0;
-    padding: 0;
+    background-image: linear-gradient(to bottom, #0844d2, #0844d2);
+    margin: 0px auto;
+    padding: 5px 8px;
+    border-radius: 5px;
   }
-
+  &.active .menu-items-text {
+    color: $secondary-color-white;
+  }
   &:hover {
     text-decoration: none;
-    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.2);
   }
 }
 
 .menu-items-text {
   color: $header-menu-text-color;
-  margin-left: 10px;
+  // margin-left: 10px;
   font-size: 14px;
   line-height: 26px;
   @media screen and (max-width: $tablet-width) {
-    margin-left: 10px;
+    margin-left: 0px;
   }
 }

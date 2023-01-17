@@ -1,7 +1,7 @@
 import React from "react"
 import { injectIntl, FormattedMessage } from "react-intl"
 
-const TransferWarning = ({ onConfirmation, onCancel }) => {
+const TransferWarning = ({ currency, onConfirmation, onCancel }) => {
   return (
     <div className="transfer-alert">
       <div className="alert-container">
@@ -12,9 +12,11 @@ const TransferWarning = ({ onConfirmation, onCancel }) => {
           <div className="transfer-warning-content-up">
             <FormattedMessage id="components.i18n.TransferWarning.readRules" />
           </div>
-          <div className="transfer-warning-content-down">
-            <FormattedMessage id="components.i18n.TransferWarning.noExchangeAddress" />
-          </div>
+          {currency !== "TT" && (
+            <div className="transfer-warning-content-down">
+              <FormattedMessage id="components.i18n.TransferWarning.noExchangeAddress" />
+            </div>
+          )}
         </div>
         <div className="transfer-buttons">
           <button className="transfer-cancel" onClick={onCancel}>

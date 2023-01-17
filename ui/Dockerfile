@@ -1,6 +1,7 @@
 FROM node:14 as builder
 WORKDIR /app
 COPY . .
+RUN git config --global url."https://".insteadOf git://
 RUN yarn
 RUN yarn build
 

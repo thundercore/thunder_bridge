@@ -106,16 +106,18 @@ export const BridgeForm = ({
                 value={recipient}
               />
             </div>
-            <div className="bridge-form-input-wrapper-warning">
-              <img
-                className="bridge-form-input-wrapper-exclamation"
-                src={Exclamation}
-                alt="exclamation"
-              />
-              <div>
-                <FormattedMessage id="components.i18n.BridgeForm.warningExchangeWallet" />
+            {currency !== "TT" && (
+              <div className="bridge-form-input-wrapper-warning">
+                <img
+                  className="bridge-form-input-wrapper-exclamation"
+                  src={Exclamation}
+                  alt="exclamation"
+                />
+                <div>
+                  <FormattedMessage id="components.i18n.BridgeForm.warningExchangeWallet" />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
         <div>

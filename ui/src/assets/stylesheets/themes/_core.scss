@@ -4,8 +4,10 @@ $theme-name: "core";
 $primary-color: #fee63b;
 $primary-color-dark: #502d8d;
 $primary-color-darker: #e7d136;
-$secondary-color: #f8752a;
+$secondary-color: #0844d2;
 $secondary-color-dark: #414141;
+$secondary-color-white: #ffffff;
+
 $danger-color: #f13662;
 $blue-color: #3ab9fe;
 
@@ -27,7 +29,7 @@ $header-logo-height: 30px;
 
 // header menu
 $header-menu-icon-color: $secondary-color;
-$header-menu-text-color: #414141;
+$header-menu-text-color: #dadcdd;
 
 // daily quota
 $daily-quota-background: $primary-color-darker;

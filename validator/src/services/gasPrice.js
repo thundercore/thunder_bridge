@@ -193,13 +193,14 @@ function getPrice(timestamp) {
     logger.debug({gasPrice: cachedGasPrice.fast, speed, diff: diff.toString()}, `bump gas price`)
     // gasPrice = fast + diff * (speed-2)
     gasPrice = Web3Utils.toBN(cachedGasPrice.fast).add(diff.mul(Web3Utils.toBN(speed - 2)))
-    gasPrice = BN.min(
+  }
+  
+  gasPrice = BN.min(
       Web3Utils.toBN(Web3Utils.toWei(config.maxGasPriceLimit.toString(), 'gwei')),
       gasPrice
     ).toString()
-  }
-
-  return gasPrice
+  
+    return gasPrice
 }
 
 // this function is only for unit test

@@ -12,7 +12,7 @@
       justify-content: center;
     }
     .wallet-text {
-      color: #414141;
+      color: #fff;
       font-size: 14px;
       font-weight: bold;
       line-height: 14px;
@@ -30,9 +30,9 @@
   }
 
   .daily-quota-container {
-    background-color: $secondary-color-dark;
+    background-color: $secondary-color-white;
     border-radius: 2px;
-    height: 4px;
+    height: 2px;
 
     .daily-quota-progress {
       background-color: $daily-quota-progress;
@@ -47,8 +47,8 @@
 
 .wallet-connect {
   display: flex;
-  color: #ffffff;
-  background-color: #ff7a20;
+  color: #0844d2;
+  background-color: #eff7ff;
   padding: 6px 12px;
   border-radius: 7px;
   white-space: pre;

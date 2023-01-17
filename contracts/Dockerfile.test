@@ -6,7 +6,7 @@ WORKDIR /contracts
 COPY package.json .
 COPY package-lock.json .
 
-RUN npm install
+RUN git config --global url."https://".insteadOf git:// && npm install
 
 COPY . .
 RUN rm -r migrations

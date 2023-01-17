@@ -1,5 +1,5 @@
 import { action, observable } from "mobx"
-import { estimateGas } from "./utils/web3"
+import { estimateGas, getGasPrice } from "./utils/web3"
 import {
   addPendingTransaction,
   removePendingTransaction,
@@ -32,7 +32,8 @@ class TxStore {
         return
       }
       try {
-        const gasPrice = this.gasPriceStore.gasPriceInHex
+        // const gasPrice = this.gasPriceStore.gasPriceInHex
+        const gasPrice = await getGasPrice(this.web3Store.injectedWeb3)
         const gas = await estimateGas(
           this.web3Store.injectedWeb3,
           to,
@@ -226,8 +227,9 @@ class TxStore {
               if (yn(process.env.REACT_APP_FOREIGN_WITHOUT_EVENTS)) {
                 this.foreignStore.waitUntilProcessed(hash).then(() => {
                   this.alertStore.setLoadingStepIndex(3)
-                  const unitReceived = getUnit(this.rootStore.bridgeMode)
-                    .unitForeign
+                  const unitReceived = getUnit(
+                    this.rootStore.bridgeMode
+                  ).unitForeign
                   setTimeout(() => {
                     this.alertStore.pushSuccess(
                       `${unitReceived} received on ${this.foreignStore.networkName}`,
@@ -257,8 +259,9 @@ class TxStore {
                   .waitUntilProcessed(hash, this.txsValues[hash], recipient)
                   .then(() => {
                     this.alertStore.setLoadingStepIndex(3)
-                    const unitReceived = getUnit(this.rootStore.bridgeMode)
-                      .unitHome
+                    const unitReceived = getUnit(
+                      this.rootStore.bridgeMode
+                    ).unitHome
                     setTimeout(() => {
                       this.alertStore.pushSuccess(
                         `${unitReceived} received on ${this.homeStore.networkName}`,

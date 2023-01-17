@@ -48,7 +48,8 @@ async function deployContract(contractJson, args, { from, network, nonce }) {
     privateKey: deploymentPrivateKey,
     url,
     gasPrice,
-    gasLimit
+    gasLimit,
+    web3
   })
   if (Web3Utils.hexToNumber(tx.status) !== 1) {
     console.error(tx)
@@ -63,7 +64,8 @@ async function sendRawTxHome(options) {
   return sendRawTx({
     ...options,
     gasPrice: HOME_DEPLOYMENT_GAS_PRICE,
-    gasLimit: HOME_DEPLOYMENT_GAS_LIMIT
+    gasLimit: HOME_DEPLOYMENT_GAS_LIMIT,
+    web3: web3Home
   })
 }
 
@@ -71,19 +73,22 @@ async function sendRawTxForeign(options) {
   return sendRawTx({
     ...options,
     gasPrice: FOREIGN_DEPLOYMENT_GAS_PRICE,
-    gasLimit: FOREIGN_DEPLOYMENT_GAS_LIMIT
+    gasLimit: FOREIGN_DEPLOYMENT_GAS_LIMIT,
+    web3: web3Foreign
   })
 }
 
-async function sendRawTx({ data, nonce, to, privateKey, url, gasPrice, value, gasLimit }) {
+async function sendRawTx({ data, nonce, to, privateKey, url, gasPrice, value, gasLimit, web3 }) {
   try {
+    let chainID = await web3.eth.getChainId()
     const rawTx = {
       nonce,
       gasPrice: Web3Utils.toHex(gasPrice),
       gasLimit: Web3Utils.toHex(gasLimit),
       to,
       data,
-      value
+      value,
+      chainId: Web3Utils.toHex(chainID)
     }
 
     const tx = new Tx(rawTx)

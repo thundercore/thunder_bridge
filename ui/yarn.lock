@@ -1625,10 +1625,10 @@
     "@svgr/plugin-svgo" "^4.0.3"
     loader-utils "^1.1.0"
 
-"@thundercore/eco-lib@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@thundercore/eco-lib/-/eco-lib-1.1.0.tgz#29869b51923e9df3082000753c0ce18291e4a7ad"
-  integrity sha512-vyORCXE2mKq9CoPH0yMNvdWey0f5HA6Cn6nIDTN75/cbbVzVlUNWTavpJrpT3CB0hnSob+PsZvajZHJO9ljI5Q==
+"@thundercore/eco-lib@1.1.33":
+  version "1.1.33"
+  resolved "https://registry.yarnpkg.com/@thundercore/eco-lib/-/eco-lib-1.1.33.tgz#f02b0462730d9a2f21292149e58e98c12056db57"
+  integrity sha512-O1Ouzczmklt0GIFxJFQg+6ox4FkI1fC36L0KdyqNGLomOfdu00dRHKI0YOp7t4wfrCPvFTSpztfvflj96HhNvg==
 
 "@types/babel__core@^7.1.0", "@types/babel__core@^7.1.7":
   version "7.1.16"

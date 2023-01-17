@@ -21,6 +21,11 @@ In the folder which clone from the repo. (Should be Node V10.x)
 ```
 cd ./ui
 yarn install
+
+If error of "The unauthenticated git protocol on port 9418 is no longer supported." is occurred
+Run the following command
+
+git config --global url."https://github.com/".insteadOf git://github.com/
 ```
 ## Set up environment variables
 In the [Ansible playbook](https://github.com/thundercore/devops/blob/develop/ansible/playbooks/CCA/cca-bridgeui.yml), 

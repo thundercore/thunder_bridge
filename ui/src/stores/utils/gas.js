@@ -1,11 +1,11 @@
-const { toWei } = require('web3-utils')
+const { toWei } = require("web3-utils")
 
 export async function fetchGasPrice({ oracleFn }) {
   let gasPrice = null
   try {
     gasPrice = await oracleFn()
   } catch (e) {
-    if (!e.message.includes('Gas Price Oracle url not defined')) {
+    if (!e.message.includes("Gas Price Oracle url not defined")) {
       console.error(`Gas Price API is not available. ${e.message}`)
     }
   }
@@ -19,8 +19,12 @@ export async function fetchGasPriceFromOracle(oracleUrl, speedType) {
   const response = await fetch(oracleUrl)
   const json = await response.json()
   const gasPrice = json[speedType]
+  if (+gasPrice < 11) gasPrice = 11
   if (!gasPrice) {
-    throw new Error(`Response from Oracle didn't include gas price for ${speedType} type.`)
+    throw new Error(
+      `Response from Oracle didn't include gas price for ${speedType} type.`
+    )
   }
-  return toWei(gasPrice.toString(), 'gwei')
+
+  return toWei(gasPrice.toString(), "gwei")
 }

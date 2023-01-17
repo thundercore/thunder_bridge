@@ -3,11 +3,11 @@ if (process.env.NODE_ENV !== "production")
 
 const express = require('express');
 const client = require('prom-client');
-const fetch = require('node-fetch');
 const HttpRetryProvider = require('./utils/httpRetryProvider')
 const { newRedis } = require('./utils/redisClient')
 const logger = require('pino')()
 const Web3 = require('web3')
+const BN = require("bn.js")
 const { decodeBridgeMode } = require('./utils/bridgeMode')
 const { initSentry } = require('./utils/sentry.js')
 const Sentry = require('@sentry/node')
@@ -54,6 +54,7 @@ let config = existsSync("config.json") ? JSON.parse(readFileSync("config.json", 
     "UNISWAP_PAIR_ADDRESS": env[`${L}_UNISWAP_PAIR_ADDRESS`],
     "TOKEN_ADDRESS": env[`${L}_TOKEN_ADDRESS`],
     "STABLE_TOKEN_ADDRESS": env[`${L}_STABLE_TOKEN_ADDRESS`],
+    "MINTER_BURNER_PROXY_ADDRESS": env[`${L}_MINTER_BURNER_PROXY_ADDRESS`],
     "GAS_PRICE_SPEED_TYPE": env.GAS_PRICE_SPEED_TYPE,
     "GAS_LIMIT": env.GAS_LIMIT,
     "GAS_PRICE_FALLBACK": env.GAS_PRICE_FALLBACK,
@@ -62,6 +63,7 @@ let config = existsSync("config.json") ? JSON.parse(readFileSync("config.json", 
     "FOREIGN_MAX_GAS_PRICE_LIMIT": env.FOREIGN_MAX_GAS_PRICE_LIMIT,
   }]))
 
+const foreignWeb3 = new Web3(new HttpRetryProvider(process.env.FOREIGN_RPC_URL.split(",")))
 
 const redis = newRedis(config.REDIS_URL || process.env.REDIS_URL)
 const registry = new client.Registry();
@@ -205,8 +207,18 @@ async function checkVBalances(token) {
 }
 
 async function updateGasPrice() {
-  const resp = await fetch(process.env.GAS_PRICE_ORACLE_URL || 'https://gasprice.poa.network/')
-  const gasPrice = await resp.json()
+  const gas = await foreignWeb3.eth.getGasPrice();
+  const gasBN = new BN(gas)
+  const GWei = (x) => new BN(Web3.utils.toWei(x, 'gwei'))
+  const slow = gasBN.gt(GWei("11")) ? gasBN : GWei("11")
+  const average = gasBN.gt(GWei("15")) ? gasBN : GWei("15")
+  const fast = average.add(GWei("5"))
+
+  const gasPrice = {
+    slow: Web3.utils.fromWei(slow.toString(), "gwei"),
+    average: Web3.utils.fromWei(average.toString(), "gwei"),
+    fast: Web3.utils.fromWei(fast.toString(), "gwei")
+  }
   await redis.updateGasPrice(gasPrice)
 }
 

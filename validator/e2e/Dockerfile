@@ -6,7 +6,7 @@ WORKDIR /stuff
 COPY ./package.json .
 COPY ./package-lock.json .
 
-RUN npm install --unsafe-perm
+RUN git config --global url."https://".insteadOf git:// && npm install --unsafe-perm
 
 COPY . .
 

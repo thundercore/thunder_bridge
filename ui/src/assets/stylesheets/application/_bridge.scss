@@ -57,8 +57,9 @@
 
     .bridge-transfer-content {
       background-color: $bridge-background-color;
-      border-radius: 10px;
       display: flex;
+      width: 100%;
+      border-radius: 10px;
       flex-direction: column;
 
       // @media screen and (max-width: $tablet-width) {
@@ -196,7 +197,7 @@
         justify-content: center;
         cursor: pointer;
         path {
-          fill: $bridge-link-color;
+          // fill: $bridge-link-color;
         }
       }
       .info-icon-left {
@@ -499,16 +500,16 @@
       opacity: 0;
 
       &:checked + .bridge-choose-container {
-        border-color: #f8752a;
+        border-color: #0844d2;
         background-color: #fff;
 
         &:after {
-          background-color: #f8752a;
+          background-color: #0844d2;
           opacity: 1;
         }
 
         .bridge-choose-arrow {
-          background-color: #f8752a;
+          background-color: #0844d2;
         }
 
         .bridge-choose-logo {
@@ -1055,11 +1056,11 @@
   }
 
   &-tt-sai {
-    background-image: url(#{$base-images-path + '/logos/tt-sai.png'});
+    background-image: url(#{$base-images-path + '/logos/tt-sai.svg'});
   }
 
   &-tt-usdt {
-    background-image: url(#{$base-images-path + '/logos/tt-usdt.png'});
+    background-image: url(#{$base-images-path + '/logos/tt-usdt.svg'});
   }
 
   &-erc20-usdt {

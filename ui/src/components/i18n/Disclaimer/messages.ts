@@ -7,6 +7,6 @@ export default defineMessages({
   disclaimer2:
     "For further information on how to install any of both wallets, please click the buttons below.",
   metaMask: "MetaMask",
-  thunderCoreHub: "ThunderCore Hub",
+  thunderCoreHub: "TT Wallet",
   gotIt: "Got it!",
 })

@@ -1,5 +1,5 @@
 .header {
-  background-image: linear-gradient(to bottom, #fcf082, #f9dd4b);
+  background-image: linear-gradient(to bottom, #0844d2, #0844d2);
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -21,14 +21,13 @@
     }
 
     .header-icon {
-      width: 234px;
-      height: 20px;
-      margin-left: 8px;
-      margin-top: 3px;
+      width: 251px;
+      height: 36px;
+      background-size: cover;
       background-image: url(#{$base-images-path + '/themes/core/logos/logo-thunderbridge.png'});
-
       @media (max-width: $mobile-width) {
-        background-image: url(#{$base-images-path + '/themes/core/logos/logo-thunderbridge-3x.svg'});
+        width: 160px;
+        height: 23px;
       }
     }
   }
@@ -68,7 +67,7 @@
       padding: 0;
       margin: 0;
       width: 100%;
-      background-image: linear-gradient(to bottom, #fcf082, #f9dd4b);
+      background-image: linear-gradient(to bottom, #0844d2, #0844d2);
       .daily-quota-container {
         background-color: $secondary-color-dark;
       }

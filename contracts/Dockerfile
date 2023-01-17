@@ -6,7 +6,7 @@ WORKDIR /contracts
 COPY package.json .
 COPY package-lock.json .
 
-RUN npm install
+RUN git config --global url."https://".insteadOf git:// && npm install
 
 COPY . .
 
@@ -21,7 +21,7 @@ WORKDIR /contracts/deploy
 COPY deploy/package.json .
 COPY deploy/package-lock.json .
 
-RUN npm install --unsafe-perm
+RUN git config --global url."https://".insteadOf git:// && npm install --unsafe-perm
 
 COPY --from=contract /contracts/build/ /contracts/build/
 COPY --from=contract /contracts/flats/ /contracts/flats/

@@ -605,6 +605,7 @@ class Bridge extends React.Component {
           <ModalContainer showModal={showConfirmation}>
             {showExchangeWarning ? (
               <TransferWarning
+                currency={formCurrency}
                 onConfirmation={() => {
                   this.setState({ showExchangeWarning: false })
                 }}

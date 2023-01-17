@@ -53,7 +53,7 @@ function App() {
   return (
     <div>
     <EcoProviders>
-      <EcoHeaders hideLangSelect locale={intl.locale} updateLocale={() => {}} />
+      <EcoHeaders hasEntity notOpacity hideLangSelect locale={intl.locale} updateLocale={() => {}} />
       <Route component={Loading} />
       <Route component={SweetAlert} />
       <Route render={() => <Header />} />

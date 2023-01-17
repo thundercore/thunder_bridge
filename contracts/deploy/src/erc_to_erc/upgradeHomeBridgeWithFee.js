@@ -13,7 +13,7 @@ const {
   HOME_WITHDRAW_FEE_PERCENT,
   HOME_WITHDRAW_FIXED_FEE,
   HOME_DEPOSIT_FEE_PERCENT,
-  HOME_DEPOSIT_FIXED_FEE,
+  HOME_DEPOSIT_FIXED_FEE
 } = env
 
 const DEPLOYMENT_ACCOUNT_ADDRESS = privateKeyToAddress(DEPLOYMENT_ACCOUNT_PRIVATE_KEY)
@@ -105,7 +105,7 @@ async function setupHomeBridgeWithFee(homeBridgeAddress, homeBridgeWithFeeImpl) 
 async function upgradeHomeBridgeWithFee(version, homeBridgeAddress) {
   let nonce = await web3Home.eth.getTransactionCount(DEPLOYMENT_ACCOUNT_ADDRESS)
 
-  const homeBridgeWithFeeImpl = await deployHomeBridgeImpl('HomeBridgeErcToErcWithFee')
+  const homeBridgeWithFeeImpl = await deployHomeBridgeImpl('HomeBridgeErcToErcWithFeeV2')
   nonce++
 
   const homeBridgeStorage = new web3Home.eth.Contract(EternalStorageProxy.abi, homeBridgeAddress)

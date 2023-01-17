@@ -22,7 +22,7 @@ if (env.BRIDGE_MODE === 'ERC_TO_NATIVE') {
 } else if (env.BRIDGE_MODE === 'ERC677_TO_ERC677') {
   HomeBridge = require('../../../build/contracts/HomeBridgeErc677ToErc677WithFee.json')
 } else {
-  HomeBridge = require('../../../build/contracts/HomeBridgeErcToErcWithFee.json')
+  HomeBridge = require('../../../build/contracts/HomeBridgeErcToErcWithFeeV2.json')
 }
 
 const {

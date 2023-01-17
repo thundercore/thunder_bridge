@@ -7,8 +7,9 @@ const ERC20_ABI = require('./abis/ERC20.abi')
 const ERC677_ABI = require('./abis/ERC677.abi')
 const HOME_ERC_TO_ERC_ABI = require('./abis/HomeBridgeErcToErc.abi')
 const FOREIGN_ERC_TO_ERC_ABI = require('./abis/ForeignBridgeErcToErc.abi')
+const MINTER_BURNER_PROXY_ABI = require('./abis/MinterBurnerProxy.abi')
 
-function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRIDGE_ADDRESS }) {
+function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRIDGE_ADDRESS , MINTER_BURNER_PROXY_ADDRESS}) {
   return async function main(bridgeMode) {
     const homeProvider = new HttpRetryProvider(HOME_RPC_URL.split(","))
     const web3Home = new Web3(homeProvider)
@@ -35,7 +36,8 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
     const homeBridge = new web3Home.eth.Contract(HOME_ERC_TO_ERC_ABI, HOME_BRIDGE_ADDRESS)
     const tokenAddress = await homeBridge.methods.erc677token().call()
     const tokenContract = new web3Home.eth.Contract(ERC677_ABI, tokenAddress)
-    const totalSupply = await tokenContract.methods.totalSupply().call()
+    const minterBurnerProxyContract = new web3Home.eth.Contract(MINTER_BURNER_PROXY_ABI, MINTER_BURNER_PROXY_ADDRESS)
+    const totalSupply = MINTER_BURNER_PROXY_ADDRESS ? await minterBurnerProxyContract.methods.thunderBridgeSupply().call() : await tokenContract.methods.totalSupply().call()
     const tokenBalance = new BN(await tokenContract.methods.balanceOf(HOME_BRIDGE_ADDRESS).call())
     const homeTotalSupplyBN = new BN(totalSupply)
 

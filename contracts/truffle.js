@@ -41,7 +41,7 @@ module.exports = {
       host: "localhost",
       port: 7545,
       network_id: "*",
-      gasPrice: 1000000000
+      gas: 6700000
     },
     test: {
       host: "localhost",
@@ -159,18 +159,18 @@ module.exports = {
     },
     "thunder-testnet": {
       provider: () => {
-          if (privateKeys === null) {
-            throw new Error("Create a .private-keys file");
-          }
-          return new HDWalletProvider(
-            privateKeys,
-            "https://testnet-rpc.thundercore.com",
-            0 /*address_index*/,
-            privateKeys.length /*num_addresses*/
-          );
-        },
-        network_id: "18"
-      }
+        if (privateKeys === null) {
+          throw new Error("Create a .private-keys file");
+        }
+        return new HDWalletProvider(
+          privateKeys,
+          "https://testnet-rpc.thundercore.com",
+          0 /*address_index*/,
+          privateKeys.length /*num_addresses*/
+        );
+      },
+      network_id: "18"
+    }
   },
   compilers: {
     solc: {
