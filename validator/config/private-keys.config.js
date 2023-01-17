@@ -2,9 +2,15 @@ require('dotenv').config()
 const aws = require('aws-sdk')
 const { privateKeyToAddress } = require('../src/utils/utils')
 
-const s3 = new aws.S3()
+const { REGION, KEY_ID, ACC_KEY_ID, SECRET_ACC_KEY, SECRET_ID } = process.env
 
-const { KEY_BUCKET_NAME, KEY_PATH } = process.env
+const kms = new aws.KMS()
+const secretManager = new aws.SecretsManager({
+  credentials: new aws.Credentials(ACC_KEY_ID, SECRET_ACC_KEY),
+  region: REGION,
+  apiVersion: '2017-10-17',
+})
+
 let cachedValidatorPrivateKey = null
 
 async function getValidatorKey() {
@@ -12,32 +18,41 @@ async function getValidatorKey() {
     return process.env.VALIDATOR_ADDRESS_PRIVATE_KEY
   }
 
-  if (!KEY_BUCKET_NAME || !KEY_PATH) {
-    throw new Error('Validator private key path is not specified')
+  if (!REGION || !ACC_KEY_ID || !SECRET_ACC_KEY || !SECRET_ID) {
+    throw new Error('AWS credentials are not specified')
   }
+
   if (cachedValidatorPrivateKey) {
     return cachedValidatorPrivateKey
   } else {
-    const result = await s3
-      .getObject({
-        Bucket: KEY_BUCKET_NAME,
-        Key: KEY_PATH
-      })
-      .promise()
-    cachedValidatorPrivateKey = result.Body.toString().trim()
-    return cachedValidatorPrivateKey
+    const secret = await secretManager.getSecretValue({ SecretId: SECRET_ID }).promise()
+    cachedValidatorPrivateKey = secret.SecretString
   }
+
+  return cachedValidatorPrivateKey
 }
 
 async function loadValidatorFromAWS() {
-  var privateKey = await getValidatorKey()
-  if (!privateKey) {
+  var encrypedPrivateKey = await getValidatorKey()
+  if (!encrypedPrivateKey) {
     throw new Error('Failed to get validator private key from AWS')
+  }
+
+  const decryptedParam = {
+    CiphertextBlob: Buffer.from(encrypedPrivateKey, 'base64'),
+    KeyId: KEY_ID,
+  }
+
+  const res = await kms.decrypt(decryptedParam).promise()
+  const privateKey = res.Plaintext.toString('utf-8')
+
+  if (!privateKey) {
+    throw new Error('Failed to decrypt validator private key')
   }
 
   const validatorAddress = privateKeyToAddress(privateKey)
   if (!validatorAddress) {
-    throw new Error("Failed to fetch validator address by private key")
+    throw new Error('Failed to fetch validator address by private key')
   }
   return {
     id: validatorAddress.substring(0, 8),

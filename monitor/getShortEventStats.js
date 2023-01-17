@@ -13,11 +13,11 @@ async function processEvents(iterator, processedResult) {
     const events = await getPastEventPromise
     processedResult.length += events.length
     for (const event of events) {
-      processedResult.value = processedResult.value.add(toBN(event.returnValues.value))
-      if (event.returnValues.recipient) {
-        processedResult.users.add(event.returnValues.recipient)
+      processedResult.value = processedResult.value.add(toBN(event.value))
+      if (event.recipient) {
+        processedResult.users.add(event.recipient)
       } else if (event.event == 'Transfer') {
-        processedResult.users.add(event.returnValues.from)
+        processedResult.users.add(event.from)
       }
     }
   }
@@ -83,17 +83,8 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
 
       const [homeBlockNumber, foreignBlockNumber] = await getBlockNumber(web3Home, web3Foreign)
 
-      const homeDepositsIter = getPastEventsIter({
-        contract: homeBridge,
-        event: 'UserRequestForSignature',
-        fromBlock: homeStartBlock,
-        toBlock: homeBlockNumber,
-        options: {},
-        token
-      })
-      const homeDeposit = await processEvents(homeDepositsIter, homeDepositCache)
-
       const foreignDepositsIter = getPastEventsIter({
+        web3: web3Foreign,
         contract: foreignBridge,
         event: 'RelayedMessage',
         fromBlock: foreignStartBlock,
@@ -103,7 +94,19 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
       })
       const foreignDeposit = await processEvents(foreignDepositsIter, foreignDepositCache)
 
+      const homeDepositsIter = getPastEventsIter({
+        web3: web3Home,
+        contract: homeBridge,
+        event: 'UserRequestForSignature',
+        fromBlock: homeStartBlock,
+        toBlock: homeBlockNumber,
+        options: {},
+        token
+      })
+      const homeDeposit = await processEvents(homeDepositsIter, homeDepositCache)
+
       const homeWithdrawalsIter = getPastEventsIter({
+        web3: web3Home,
         contract: homeBridge,
         event: 'AffirmationCompleted',
         fromBlock: homeStartBlock,
@@ -114,6 +117,7 @@ function main({ HOME_RPC_URL, FOREIGN_RPC_URL, HOME_BRIDGE_ADDRESS, FOREIGN_BRID
       const homeWithdrawal = await processEvents(homeWithdrawalsIter, homeWithdrawalCache)
 
       const foreignWithdrawalsIter = getPastEventsIter({
+        web3: web3Foreign,
         contract: erc20Contract,
         event: 'Transfer',
         fromBlock: foreignStartBlock,
