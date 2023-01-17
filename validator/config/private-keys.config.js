@@ -2,9 +2,8 @@ require('dotenv').config()
 const aws = require('aws-sdk')
 const { privateKeyToAddress } = require('../src/utils/utils')
 
-const { KEY_ID } = process.env
+const { SECRET_ID } = process.env
 
-const kms = new aws.KMS()
 const secretManager = new aws.SecretsManager({
   apiVersion: '2017-10-17',
 })
@@ -14,10 +13,6 @@ let cachedValidatorPrivateKey = null
 async function getValidatorKey() {
   if (process.env.VALIDATOR_ADDRESS_PRIVATE_KEY) {
     return process.env.VALIDATOR_ADDRESS_PRIVATE_KEY
-  }
-
-  if (!REGION || !ACC_KEY_ID || !SECRET_ACC_KEY || !SECRET_ID) {
-    throw new Error('AWS credentials are not specified')
   }
 
   if (cachedValidatorPrivateKey) {
@@ -31,21 +26,9 @@ async function getValidatorKey() {
 }
 
 async function loadValidatorFromAWS() {
-  var encrypedPrivateKey = await getValidatorKey()
-  if (!encrypedPrivateKey) {
-    throw new Error('Failed to get validator private key from AWS')
-  }
-
-  const decryptedParam = {
-    CiphertextBlob: Buffer.from(encrypedPrivateKey, 'base64'),
-    KeyId: KEY_ID,
-  }
-
-  const res = await kms.decrypt(decryptedParam).promise()
-  const privateKey = res.Plaintext.toString('utf-8')
-
+  const privateKey = await getValidatorKey()
   if (!privateKey) {
-    throw new Error('Failed to decrypt validator private key')
+    throw new Error('Failed to get validator private key from AWS')
   }
 
   const validatorAddress = privateKeyToAddress(privateKey)
