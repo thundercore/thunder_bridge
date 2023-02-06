@@ -2,13 +2,15 @@ require('dotenv').config()
 const aws = require('aws-sdk')
 const { privateKeyToAddress } = require('../src/utils/utils')
 
-const { SECRET_ID, AWS_REGION, SESSION_TOKEN } = process.env
+const { SECRET_ID, AWS_DEFAULT_REGION, AWS_SESSION_TOKEN, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env
 
 const secretManager = new aws.SecretsManager({
   credentials: new aws.Credentials({
-    sessionToken: SESSION_TOKEN
+    sessionToken: AWS_SESSION_TOKEN,
+    accessKeyId: AWS_ACCESS_KEY_ID,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY,
   }),
-  region: AWS_REGION,
+  region: AWS_DEFAULT_REGION,
   apiVersion: '2017-10-17',
 })
 
