@@ -2,18 +2,14 @@ require('dotenv').config()
 const aws = require('aws-sdk')
 const { privateKeyToAddress } = require('../src/utils/utils')
 
-const { SECRET_ID, AWS_DEFAULT_REGION, AWS_SESSION_TOKEN, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env
+const { SECRET_ID, AWS_DEFAULT_REGION, ROLE_ARN, ROLE_SESSION_NAME } = process.env
 
-const secretManager = new aws.SecretsManager({
-  credentials: new aws.Credentials({
-    sessionToken: AWS_SESSION_TOKEN,
-    accessKeyId: AWS_ACCESS_KEY_ID,
-    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+const sts = new AWS.STS({
+  credentials: new AWS.Credentials({
+    region: AWS_DEFAULT_REGION,
   }),
-  region: AWS_DEFAULT_REGION,
-  apiVersion: '2017-10-17',
 })
-
+let secretManager = null
 let cachedValidatorPrivateKey = null
 
 async function getValidatorKey() {
@@ -24,6 +20,24 @@ async function getValidatorKey() {
   if (cachedValidatorPrivateKey) {
     return cachedValidatorPrivateKey
   } else {
+    if (secretManager === null) {
+      const role = await sts
+        .assumeRole({
+          RoleArn: ROLE_ARN,
+          RoleSessionName: ROLE_SESSION_NAME,
+        })
+        .promise()
+      secretManager = new aws.SecretsManager({
+        credentials: new aws.Credentials({
+          sessionToken: role.Credentials.SessionToken,
+          accessKeyId: role.Credentials.AccessKeyId,
+          secretAccessKey: role.Credentials.SecretAccessKey,
+        }),
+        region: AWS_DEFAULT_REGION,
+        apiVersion: '2017-10-17',
+      })
+    }
+
     const secret = await secretManager.getSecretValue({ SecretId: SECRET_ID }).promise()
     cachedValidatorPrivateKey = secret.SecretString
   }
