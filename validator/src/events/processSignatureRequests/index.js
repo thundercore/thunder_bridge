@@ -6,17 +6,8 @@ const rootLogger = require('../../services/logger')
 const { web3Home, web3Foreign } = require('../../services/web3')
 const { createMessage } = require('../../utils/message')
 const estimateGas = require('./estimateGas')
-const {
-  AlreadyProcessedError,
-  AlreadySignedError,
-  InvalidValidatorError
-} = require('../../utils/errors')
-const {
-  EXIT_CODES,
-  MAX_CONCURRENT_EVENTS,
-  OBSERVABLE_METHODS,
-  ZERO_ADDRESS
-} = require('../../utils/constants')
+const { AlreadyProcessedError, AlreadySignedError, InvalidValidatorError } = require('../../utils/errors')
+const { EXIT_CODES, MAX_CONCURRENT_EVENTS, OBSERVABLE_METHODS, ZERO_ADDRESS } = require('../../utils/constants')
 
 const limit = promiseLimit(MAX_CONCURRENT_EVENTS)
 
@@ -45,7 +36,7 @@ function processSignatureRequestsBuilder(config, validator) {
     }
 
     rootLogger.debug(`Processing ${signatureRequests.length} SignatureRequest events`)
-    const callbacks = signatureRequests.map(signatureRequest =>
+    const callbacks = signatureRequests.map((signatureRequest) =>
       limit(async () => {
         // eslint-disable-next-line prefer-const
         let { recipient, value } = signatureRequest.returnValues
@@ -59,7 +50,7 @@ function processSignatureRequestsBuilder(config, validator) {
         ) {
           const newRecipient = `0x${tx.input.substring(
             (1 + 4 + 32 + 32 + 32 + 32) * 2 + 12 * 2, // 0x + sig + to + amount + dataLength + data + zeros padding
-            OBSERVABLE_METHODS.transferAndCall.callDataLength
+            OBSERVABLE_METHODS.transferAndCall.callDataLength,
           )}`
           if (newRecipient !== ZERO_ADDRESS) {
             recipient = newRecipient
@@ -67,23 +58,25 @@ function processSignatureRequestsBuilder(config, validator) {
         }
 
         const logger = rootLogger.child({
-          eventTransactionHash: signatureRequest.transactionHash
+          eventTransactionHash: signatureRequest.transactionHash,
         })
 
-        logger.info(
-          { sender: recipient, value },
-          `Processing signatureRequest ${signatureRequest.transactionHash}`
-        )
+        logger.info({ sender: recipient, value }, `Processing signatureRequest ${signatureRequest.transactionHash}`)
 
         const message = createMessage({
           recipient,
           value,
           transactionHash: signatureRequest.transactionHash,
           bridgeAddress: config.foreignBridgeAddress,
-          expectedMessageLength
+          expectedMessageLength,
         })
 
-        const signature = web3Home.eth.accounts.sign(message, `0x${validator.privateKey}`)
+        let privateKey = validator.privateKey
+        if (!privateKey.startsWith('0x')) {
+          privateKey = `0x${privateKey}`
+        }
+
+        const signature = web3Home.eth.accounts.sign(message, privateKey)
 
         let gasEstimate
         try {
@@ -94,14 +87,12 @@ function processSignatureRequestsBuilder(config, validator) {
             validatorContract,
             signature: signature.signature,
             message,
-            address: validator.address
+            address: validator.address,
           })
           logger.debug({ gasEstimate }, 'Gas estimated')
         } catch (e) {
           if (e instanceof HttpListProviderError) {
-            throw new Error(
-              'RPC Connection Error: submitSignature Gas Estimate cannot be obtained.'
-            )
+            throw new Error('RPC Connection Error: submitSignature Gas Estimate cannot be obtained.')
           } else if (e instanceof InvalidValidatorError) {
             logger.fatal({ address: validator.address }, 'Invalid validator')
             process.exit(EXIT_CODES.INCOMPATIBILITY)
@@ -110,9 +101,7 @@ function processSignatureRequestsBuilder(config, validator) {
             return
           } else if (e instanceof AlreadyProcessedError) {
             logger.info(
-              `signatureRequest ${
-                signatureRequest.transactionHash
-              } was already processed by other validators`
+              `signatureRequest ${signatureRequest.transactionHash} was already processed by other validators`,
             )
             return
           } else {
@@ -131,7 +120,7 @@ function processSignatureRequestsBuilder(config, validator) {
           transactionReference: signatureRequest.transactionHash,
           to: config.homeBridgeAddress,
         })
-      })
+      }),
     )
 
     await Promise.all(callbacks)
