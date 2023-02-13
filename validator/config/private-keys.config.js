@@ -4,7 +4,7 @@ const { privateKeyToAddress } = require('../src/utils/utils')
 
 const { SECRET_ID, AWS_DEFAULT_REGION, ROLE_ARN, ROLE_SESSION_NAME } = process.env
 
-const sts = new AWS.STS({
+const sts = new aws.STS({
   credentials: new AWS.Credentials({
     region: AWS_DEFAULT_REGION,
   }),
