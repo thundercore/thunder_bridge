@@ -1,5 +1,6 @@
 require('dotenv').config()
 const aws = require('aws-sdk')
+const { statSync } = require('fs')
 const { privateKeyToAddress } = require('../src/utils/utils')
 
 const { SECRET_ID, AWS_DEFAULT_REGION, ROLE_ARN, ROLE_SESSION_NAME } = process.env
@@ -27,6 +28,9 @@ async function getValidatorKey() {
           RoleSessionName: ROLE_SESSION_NAME,
         })
         .promise()
+
+      console.log(`Assume role arn: ${role.AssumedRoleUser.Arn}`)
+
       secretManager = new aws.SecretsManager({
         credentials: new aws.Credentials({
           sessionToken: role.Credentials.SessionToken,
