@@ -31,7 +31,7 @@
     "eth-gas-reporter": "^0.1.12",
     "nodemon": "^1.17.3",
     "scrypt": "6.0.3",
-    "solidity-coverage": "^0.4.15",
+    "solidity-coverage": "^0.8.2",
     "truffle-flattener": "^1.2.3",
     "truffle-hdwallet-provider": "1.0.8"
   }
