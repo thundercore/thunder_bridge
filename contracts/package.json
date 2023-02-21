@@ -14,7 +14,7 @@
   "license": "GPLv3",
   "dependencies": {
     "ganache-cli": "^6.1.0",
-    "json5": "^2.1.1",
+    "json5": "^2.2.2",
     "openzeppelin-eth": "2.0.2",
     "openzeppelin-solidity": "^1.10.0",
     "sha3": "2.1.1",
